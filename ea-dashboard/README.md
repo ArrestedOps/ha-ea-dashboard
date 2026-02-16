@@ -1,36 +1,36 @@
-# EA Trading Dashboard v3.5.0
+# EA Trading Dashboard v3.6.0
 
-## 🎉 v3.5.0 - FULLY AUTOMATIC!
+## 🔥 v3.6.0 - PROPER DATA FILTERING!
 
-### ✅ NO MORE MANUAL INPUT!
-EA v3.5 **automatically detects**:
-- ✅ Initial Deposit (from first balance)
-- ✅ All Deposits (found in history)
-- ✅ All Withdrawals (found in history)
-- ✅ Leverage
-- ✅ Everything!
+### ✅ FIXES:
+- **Deposits filtered properly** - No longer counted as trades!
+- **Profit calculation correct** - Only real trades counted
+- **Best/Worst Trade correct** - Deposits excluded
+- **Secret Key restored** - In add-on config
+- **Detail page redesigned** - Modern, shows ALL trades
+- **All calculations accurate** - Clean data = accurate results
 
-### How It Works
-1. EA analyzes your COMPLETE account history
-2. Finds first balance = Initial Deposit
-3. Searches for "deposit" / "withdrawal" in comments
-4. Tracks everything automatically
-5. Sends to dashboard
+### How EA Filters:
+```
+1. Check OrderComment() for "deposit", "balance", "withdrawal"
+2. Check if swap=0, commission=0, profit=round number
+3. Separate deposits from trades
+4. Send only real trades to dashboard
+```
 
-### Installation
-1. GitHub: Upload `github-v3.5/` contents
-2. HA: Install v3.5.0
-3. MT4: Install EA v3.5 (NO manual input needed!)
-4. Done!
+### Detail Page Now Shows:
+- Full trade history (scrollable table)
+- Equity curve
+- Top symbols breakdown
+- ALL statistics from MyFxBook
+- Deposits/Withdrawals separate
+- Perfect calculations!
 
-### Detail Page Now Shows
-- Avg Win/Loss
-- Best/Worst Trade
-- Avg Duration
-- **Deposits (auto-detected)**
-- **Withdrawals (auto-detected)**
-- **Leverage**
-- Equity Curve
-- Top Symbols
+### Installation:
+1. GitHub: Upload `github-v3.6/`
+2. HA: Install v3.6.0
+3. Set webhook secret in add-on config
+4. MT4: Install EA v3.6
+5. Done!
 
-## Perfect!
+## Clean Data → Accurate Dashboard!

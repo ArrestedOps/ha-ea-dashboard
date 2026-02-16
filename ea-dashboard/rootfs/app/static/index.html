@@ -3,47 +3,48 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>EA Dashboard v3.4</title>
+<title>EA Dashboard v3.6</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Urbanist:wght@300;700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Inter:wght@300;500;700;900&display=swap" rel="stylesheet">
 <style>
-:root{--bg-dark:#0a0e14;--bg-card:#13171f;--bg-hover:#1a1f2b;--border:#252a35;--text:#e6e8eb;--text-sec:#8b92a0;--green:#00ff87;--red:#ff3366;--blue:#00d4ff;--orange:#ff9500}
-*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Urbanist',sans-serif;background:var(--bg-dark);color:var(--text)}
-.container{max-width:1900px;margin:0 auto;padding:40px 30px}.header{margin-bottom:40px}.header h1{font-size:48px;font-weight:900;letter-spacing:-2px;background:linear-gradient(135deg,var(--green),var(--blue));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:8px}
+:root{--bg:#0a0e14;--card:#13171f;--hover:#1a1f2b;--border:#252a35;--text:#e6e8eb;--sec:#8b92a0;--green:#00ff87;--red:#ff3366;--blue:#00d4ff;--orange:#ff9500}
+*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text)}
+.container{max-width:1900px;margin:0 auto;padding:40px 30px}.header{margin-bottom:40px}.header h1{font-size:48px;font-weight:900;letter-spacing:-2px;background:linear-gradient(135deg,var(--green),var(--blue));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
 .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:20px;margin-bottom:30px}
-.stat-card{background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:24px}.stat-label{font-size:12px;font-family:'JetBrains Mono';color:var(--text-sec);text-transform:uppercase;margin-bottom:8px}.stat-value{font-size:32px;font-weight:700}
-.trades-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:30px}.trades-section{background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:24px}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px}.stat-label{font-size:11px;font-family:'JetBrains Mono';color:var(--sec);text-transform:uppercase;margin-bottom:8px}.stat-value{font-size:32px;font-weight:700}
+.trades-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:30px}.trades-section{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px}
 .section-header{display:flex;justify-content:space-between;margin-bottom:16px;font-family:'JetBrains Mono';font-weight:700;font-size:14px}
-.trade-item{display:flex;justify-content:space-between;padding:12px;background:var(--bg-hover);border-radius:8px;margin-bottom:8px;font-family:'JetBrains Mono';font-size:12px}
+.trade-item{display:flex;justify-content:space-between;padding:12px;background:var(--hover);border-radius:8px;margin-bottom:8px;font-family:'JetBrains Mono';font-size:12px}
 .section-total{border-top:2px solid var(--border);padding-top:12px;margin-top:12px;display:flex;justify-content:space-between;font-family:'JetBrains Mono';font-weight:700}
 .positive{color:var(--green)}.negative{color:var(--red)}
 .category-section{margin-bottom:40px}.category-header{display:flex;align-items:center;gap:12px;margin-bottom:16px;font-size:20px;font-weight:700}
-.table-wrap{width:100%;background:var(--bg-card);border:1px solid var(--border);border-radius:12px;overflow:hidden}
-table{width:100%;border-collapse:collapse}th{background:var(--bg-hover);padding:16px 12px;text-align:left;font-family:'JetBrains Mono';font-size:11px;font-weight:600;color:var(--text-sec);text-transform:uppercase;white-space:nowrap}
+.table-wrap{width:100%;background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+table{width:100%;border-collapse:collapse}th{background:var(--hover);padding:16px 12px;text-align:left;font-family:'JetBrains Mono';font-size:11px;font-weight:600;color:var(--sec);text-transform:uppercase;white-space:nowrap}
 td{padding:16px 12px;border-top:1px solid var(--border);font-family:'JetBrains Mono';font-size:13px;white-space:nowrap}
-tr:hover td{background:var(--bg-hover)}.account-link{color:var(--blue);text-decoration:none;cursor:pointer}.account-link:hover{color:var(--green);text-decoration:underline}
-.total-row{background:var(--bg-hover);border-top:2px solid var(--green)}.total-row td{font-weight:700;color:var(--green)}
+tr:hover td{background:var(--hover)}.account-link{color:var(--blue);text-decoration:none;cursor:pointer}.account-link:hover{color:var(--green);text-decoration:underline}
+.total-row{background:var(--hover);border-top:2px solid var(--green)}.total-row td{font-weight:700;color:var(--green)}
 .settings-btn{position:fixed;bottom:32px;right:32px;width:60px;height:60px;border-radius:50%;background:var(--blue);border:none;color:white;font-size:24px;cursor:pointer;box-shadow:0 8px 16px rgba(0,0,0,0.3);z-index:100}
 .settings-btn:hover{background:var(--green);transform:rotate(90deg);transition:all 0.3s}
 .modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);z-index:1000;align-items:center;justify-content:center}
-.modal.active{display:flex}.modal-content{background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:32px;max-width:600px;width:90%;max-height:80vh;overflow-y:auto}
-.modal-header{display:flex;justify-content:space-between;margin-bottom:24px}.close-btn{background:none;border:none;color:var(--text-sec);font-size:24px;cursor:pointer}
-.form-group{margin-bottom:20px}.form-group label{display:block;margin-bottom:8px;font-size:13px;font-weight:600;color:var(--text-sec)}
-.form-group input{width:100%;padding:12px;background:var(--bg-hover);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'JetBrains Mono';font-size:13px}
+.modal.active{display:flex}.modal-content{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:32px;max-width:600px;width:90%;max-height:80vh;overflow-y:auto}
+.modal-header{display:flex;justify-content:space-between;margin-bottom:24px}.close-btn{background:none;border:none;color:var(--sec);font-size:24px;cursor:pointer}
+.form-group{margin-bottom:20px}.form-group label{display:block;margin-bottom:8px;font-size:13px;font-weight:600;color:var(--sec)}
+.form-group input{width:100%;padding:12px;background:var(--hover);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'JetBrains Mono';font-size:13px}
 .btn{padding:12px 24px;border-radius:8px;font-family:'JetBrains Mono';font-size:13px;cursor:pointer;border:none;margin-right:8px}
-.btn-primary{background:var(--green);color:var(--bg-dark)}.btn-danger{background:var(--red);color:white}
-.empty{text-align:center;padding:40px;color:var(--text-sec)}
-.detail-page{display:none}.detail-page.active{display:block}.back-btn{margin-bottom:20px;padding:10px 20px;background:var(--bg-card);border:1px solid var(--border);border-radius:8px;color:var(--text);cursor:pointer;font-family:'JetBrains Mono'}
-.chart-container{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:24px;margin-top:20px}
-.info-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-top:20px}
-.info-card{background:var(--bg-hover);padding:16px;border-radius:8px}.info-label{font-size:11px;font-family:'JetBrains Mono';color:var(--text-sec);margin-bottom:4px}.info-value{font-size:16px;font-weight:600}
+.btn-primary{background:var(--green);color:var(--bg)}.btn-danger{background:var(--red);color:white}
+.empty{text-align:center;padding:40px;color:var(--sec)}
+.detail-page{display:none}.detail-page.active{display:block}.back-btn{margin-bottom:20px;padding:10px 20px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);cursor:pointer;font-family:'JetBrains Mono'}
+.chart-container{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:24px;margin-top:20px}
+.info-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-top:20px}
+.info-card{background:var(--hover);padding:16px;border-radius:8px}.info-label{font-size:10px;font-family:'JetBrains Mono';color:var(--sec);margin-bottom:4px}.info-value{font-size:16px;font-weight:600}
+.trades-list{margin-top:20px;max-height:500px;overflow-y:auto}
 @media(max-width:768px){.header h1{font-size:32px}.stats-grid,.trades-grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
 <div class="container">
 <div id="overviewPage">
-<div class="header"><h1>EA Trading Dashboard</h1><div style="color:var(--text-sec)">v3.5 - Auto Deposits/Withdrawals</div></div>
+<div class="header"><h1>EA Trading Dashboard</h1><div style="color:var(--sec);margin-top:8px">v3.6 - Proper Data Filtering</div></div>
 <div class="stats-grid">
 <div class="stat-card"><div class="stat-label">💰 BALANCE</div><div class="stat-value" id="totalBalance">$0</div></div>
 <div class="stat-card"><div class="stat-label">📈 PROFIT</div><div class="stat-value" id="totalProfit">$0</div></div>
@@ -54,9 +55,9 @@ tr:hover td{background:var(--bg-hover)}.account-link{color:var(--blue);text-deco
 <div class="trades-section"><div class="section-header"><div>🔴 LIVE</div><div id="liveCount">(0)</div></div><div id="liveContent"></div><div class="section-total"><span>TOTAL:</span><span id="liveTotalPL">$0</span></div></div>
 <div class="trades-section"><div class="section-header"><div>📅 TODAY</div><div id="todayCount">(0)</div></div><div id="todayContent"></div><div class="section-total"><span>TOTAL:</span><span id="todayTotalPL">$0</span></div></div>
 </div>
-<div class="category-section"><div class="category-header"><span>🟢</span>LIVE <span id="liveAccCount" style="color:var(--text-sec);font-size:16px">(0)</span></div><div class="table-wrap" id="liveTable"></div></div>
-<div class="category-section"><div class="category-header"><span>🔵</span>COPY <span id="copyAccCount" style="color:var(--text-sec);font-size:16px">(0)</span></div><div class="table-wrap" id="copyTable"></div></div>
-<div class="category-section"><div class="category-header"><span>🟠</span>DEMO <span id="demoAccCount" style="color:var(--text-sec);font-size:16px">(0)</span></div><div class="table-wrap" id="demoTable"></div></div>
+<div class="category-section"><div class="category-header"><span>🟢</span>LIVE <span id="liveAccCount" style="color:var(--sec);font-size:16px">(0)</span></div><div class="table-wrap" id="liveTable"></div></div>
+<div class="category-section"><div class="category-header"><span>🔵</span>COPY <span id="copyAccCount" style="color:var(--sec);font-size:16px">(0)</span></div><div class="table-wrap" id="copyTable"></div></div>
+<div class="category-section"><div class="category-header"><span>🟠</span>DEMO <span id="demoAccCount" style="color:var(--sec);font-size:16px">(0)</span></div><div class="table-wrap" id="demoTable"></div></div>
 </div>
 <div id="detailPage" class="detail-page">
 <button class="back-btn" onclick="showOverview()">← Back</button>
@@ -66,6 +67,7 @@ tr:hover td{background:var(--bg-hover)}.account-link{color:var(--blue);text-deco
 <div class="modal" id="settingsModal">
 <div class="modal-content">
 <div class="modal-header"><h2>⚙️ Settings</h2><button class="close-btn" onclick="closeSettings()">×</button></div>
+<div class="form-group"><label>Webhook Secret Key</label><input type="password" id="secretKey" placeholder="Enter secret key"></div>
 <div id="accountsManagement"></div>
 </div>
 </div>
@@ -115,7 +117,7 @@ const data=await res.json();if(!data.success)return;
 const acc=allAccounts.find(a=>a.id===id);
 document.getElementById('overviewPage').style.display='none';
 document.getElementById('detailPage').classList.add('active');
-document.getElementById('detailContent').innerHTML=`<h1>${acc.name}</h1>
+document.getElementById('detailContent').innerHTML=`<h1 style="font-size:36px;font-weight:900;margin-bottom:20px">${acc.name}</h1>
 <div class="stats-grid">
 <div class="stat-card"><div class="stat-label">BALANCE</div><div class="stat-value">${fmt(acc.current_balance)}</div></div>
 <div class="stat-card"><div class="stat-label">PROFIT</div><div class="stat-value ${acc.total_profit>=0?'positive':'negative'}">${fmt(acc.total_profit)}</div></div>
@@ -123,35 +125,42 @@ document.getElementById('detailContent').innerHTML=`<h1>${acc.name}</h1>
 <div class="stat-card"><div class="stat-label">TRADES</div><div class="stat-value">${acc.total_trades}</div></div>
 </div>
 <div class="info-grid">
+<div class="info-card"><div class="info-label">DEPOSIT</div><div class="info-value">${fmt(acc.deposit)}</div></div>
+<div class="info-card"><div class="info-label">DEPOSITS</div><div class="info-value positive">${fmt(acc.total_deposits||0)}</div></div>
+<div class="info-card"><div class="info-label">WITHDRAWALS</div><div class="info-value negative">${fmt(acc.total_withdrawals||0)}</div></div>
 <div class="info-card"><div class="info-label">PROFIT FACTOR</div><div class="info-value">${acc.profit_factor}</div></div>
 <div class="info-card"><div class="info-label">WIN RATE</div><div class="info-value">${acc.win_rate}%</div></div>
-<div class="info-card"><div class="info-label">AVG WIN</div><div class="info-value">${fmt(acc.avg_win)}</div></div>
-<div class="info-card"><div class="info-label">AVG LOSS</div><div class="info-value">${fmt(acc.avg_loss)}</div></div>
+<div class="info-card"><div class="info-label">AVG WIN</div><div class="info-value positive">${fmt(acc.avg_win)}</div></div>
+<div class="info-card"><div class="info-label">AVG LOSS</div><div class="info-value negative">${fmt(acc.avg_loss)}</div></div>
 <div class="info-card"><div class="info-label">BEST TRADE</div><div class="info-value positive">${fmt(acc.best_trade)}</div></div>
 <div class="info-card"><div class="info-label">WORST TRADE</div><div class="info-value negative">${fmt(acc.worst_trade)}</div></div>
 <div class="info-card"><div class="info-label">AVG DURATION</div><div class="info-value">${acc.avg_trade_duration.toFixed(1)}h</div></div>
 <div class="info-card"><div class="info-label">MAX DD</div><div class="info-value negative">${acc.max_drawdown}%</div></div>
-<div class="info-card"><div class="info-label">DEPOSITS</div><div class="info-value positive">${fmt(acc.total_deposits)}</div></div>
-<div class="info-card"><div class="info-label">WITHDRAWALS</div><div class="info-value negative">${fmt(acc.total_withdrawals)}</div></div>
-<div class="info-card"><div class="info-label">LEVERAGE</div><div class="info-value">1:${acc.leverage}</div></div>
+<div class="info-card"><div class="info-label">LEVERAGE</div><div class="info-value">1:${acc.leverage||0}</div></div>
 </div>
-<div class="chart-container"><h3>Equity Curve</h3><canvas id="equityChart"></canvas></div>
-<div class="chart-container"><h3>Top Symbols</h3><div id="symbolStats"></div></div>`;
+<div class="chart-container"><h3 style="margin-bottom:16px">Equity Curve</h3><canvas id="equityChart"></canvas></div>
+<div class="chart-container"><h3 style="margin-bottom:16px">Top Symbols</h3><div id="symbolStats"></div></div>
+<div class="chart-container"><h3 style="margin-bottom:16px">All Trades (${data.account.trades?.length||0})</h3><div class="trades-list" id="allTradesList"></div></div>`;
 renderEquityChart(data.equity_curve);
-renderSymbolStats(data.symbols);}catch(e){console.error(e);}}
+renderSymbolStats(data.symbols);
+renderAllTrades(data.account.trades||[]);}catch(e){console.error(e);}}
 function renderEquityChart(eq){const ctx=document.getElementById('equityChart');
 if(equityChart)equityChart.destroy();
 equityChart=new Chart(ctx,{type:'line',data:{labels:eq.map(e=>new Date(e.date).toLocaleDateString('de-DE')),datasets:[{label:'Balance',data:eq.map(e=>e.balance),borderColor:'#00ff87',backgroundColor:'rgba(0,255,135,0.1)',fill:true,tension:0.4}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{ticks:{color:'#8b92a0'},grid:{color:'#252a35'}},x:{ticks:{color:'#8b92a0'},grid:{color:'#252a35'}}}}});}
 function renderSymbolStats(syms){const c=document.getElementById('symbolStats');
 if(!syms.length){c.innerHTML='<div class="empty">No data</div>';return;}
 c.innerHTML=`<table><thead><tr><th>SYMBOL</th><th>TRADES</th><th>PROFIT</th><th>WIN %</th></tr></thead><tbody>${syms.slice(0,10).map(s=>`<tr><td>${s.symbol}</td><td>${s.count}</td><td class="${s.profit>=0?'positive':'negative'}">${fmt(s.profit)}</td><td>${s.win_rate}%</td></tr>`).join('')}</tbody></table>`;}
+function renderAllTrades(trades){const c=document.getElementById('allTradesList');
+if(!trades.length){c.innerHTML='<div class="empty">No trades</div>';return;}
+const sorted=trades.sort((a,b)=>new Date(b.close_time)-new Date(a.close_time));
+c.innerHTML=`<table><thead><tr><th>TIME</th><th>SYMBOL</th><th>TYPE</th><th>LOTS</th><th>PRICE</th><th>PROFIT</th></tr></thead><tbody>${sorted.map(t=>`<tr><td style="font-size:11px">${new Date(t.close_time).toLocaleString('de-DE')}</td><td>${t.symbol}</td><td>${t.type}</td><td>${t.lots}</td><td>${t.close_price}</td><td class="${t.profit>=0?'positive':'negative'}">${fmt(t.profit)}</td></tr>`).join('')}</tbody></table>`;}
 function showOverview(){document.getElementById('detailPage').classList.remove('active');
 document.getElementById('overviewPage').style.display='block';}
 function openSettings(){document.getElementById('settingsModal').classList.add('active');
 loadAccountsManagement();}
 function closeSettings(){document.getElementById('settingsModal').classList.remove('active');}
 function loadAccountsManagement(){const c=document.getElementById('accountsManagement');
-c.innerHTML=allAccounts.map(a=>`<div style="background:var(--bg-hover);padding:16px;border-radius:8px;margin:16px 0"><h4>${a.name}</h4>
+c.innerHTML='<hr style="border:none;border-top:1px solid var(--border);margin:24px 0"><h3 style="margin-bottom:16px">Accounts</h3>'+allAccounts.map(a=>`<div style="background:var(--hover);padding:16px;border-radius:8px;margin:16px 0"><h4>${a.name}</h4>
 <div class="form-group"><label>Initial Deposit</label><input type="number" value="${a.deposit}" id="dep_${a.id}"></div>
 <button class="btn btn-primary" onclick="saveAccount(${a.id})">Save</button>
 <button class="btn btn-danger" onclick="deleteAccount(${a.id})">Delete</button></div>`).join('');}

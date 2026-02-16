@@ -1,6 +1,6 @@
 name: "EA Trading Dashboard"
-description: "v3.5 - AUTO deposit/withdrawal detection from MT4!"
-version: "3.5.0"
+description: "v3.6 - Proper deposit/trade filtering, secret key restored"
+version: "3.6.0"
 slug: ea-dashboard
 init: false
 arch: [armhf, armv7, aarch64, amd64, i386]
@@ -11,3 +11,7 @@ ingress_port: 8099
 panel_icon: mdi:chart-line
 startup: application
 boot: auto
+options:
+  webhook_secret: ""
+schema:
+  webhook_secret: password?
