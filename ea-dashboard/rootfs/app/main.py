@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-EA Trading Dashboard v3.2.0
-Complete backend with live trades, deposits, withdrawals, proper calculations
+EA Trading Dashboard v3.3.0
+Backend with batch webhook and proper duplicate handling
 """
 
 import os
@@ -52,7 +52,6 @@ def get_exchange_rate():
     return 0.92
 
 def parse_date(date_str):
-    """Handle both MT4 format (2025.08.18 06:00:06) and ISO format"""
     try:
         if '.' in date_str and ':' in date_str and 'T' not in date_str:
             date_str = date_str.replace('.', '-').replace(' ', 'T')
@@ -71,8 +70,7 @@ def status():
         'success': True,
         'status': {
             'accounts_count': len([a for a in data['accounts'] if a.get('status') != 'deleted']),
-            'version': '3.2.0',
-            'last_check': datetime.now().isoformat()
+            'version': '3.3.0'
         }
     })
 
@@ -95,7 +93,6 @@ def get_accounts():
         trades = acc.get('trades', [])
         open_trades = acc.get('open_trades', [])
         
-        # Calculate profits
         closed_profit = sum(t.get('profit', 0) for t in trades)
         open_profit = sum(t.get('profit', 0) for t in open_trades)
         total_profit_acc = closed_profit + open_profit
@@ -109,17 +106,10 @@ def get_accounts():
         gross_loss = abs(sum(t['profit'] for t in losing_trades)) if losing_trades else 0
         profit_factor = (gross_profit / gross_loss) if gross_loss > 0 else 0
         
-        # Get deposit from account or calculate
-        deposit = acc.get('deposit') or acc.get('initial_balance')
-        if not deposit or deposit <= 0:
-            deposit = acc.get('current_balance', 1000) - closed_profit
-            if deposit <= 0:
-                deposit = 1000
+        deposit = acc.get('deposit') or acc.get('initial_balance', 1000)
         
-        # Drawdown calculation
         peak = deposit
         max_dd = 0
-        
         sorted_trades = sorted(trades, key=lambda x: x.get('close_time', ''))
         running_balance = deposit
         
@@ -131,7 +121,6 @@ def get_accounts():
             if dd > max_dd:
                 max_dd = dd
         
-        # Days running
         days = 0
         if trades:
             first_trade = min(trades, key=lambda x: x.get('open_time', ''))
@@ -139,13 +128,9 @@ def get_accounts():
             if first_date:
                 days = (datetime.now() - first_date).days
         
-        # Gain calculation
         gain_percent = ((total_profit_acc / deposit) * 100) if deposit > 0 else 0
-        
         current_balance = acc.get('current_balance', 0)
-        withdrawals = acc.get('withdrawals', 0)
         
-        # Add to totals
         total_balance += current_balance
         total_profit += total_profit_acc
         total_trades_count += len(trades)
@@ -170,7 +155,7 @@ def get_accounts():
             'profit_factor': round(profit_factor, 2),
             'max_drawdown': round(max_dd, 2),
             'days_running': days,
-            'withdrawals': withdrawals,
+            'withdrawals': acc.get('withdrawals', 0),
             'floating_pl': round(open_profit, 2),
             'gain_percent': round(gain_percent, 2),
             'status': acc.get('status', 'active'),
@@ -198,23 +183,29 @@ def get_account_detail(account_id):
     if not account or account.get('status') == 'deleted':
         return jsonify({'success': False, 'error': 'Account not found'}), 404
     
-    return jsonify({'success': True, 'account': account})
-
-@app.route('/api/accounts/<int:account_id>/trades')
-def get_account_trades(account_id):
-    data = load_data()
-    account = next((a for a in data['accounts'] if a['id'] == account_id), None)
-    
-    if not account:
-        return jsonify({'success': False, 'error': 'Account not found'}), 404
-    
+    # Calculate detailed stats for detail page
     trades = account.get('trades', [])
-    trades_sorted = sorted(trades, key=lambda x: x.get('close_time', ''), reverse=True)
+    
+    # Build equity curve
+    deposit = account.get('deposit', 1000)
+    equity_curve = []
+    running_balance = deposit
+    
+    sorted_trades = sorted(trades, key=lambda x: x.get('close_time', ''))
+    for trade in sorted_trades:
+        running_balance += trade.get('profit', 0)
+        close_date = parse_date(trade.get('close_time', ''))
+        if close_date:
+            equity_curve.append({
+                'date': close_date.isoformat(),
+                'balance': round(running_balance, 2),
+                'profit': trade.get('profit', 0)
+            })
     
     return jsonify({
         'success': True,
-        'trades': trades_sorted,
-        'total': len(trades_sorted)
+        'account': account,
+        'equity_curve': equity_curve
     })
 
 @app.route('/api/live-trades')
@@ -233,11 +224,13 @@ def get_live_trades():
                 })
     
     live_trades_sorted = sorted(live_trades, key=lambda x: x.get('open_time', ''), reverse=True)
+    total_pl = sum(t.get('profit', 0) for t in live_trades)
     
     return jsonify({
         'success': True,
         'live_trades': live_trades_sorted[:10],
-        'total': len(live_trades_sorted)
+        'total': len(live_trades_sorted),
+        'total_pl': round(total_pl, 2)
     })
 
 @app.route('/api/today-trades')
@@ -259,11 +252,13 @@ def get_today_trades():
                     })
     
     today_trades_sorted = sorted(today_trades, key=lambda x: x.get('close_time', ''), reverse=True)
+    total_pl = sum(t.get('profit', 0) for t in today_trades)
     
     return jsonify({
         'success': True,
         'today_trades': today_trades_sorted[:10],
-        'total': len(today_trades_sorted)
+        'total': len(today_trades_sorted),
+        'total_pl': round(total_pl, 2)
     })
 
 @app.route('/api/accounts/<int:account_id>', methods=['PUT'])
@@ -278,25 +273,14 @@ def update_account(account_id):
     
     if 'name' in updates:
         account['name'] = updates['name']
-    if 'broker' in updates:
-        account['broker'] = updates['broker']
-    if 'type' in updates:
-        account['type'] = updates['type']
-    if 'category' in updates:
-        account['category'] = updates['category']
-    if 'currency' in updates:
-        account['currency'] = updates['currency']
     if 'deposit' in updates:
         account['deposit'] = float(updates['deposit'])
-    if 'withdrawals' in updates:
-        account['withdrawals'] = float(updates['withdrawals'])
+        account['initial_balance'] = float(updates['deposit'])
     
     account['last_update'] = datetime.now().isoformat()
-    
     save_data(data)
-    logger.info(f'Account {account_id} updated')
     
-    return jsonify({'success': True, 'account': account})
+    return jsonify({'success': True})
 
 @app.route('/api/accounts/<int:account_id>', methods=['DELETE'])
 def delete_account(account_id):
@@ -307,12 +291,9 @@ def delete_account(account_id):
         return jsonify({'success': False, 'error': 'Account not found'}), 404
     
     account['status'] = 'deleted'
-    account['deleted_at'] = datetime.now().isoformat()
-    
     save_data(data)
-    logger.info(f'Account {account_id} deleted')
     
-    return jsonify({'success': True, 'message': 'Account deleted'})
+    return jsonify({'success': True})
 
 @app.route('/api/settings', methods=['GET', 'POST'])
 def settings():
@@ -323,12 +304,12 @@ def settings():
         if 'display_currency' in updates:
             data['settings']['display_currency'] = updates['display_currency']
         save_data(data)
-        logger.info('Settings updated')
     
     return jsonify({'success': True, 'settings': data['settings']})
 
-@app.route('/api/webhook/trade', methods=['POST'])
-def webhook_trade():
+@app.route('/api/webhook/batch', methods=['POST'])
+def webhook_batch():
+    """Batch webhook - receives ALL trades at once"""
     try:
         payload = request.json
         account_number = payload.get('account_number')
@@ -339,12 +320,11 @@ def webhook_trade():
         
         data = load_data()
         
-        # Find account (even if deleted - reactivate it)
+        # Find or create account
         account = next((a for a in data['accounts'] 
                        if a['account_number'] == account_number and a['name'] == ea_name), None)
         
         if not account:
-            # Create new account
             new_id = max([a['id'] for a in data['accounts']], default=0) + 1
             account = {
                 'id': new_id,
@@ -354,15 +334,13 @@ def webhook_trade():
                 'platform': payload.get('platform', 'MT4'),
                 'category': payload.get('category', 'demo'),
                 'type': 'Live',
-                'currency': 'USD',
-                'current_balance': 0,
+                'currency': payload.get('currency', 'USD'),
+                'current_balance': payload.get('current_balance', 0),
                 'trades': [],
                 'open_trades': [],
                 'deposit': payload.get('initial_balance'),
                 'initial_balance': payload.get('initial_balance'),
-                'withdrawals': payload.get('withdrawals', 0),
-                'deposits': payload.get('deposits', 0),
-                'floating_pl': 0,
+                'withdrawals': 0,
                 'status': 'active',
                 'created_at': datetime.now().isoformat(),
                 'last_update': datetime.now().isoformat()
@@ -370,63 +348,54 @@ def webhook_trade():
             data['accounts'].append(account)
             logger.info(f'Created account: {ea_name} ({account_number})')
         elif account.get('status') == 'deleted':
-            # Reactivate deleted account
             account['status'] = 'active'
-            account['trades'] = []  # Clear old trades
+            account['trades'] = []
             account['open_trades'] = []
-            logger.info(f'Reactivated account: {ea_name} ({account_number})')
+            logger.info(f'Reactivated account: {ea_name}')
         
         # Update account info
-        if 'initial_balance' in payload:
-            account['deposit'] = payload['initial_balance']
-            account['initial_balance'] = payload['initial_balance']
-        if 'withdrawals' in payload:
-            account['withdrawals'] = payload['withdrawals']
-        if 'deposits' in payload:
-            account['deposits'] = payload['deposits']
+        account['current_balance'] = payload.get('current_balance', account['current_balance'])
+        account['deposit'] = payload.get('initial_balance', account.get('deposit'))
+        account['initial_balance'] = payload.get('initial_balance', account.get('initial_balance'))
         
-        # Handle closed trade
-        if 'trade' in payload:
-            trade_data = payload['trade']
-            trade_id = trade_data.get('trade_id')
-            existing = next((t for t in account['trades'] if t.get('trade_id') == trade_id), None)
+        # Replace all trades (no duplicates!)
+        if 'trades' in payload:
+            existing_ids = set(t.get('trade_id') for t in account['trades'])
+            new_trades = payload['trades']
             
-            if not existing:
-                account['trades'].append(trade_data)
-                account['current_balance'] = trade_data.get('balance', account['current_balance'])
-                logger.info(f'Trade added: {trade_id}')
+            # Only add trades that don't exist
+            for trade in new_trades:
+                trade_id = trade.get('trade_id')
+                if trade_id not in existing_ids:
+                    account['trades'].append(trade)
+                    existing_ids.add(trade_id)
+            
+            logger.info(f'Processed {len(new_trades)} trades, {len(account["trades"])} total')
         
-        # Handle open trade
-        if 'open_trade' in payload:
-            open_trade_data = payload['open_trade']
-            trade_id = open_trade_data.get('trade_id')
-            
-            # Update or add open trade
-            existing_idx = next((i for i, t in enumerate(account['open_trades']) 
-                               if t.get('trade_id') == trade_id), None)
-            
-            if existing_idx is not None:
-                account['open_trades'][existing_idx] = open_trade_data
-            else:
-                account['open_trades'].append(open_trade_data)
-            
-            # Update floating P/L
-            account['floating_pl'] = sum(t.get('profit', 0) for t in account['open_trades'])
+        # Replace all open trades
+        if 'open_trades' in payload:
+            account['open_trades'] = payload['open_trades']
+            logger.info(f'Updated {len(account["open_trades"])} open trades')
         
         account['last_update'] = datetime.now().isoformat()
         save_data(data)
         
-        return jsonify({'success': True, 'account_id': account['id']})
+        return jsonify({
+            'success': True,
+            'account_id': account['id'],
+            'total_trades': len(account['trades']),
+            'open_trades': len(account['open_trades'])
+        })
         
     except Exception as e:
-        logger.error(f'Webhook error: {e}')
+        logger.error(f'Batch webhook error: {e}')
         return jsonify({'success': False, 'error': str(e)}), 500
 
 if __name__ == '__main__':
-    logger.info('EA Trading Dashboard v3.2.0 starting...')
+    logger.info('EA Trading Dashboard v3.3.0 starting...')
     
     data = load_data()
     if not data.get('accounts'):
-        logger.info('No accounts yet, waiting for first trade...')
+        logger.info('No accounts yet...')
     
     app.run(host='0.0.0.0', port=8099, debug=False)

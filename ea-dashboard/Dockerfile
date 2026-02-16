@@ -1,18 +1,12 @@
 ARG BUILD_FROM
 FROM $BUILD_FROM
-
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
-
 RUN apk add --no-cache python3 py3-pip
-
 COPY requirements.txt /tmp/
 RUN pip3 install --no-cache-dir -r /tmp/requirements.txt
-
 COPY run.sh /run.sh
 RUN chmod a+x /run.sh
-
 COPY rootfs /
-
 WORKDIR /app
 EXPOSE 8099
 CMD [ "/run.sh" ]

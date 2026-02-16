@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EA Trading Dashboard v3.2</title>
+    <title>EA Trading Dashboard v3.3</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Urbanist:wght@300;500;700;900&display=swap" rel="stylesheet">
     <style>
@@ -18,7 +18,6 @@
             --accent-red: #ff3366;
             --accent-blue: #00d4ff;
             --accent-orange: #ff9500;
-            --accent-purple: #a78bfa;
         }
         
         * {
@@ -60,7 +59,6 @@
             font-weight: 300;
         }
         
-        /* Overview Stats */
         .overview-stats {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -98,46 +96,37 @@
         .positive { color: var(--accent-green); }
         .negative { color: var(--accent-red); }
         
-        /* Tabs */
-        .tabs-container {
+        /* Live/Today Side by Side */
+        .trades-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .trades-section {
             background: var(--bg-card);
             border: 1px solid var(--border);
             border-radius: 16px;
             padding: 24px;
-            margin-bottom: 30px;
         }
         
-        .tabs-header {
+        .section-header {
             display: flex;
-            gap: 12px;
-            margin-bottom: 20px;
-            border-bottom: 1px solid var(--border);
-            padding-bottom: 12px;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
         }
         
-        .tab-button {
-            padding: 10px 20px;
-            background: transparent;
-            border: none;
-            color: var(--text-secondary);
+        .section-title {
+            font-size: 16px;
+            font-weight: 700;
             font-family: 'JetBrains Mono', monospace;
-            font-size: 13px;
-            cursor: pointer;
-            transition: all 0.2s;
-            border-radius: 8px;
         }
         
-        .tab-button.active {
-            color: var(--accent-green);
-            background: rgba(0, 255, 135, 0.1);
-        }
-        
-        .tab-content {
-            display: none;
-        }
-        
-        .tab-content.active {
-            display: block;
+        .section-count {
+            font-size: 14px;
+            color: var(--text-secondary);
         }
         
         .trade-item {
@@ -149,6 +138,17 @@
             margin-bottom: 8px;
             font-family: 'JetBrains Mono', monospace;
             font-size: 12px;
+        }
+        
+        .section-total {
+            border-top: 2px solid var(--border);
+            padding-top: 12px;
+            margin-top: 12px;
+            display: flex;
+            justify-content: space-between;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            font-size: 14px;
         }
         
         /* Tables */
@@ -170,13 +170,12 @@
             background: var(--bg-card);
             border: 1px solid var(--border);
             border-radius: 12px;
-            overflow-x: auto;
+            overflow: hidden;
         }
         
         .accounts-table table {
             width: 100%;
             border-collapse: collapse;
-            min-width: 1400px;
         }
         
         .accounts-table th {
@@ -188,7 +187,7 @@
             font-weight: 600;
             color: var(--text-secondary);
             text-transform: uppercase;
-            cursor: pointer;
+            white-space: nowrap;
         }
         
         .accounts-table td {
@@ -196,23 +195,12 @@
             border-top: 1px solid var(--border);
             font-family: 'JetBrains Mono', monospace;
             font-size: 13px;
+            white-space: nowrap;
         }
         
         .accounts-table tr:hover td {
             background: var(--bg-hover);
         }
-        
-        .type-badge {
-            display: inline-block;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 10px;
-            font-weight: 600;
-        }
-        
-        .type-live { background: rgba(0, 255, 135, 0.2); color: var(--accent-green); }
-        .type-demo { background: rgba(255, 149, 0, 0.2); color: var(--accent-orange); }
-        .type-copy { background: rgba(0, 212, 255, 0.2); color: var(--accent-blue); }
         
         .account-name-link {
             color: var(--accent-blue);
@@ -223,6 +211,16 @@
         .account-name-link:hover {
             color: var(--accent-green);
             text-decoration: underline;
+        }
+        
+        .category-total {
+            background: var(--bg-hover);
+            border-top: 2px solid var(--accent-green);
+        }
+        
+        .category-total td {
+            font-weight: 700;
+            color: var(--accent-green);
         }
         
         /* Settings */
@@ -303,7 +301,7 @@
             color: var(--text-secondary);
         }
         
-        .form-group input, .form-group select {
+        .form-group input {
             width: 100%;
             padding: 12px;
             background: var(--bg-hover);
@@ -321,6 +319,7 @@
             font-size: 13px;
             cursor: pointer;
             border: none;
+            margin-right: 8px;
         }
         
         .button-primary {
@@ -356,11 +355,21 @@
             border-radius: 8px;
             color: var(--text-primary);
             cursor: pointer;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        
+        .chart-container {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            margin-top: 20px;
         }
         
         @media (max-width: 768px) {
             .header h1 { font-size: 32px; }
             .overview-stats { grid-template-columns: 1fr; }
+            .trades-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -370,38 +379,55 @@
         <div id="overviewPage">
             <div class="header">
                 <h1>EA Trading Dashboard</h1>
-                <div class="subtitle">Multi-Account Übersicht v3.2</div>
+                <div class="subtitle">Multi-Account Übersicht v3.3</div>
             </div>
             
             <!-- Overview Stats -->
             <div class="overview-stats">
                 <div class="stat-card">
-                    <div class="stat-label">💰 Gesamt Balance</div>
+                    <div class="stat-label">💰 GESAMT BALANCE</div>
                     <div class="stat-value" id="totalBalance">$0.00</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-label">📈 Gesamt Profit</div>
+                    <div class="stat-label">📈 GESAMT PROFIT</div>
                     <div class="stat-value" id="totalProfit">$0.00</div>
                     <div class="stat-change" id="totalProfitChange">+0.00%</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-label">🎯 Konten</div>
+                    <div class="stat-label">🎯 KONTEN</div>
                     <div class="stat-value" id="totalAccounts">0</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-label">📊 Gesamt Trades</div>
+                    <div class="stat-label">📊 GESAMT TRADES</div>
                     <div class="stat-value" id="totalTrades">0</div>
                 </div>
             </div>
             
-            <!-- Live/Today Trades -->
-            <div class="tabs-container">
-                <div class="tabs-header">
-                    <button class="tab-button active" data-tab="live">🔴 LIVE <span id="liveCount">(0)</span></button>
-                    <button class="tab-button" data-tab="today">📅 HEUTE <span id="todayCount">(0)</span></button>
+            <!-- Live/Today Side by Side -->
+            <div class="trades-grid">
+                <div class="trades-section">
+                    <div class="section-header">
+                        <div class="section-title">🔴 LIVE TRADES</div>
+                        <div class="section-count" id="liveCount">(0)</div>
+                    </div>
+                    <div id="liveContent"></div>
+                    <div class="section-total">
+                        <span>GESAMT P/L:</span>
+                        <span id="liveTotalPL">$0.00</span>
+                    </div>
                 </div>
-                <div class="tab-content active" id="live"></div>
-                <div class="tab-content" id="today"></div>
+                
+                <div class="trades-section">
+                    <div class="section-header">
+                        <div class="section-title">📅 HEUTE</div>
+                        <div class="section-count" id="todayCount">(0)</div>
+                    </div>
+                    <div id="todayContent"></div>
+                    <div class="section-total">
+                        <span>GESAMT P/L:</span>
+                        <span id="todayTotalPL">$0.00</span>
+                    </div>
+                </div>
             </div>
             
             <!-- Live Accounts -->
@@ -445,16 +471,6 @@
                     <h2>⚙️ Einstellungen</h2>
                     <button class="close-button" onclick="closeSettings()">×</button>
                 </div>
-                <div class="form-group">
-                    <label>Anzeige-Währung</label>
-                    <select id="displayCurrency" onchange="updateCurrency()">
-                        <option value="USD">US Dollar ($)</option>
-                        <option value="EUR">Euro (€)</option>
-                        <option value="BOTH">Beide anzeigen</option>
-                    </select>
-                </div>
-                <hr style="border: none; border-top: 1px solid var(--border); margin: 24px 0;">
-                <h3>Konten verwalten</h3>
                 <div id="accountsManagement"></div>
             </div>
         </div>
@@ -462,50 +478,42 @@
     
     <script>
         let allAccounts = [];
-        let exchangeRate = 1.0;
-        let displayCurrency = 'USD';
+        let currentDetailAccount = null;
+        let equityChart = null;
         
         function getApiUrl(endpoint) {
             return '.' + endpoint;
         }
         
+        function formatCurrency(amount) {
+            const sign = amount >= 0 ? '' : '-';
+            return sign + '$' + Math.abs(amount).toFixed(2);
+        }
+        
         async function loadData() {
             try {
-                const [accountsRes, liveRes, todayRes, settingsRes] = await Promise.all([
+                const [accountsRes, liveRes, todayRes] = await Promise.all([
                     fetch(getApiUrl('/api/accounts')),
                     fetch(getApiUrl('/api/live-trades')),
-                    fetch(getApiUrl('/api/today-trades')),
-                    fetch(getApiUrl('/api/settings'))
+                    fetch(getApiUrl('/api/today-trades'))
                 ]);
                 
                 const accountsData = await accountsRes.json();
                 const liveData = await liveRes.json();
                 const todayData = await todayRes.json();
-                const settingsData = await settingsRes.json();
                 
                 if (accountsData.success) {
                     allAccounts = accountsData.accounts;
-                    exchangeRate = accountsData.exchange_rate || 1.0;
                     renderOverviewStats(accountsData.totals);
                     renderAccountsTables();
                 }
                 
-                if (settingsData.success) {
-                    displayCurrency = settingsData.settings.display_currency || 'USD';
-                    document.getElementById('displayCurrency').value = displayCurrency;
-                }
-                
-                renderLiveTrades(liveData.live_trades || [], liveData.total || 0);
-                renderTodayTrades(todayData.today_trades || [], todayData.total || 0);
+                renderLiveTrades(liveData.live_trades || [], liveData.total || 0, liveData.total_pl || 0);
+                renderTodayTrades(todayData.today_trades || [], todayData.total || 0, todayData.total_pl || 0);
                 
             } catch (error) {
-                console.error('Failed to load data:', error);
+                console.error('Load error:', error);
             }
-        }
-        
-        function formatCurrency(amount) {
-            const symbol = displayCurrency === 'EUR' ? '€' : '$';
-            return symbol + Math.abs(amount).toFixed(2);
         }
         
         function renderOverviewStats(totals) {
@@ -516,9 +524,12 @@
             document.getElementById('totalTrades').textContent = totals.total_trades;
         }
         
-        function renderLiveTrades(trades, total) {
+        function renderLiveTrades(trades, total, totalPL) {
             document.getElementById('liveCount').textContent = `(${total})`;
-            const container = document.getElementById('live');
+            document.getElementById('liveTotalPL').textContent = formatCurrency(totalPL);
+            document.getElementById('liveTotalPL').className = totalPL >= 0 ? 'positive' : 'negative';
+            
+            const container = document.getElementById('liveContent');
             
             if (trades.length === 0) {
                 container.innerHTML = '<div class="empty-state">Keine offenen Trades</div>';
@@ -533,9 +544,12 @@
             `).join('');
         }
         
-        function renderTodayTrades(trades, total) {
+        function renderTodayTrades(trades, total, totalPL) {
             document.getElementById('todayCount').textContent = `(${total})`;
-            const container = document.getElementById('today');
+            document.getElementById('todayTotalPL').textContent = formatCurrency(totalPL);
+            document.getElementById('todayTotalPL').className = totalPL >= 0 ? 'positive' : 'negative';
+            
+            const container = document.getElementById('todayContent');
             
             if (trades.length === 0) {
                 container.innerHTML = '<div class="empty-state">Heute keine Trades</div>';
@@ -572,6 +586,12 @@
                 return;
             }
             
+            // Calculate totals
+            const totalDeposit = accounts.reduce((sum, a) => sum + a.deposit, 0);
+            const totalBalance = accounts.reduce((sum, a) => sum + a.current_balance, 0);
+            const totalProfit = accounts.reduce((sum, a) => sum + a.total_profit, 0);
+            const totalTrades = accounts.reduce((sum, a) => sum + a.total_trades, 0);
+            
             container.innerHTML = `
                 <table>
                     <thead>
@@ -605,40 +625,111 @@
                                 <td>${acc.days_running}</td>
                             </tr>
                         `).join('')}
+                        <tr class="category-total">
+                            <td>GESAMT</td>
+                            <td></td>
+                            <td>${formatCurrency(totalDeposit)}</td>
+                            <td>${formatCurrency(totalBalance)}</td>
+                            <td class="${totalProfit >= 0 ? 'positive' : 'negative'}">${formatCurrency(totalProfit)}</td>
+                            <td></td>
+                            <td>${totalTrades}</td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                        </tr>
                     </tbody>
                 </table>
             `;
         }
         
-        function showDetail(accountId) {
-            const account = allAccounts.find(a => a.id === accountId);
-            if (!account) return;
+        async function showDetail(accountId) {
+            try {
+                const res = await fetch(getApiUrl(`/api/accounts/${accountId}`));
+                const data = await res.json();
+                
+                if (!data.success) return;
+                
+                currentDetailAccount = data.account;
+                const acc = allAccounts.find(a => a.id === accountId);
+                
+                document.getElementById('overviewPage').style.display = 'none';
+                document.getElementById('detailPage').classList.add('active');
+                
+                document.getElementById('detailContent').innerHTML = `
+                    <h1>${acc.name}</h1>
+                    <div class="overview-stats">
+                        <div class="stat-card">
+                            <div class="stat-label">Balance</div>
+                            <div class="stat-value">${formatCurrency(acc.current_balance)}</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Profit</div>
+                            <div class="stat-value ${acc.total_profit >= 0 ? 'positive' : 'negative'}">${formatCurrency(acc.total_profit)}</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Gain</div>
+                            <div class="stat-value ${acc.gain_percent >= 0 ? 'positive' : 'negative'}">${acc.gain_percent >= 0 ? '+' : ''}${acc.gain_percent}%</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Trades</div>
+                            <div class="stat-value">${acc.total_trades}</div>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <h3>Equity Curve</h3>
+                        <canvas id="equityChart"></canvas>
+                    </div>
+                `;
+                
+                renderEquityChart(data.equity_curve);
+                
+            } catch (error) {
+                console.error('Detail error:', error);
+            }
+        }
+        
+        function renderEquityChart(equityCurve) {
+            const ctx = document.getElementById('equityChart');
             
-            document.getElementById('overviewPage').style.display = 'none';
-            document.getElementById('detailPage').classList.add('active');
+            if (equityChart) {
+                equityChart.destroy();
+            }
             
-            document.getElementById('detailContent').innerHTML = `
-                <h1>${account.name}</h1>
-                <div class="overview-stats">
-                    <div class="stat-card">
-                        <div class="stat-label">Balance</div>
-                        <div class="stat-value">${formatCurrency(account.current_balance)}</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-label">Profit</div>
-                        <div class="stat-value ${account.total_profit >= 0 ? 'positive' : 'negative'}">${formatCurrency(account.total_profit)}</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-label">Gain</div>
-                        <div class="stat-value ${account.gain_percent >= 0 ? 'positive' : 'negative'}">${account.gain_percent >= 0 ? '+' : ''}${account.gain_percent}%</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-label">Trades</div>
-                        <div class="stat-value">${account.total_trades}</div>
-                    </div>
-                </div>
-                <p style="color: var(--text-secondary); margin-top: 20px;">Detaillierte Statistiken und Charts folgen in Kürze...</p>
-            `;
+            const labels = equityCurve.map(e => new Date(e.date).toLocaleDateString('de-DE'));
+            const data = equityCurve.map(e => e.balance);
+            
+            equityChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Balance',
+                        data: data,
+                        borderColor: '#00ff87',
+                        backgroundColor: 'rgba(0, 255, 135, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            ticks: { color: '#8b92a0' },
+                            grid: { color: '#252a35' }
+                        },
+                        x: {
+                            ticks: { color: '#8b92a0' },
+                            grid: { color: '#252a35' }
+                        }
+                    }
+                }
+            });
         }
         
         function showOverview() {
@@ -661,7 +752,7 @@
                 <div style="background: var(--bg-hover); padding: 16px; border-radius: 8px; margin: 16px 0;">
                     <h4>${acc.name}</h4>
                     <div class="form-group">
-                        <label>Deposit</label>
+                        <label>Deposit (Initial Balance)</label>
                         <input type="number" value="${acc.deposit}" id="deposit_${acc.id}">
                     </div>
                     <button class="button button-primary" onclick="saveAccount(${acc.id})">Speichern</button>
@@ -699,32 +790,6 @@
                 alert('❌ Fehler!');
             }
         }
-        
-        async function updateCurrency() {
-            displayCurrency = document.getElementById('displayCurrency').value;
-            
-            try {
-                await fetch(getApiUrl('/api/settings'), {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ display_currency: displayCurrency })
-                });
-                
-                await loadData();
-            } catch (error) {
-                console.error('Failed to update currency');
-            }
-        }
-        
-        // Tab switching
-        document.querySelectorAll('.tab-button').forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
-                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-                btn.classList.add('active');
-                document.getElementById(btn.dataset.tab).classList.add('active');
-            });
-        });
         
         // Initialize
         loadData();
