@@ -1,13 +1,7 @@
 #!/usr/bin/env python3
-"""
-EA Trading Dashboard v3.3.0
-Backend with batch webhook and proper duplicate handling
-"""
-
-import os
-import json
-import logging
-from datetime import datetime
+"""EA Trading Dashboard v3.5.0 - Complete with all MyFxBook-style stats"""
+import os, json, logging
+from datetime import datetime, timedelta
 from flask import Flask, jsonify, request, send_file
 from flask_cors import CORS
 import requests
@@ -18,7 +12,6 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 logger = logging.getLogger(__name__)
 
 DATA_FILE = '/data/ea_data.json'
-EXCHANGE_RATE_API = 'https://api.exchangerate-api.com/v4/latest/USD'
 
 def load_data():
     if os.path.exists(DATA_FILE):
@@ -28,28 +21,18 @@ def load_data():
                 if 'accounts' not in data:
                     data['accounts'] = []
                 if 'settings' not in data:
-                    data['settings'] = {'display_currency': 'USD', 'last_exchange_rate': 1.0}
+                    data['settings'] = {'display_currency': 'USD'}
                 return data
         except Exception as e:
-            logger.error(f'Error loading data: {e}')
-    
-    return {'accounts': [], 'settings': {'display_currency': 'USD', 'last_exchange_rate': 1.0}}
+            logger.error(f'Error loading: {e}')
+    return {'accounts': [], 'settings': {'display_currency': 'USD'}}
 
 def save_data(data):
     try:
         with open(DATA_FILE, 'w') as f:
             json.dump(data, f, indent=2)
     except Exception as e:
-        logger.error(f'Error saving data: {e}')
-
-def get_exchange_rate():
-    try:
-        response = requests.get(EXCHANGE_RATE_API, timeout=5)
-        if response.status_code == 200:
-            return response.json()['rates'].get('EUR', 0.92)
-    except:
-        pass
-    return 0.92
+        logger.error(f'Save error: {e}')
 
 def parse_date(date_str):
     try:
@@ -63,24 +46,9 @@ def parse_date(date_str):
 def index():
     return send_file('static/index.html')
 
-@app.route('/api/status')
-def status():
-    data = load_data()
-    return jsonify({
-        'success': True,
-        'status': {
-            'accounts_count': len([a for a in data['accounts'] if a.get('status') != 'deleted']),
-            'version': '3.3.0'
-        }
-    })
-
 @app.route('/api/accounts')
 def get_accounts():
     data = load_data()
-    exchange_rate = get_exchange_rate()
-    data['settings']['last_exchange_rate'] = exchange_rate
-    save_data(data)
-    
     accounts_summary = []
     total_balance = 0
     total_profit = 0
@@ -89,7 +57,7 @@ def get_accounts():
     for acc in data['accounts']:
         if acc.get('status') == 'deleted':
             continue
-            
+        
         trades = acc.get('trades', [])
         open_trades = acc.get('open_trades', [])
         
@@ -101,7 +69,6 @@ def get_accounts():
         losing_trades = [t for t in trades if t.get('profit', 0) < 0]
         
         win_rate = (len(winning_trades) / len(trades) * 100) if trades else 0
-        
         gross_profit = sum(t['profit'] for t in winning_trades) if winning_trades else 0
         gross_loss = abs(sum(t['profit'] for t in losing_trades)) if losing_trades else 0
         profit_factor = (gross_profit / gross_loss) if gross_loss > 0 else 0
@@ -135,6 +102,23 @@ def get_accounts():
         total_profit += total_profit_acc
         total_trades_count += len(trades)
         
+        # Calculate advanced stats (MyFxBook style)
+        avg_win = (gross_profit / len(winning_trades)) if winning_trades else 0
+        avg_loss = (gross_loss / len(losing_trades)) if losing_trades else 0
+        avg_trade_duration = 0
+        if trades:
+            durations = []
+            for t in trades:
+                open_dt = parse_date(t.get('open_time', ''))
+                close_dt = parse_date(t.get('close_time', ''))
+                if open_dt and close_dt:
+                    durations.append((close_dt - open_dt).total_seconds() / 3600)
+            if durations:
+                avg_trade_duration = sum(durations) / len(durations)
+        
+        best_trade = max([t.get('profit', 0) for t in trades]) if trades else 0
+        worst_trade = min([t.get('profit', 0) for t in trades]) if trades else 0
+        
         accounts_summary.append({
             'id': acc['id'],
             'name': acc['name'],
@@ -156,8 +140,16 @@ def get_accounts():
             'max_drawdown': round(max_dd, 2),
             'days_running': days,
             'withdrawals': acc.get('withdrawals', 0),
+            'total_deposits': acc.get('total_deposits', 0),
+            'total_withdrawals': acc.get('total_withdrawals', 0),
+            'leverage': acc.get('leverage', 0),
             'floating_pl': round(open_profit, 2),
             'gain_percent': round(gain_percent, 2),
+            'avg_win': round(avg_win, 2),
+            'avg_loss': round(avg_loss, 2),
+            'avg_trade_duration': round(avg_trade_duration, 2),
+            'best_trade': round(best_trade, 2),
+            'worst_trade': round(worst_trade, 2),
             'status': acc.get('status', 'active'),
             'last_update': acc.get('last_update', datetime.now().isoformat())
         })
@@ -165,7 +157,6 @@ def get_accounts():
     return jsonify({
         'success': True,
         'accounts': accounts_summary,
-        'exchange_rate': exchange_rate,
         'settings': data['settings'],
         'totals': {
             'total_balance': round(total_balance, 2),
@@ -181,12 +172,9 @@ def get_account_detail(account_id):
     account = next((a for a in data['accounts'] if a['id'] == account_id), None)
     
     if not account or account.get('status') == 'deleted':
-        return jsonify({'success': False, 'error': 'Account not found'}), 404
+        return jsonify({'success': False, 'error': 'Not found'}), 404
     
-    # Calculate detailed stats for detail page
     trades = account.get('trades', [])
-    
-    # Build equity curve
     deposit = account.get('deposit', 1000)
     equity_curve = []
     running_balance = deposit
@@ -202,26 +190,35 @@ def get_account_detail(account_id):
                 'profit': trade.get('profit', 0)
             })
     
+    # Symbol breakdown
+    symbol_stats = {}
+    for t in trades:
+        sym = t.get('symbol', 'Unknown')
+        if sym not in symbol_stats:
+            symbol_stats[sym] = {'count': 0, 'profit': 0, 'wins': 0}
+        symbol_stats[sym]['count'] += 1
+        symbol_stats[sym]['profit'] += t.get('profit', 0)
+        if t.get('profit', 0) > 0:
+            symbol_stats[sym]['wins'] += 1
+    
+    symbols = [{'symbol': k, **v, 'win_rate': round((v['wins']/v['count']*100) if v['count'] > 0 else 0, 2)} 
+               for k, v in symbol_stats.items()]
+    
     return jsonify({
         'success': True,
         'account': account,
-        'equity_curve': equity_curve
+        'equity_curve': equity_curve,
+        'symbols': sorted(symbols, key=lambda x: x['count'], reverse=True)
     })
 
 @app.route('/api/live-trades')
 def get_live_trades():
     data = load_data()
     live_trades = []
-    
     for acc in data['accounts']:
         if acc.get('status') != 'deleted':
-            open_trades = acc.get('open_trades', [])
-            for trade in open_trades:
-                live_trades.append({
-                    **trade,
-                    'account_name': acc['name'],
-                    'account_id': acc['id']
-                })
+            for trade in acc.get('open_trades', []):
+                live_trades.append({**trade, 'account_name': acc['name'], 'account_id': acc['id']})
     
     live_trades_sorted = sorted(live_trades, key=lambda x: x.get('open_time', ''), reverse=True)
     total_pl = sum(t.get('profit', 0) for t in live_trades)
@@ -241,15 +238,10 @@ def get_today_trades():
     
     for acc in data['accounts']:
         if acc.get('status') != 'deleted':
-            trades = acc.get('trades', [])
-            for trade in trades:
+            for trade in acc.get('trades', []):
                 close_date = parse_date(trade.get('close_time', ''))
                 if close_date and close_date.date() == today:
-                    today_trades.append({
-                        **trade,
-                        'account_name': acc['name'],
-                        'account_id': acc['id']
-                    })
+                    today_trades.append({**trade, 'account_name': acc['name'], 'account_id': acc['id']})
     
     today_trades_sorted = sorted(today_trades, key=lambda x: x.get('close_time', ''), reverse=True)
     total_pl = sum(t.get('profit', 0) for t in today_trades)
@@ -265,62 +257,51 @@ def get_today_trades():
 def update_account(account_id):
     data = load_data()
     account = next((a for a in data['accounts'] if a['id'] == account_id), None)
-    
     if not account:
-        return jsonify({'success': False, 'error': 'Account not found'}), 404
+        return jsonify({'success': False}), 404
     
     updates = request.json
-    
-    if 'name' in updates:
-        account['name'] = updates['name']
     if 'deposit' in updates:
         account['deposit'] = float(updates['deposit'])
         account['initial_balance'] = float(updates['deposit'])
+    if 'name' in updates:
+        account['name'] = updates['name']
     
     account['last_update'] = datetime.now().isoformat()
     save_data(data)
-    
     return jsonify({'success': True})
 
 @app.route('/api/accounts/<int:account_id>', methods=['DELETE'])
 def delete_account(account_id):
     data = load_data()
     account = next((a for a in data['accounts'] if a['id'] == account_id), None)
-    
     if not account:
-        return jsonify({'success': False, 'error': 'Account not found'}), 404
-    
+        return jsonify({'success': False}), 404
     account['status'] = 'deleted'
     save_data(data)
-    
     return jsonify({'success': True})
 
 @app.route('/api/settings', methods=['GET', 'POST'])
 def settings():
     data = load_data()
-    
     if request.method == 'POST':
         updates = request.json
         if 'display_currency' in updates:
             data['settings']['display_currency'] = updates['display_currency']
         save_data(data)
-    
     return jsonify({'success': True, 'settings': data['settings']})
 
 @app.route('/api/webhook/batch', methods=['POST'])
 def webhook_batch():
-    """Batch webhook - receives ALL trades at once"""
     try:
         payload = request.json
         account_number = payload.get('account_number')
         ea_name = payload.get('ea_name')
         
         if not account_number or not ea_name:
-            return jsonify({'success': False, 'error': 'Missing data'}), 400
+            return jsonify({'success': False}), 400
         
         data = load_data()
-        
-        # Find or create account
         account = next((a for a in data['accounts'] 
                        if a['account_number'] == account_number and a['name'] == ea_name), None)
         
@@ -340,62 +321,48 @@ def webhook_batch():
                 'open_trades': [],
                 'deposit': payload.get('initial_balance'),
                 'initial_balance': payload.get('initial_balance'),
+                'total_deposits': payload.get('total_deposits', 0),
+                'total_withdrawals': payload.get('total_withdrawals', 0),
+                'leverage': payload.get('leverage', 0),
                 'withdrawals': 0,
                 'status': 'active',
                 'created_at': datetime.now().isoformat(),
                 'last_update': datetime.now().isoformat()
             }
             data['accounts'].append(account)
-            logger.info(f'Created account: {ea_name} ({account_number})')
+            logger.info(f'Created: {ea_name} ({account_number})')
         elif account.get('status') == 'deleted':
             account['status'] = 'active'
             account['trades'] = []
             account['open_trades'] = []
-            logger.info(f'Reactivated account: {ea_name}')
+            logger.info(f'Reactivated: {ea_name}')
         
-        # Update account info
         account['current_balance'] = payload.get('current_balance', account['current_balance'])
         account['deposit'] = payload.get('initial_balance', account.get('deposit'))
         account['initial_balance'] = payload.get('initial_balance', account.get('initial_balance'))
+        account['total_deposits'] = payload.get('total_deposits', account.get('total_deposits', 0))
+        account['total_withdrawals'] = payload.get('total_withdrawals', account.get('total_withdrawals', 0))
+        account['leverage'] = payload.get('leverage', account.get('leverage', 0))
         
-        # Replace all trades (no duplicates!)
         if 'trades' in payload:
             existing_ids = set(t.get('trade_id') for t in account['trades'])
-            new_trades = payload['trades']
-            
-            # Only add trades that don't exist
-            for trade in new_trades:
+            for trade in payload['trades']:
                 trade_id = trade.get('trade_id')
                 if trade_id not in existing_ids:
                     account['trades'].append(trade)
                     existing_ids.add(trade_id)
-            
-            logger.info(f'Processed {len(new_trades)} trades, {len(account["trades"])} total')
         
-        # Replace all open trades
         if 'open_trades' in payload:
             account['open_trades'] = payload['open_trades']
-            logger.info(f'Updated {len(account["open_trades"])} open trades')
         
         account['last_update'] = datetime.now().isoformat()
         save_data(data)
         
-        return jsonify({
-            'success': True,
-            'account_id': account['id'],
-            'total_trades': len(account['trades']),
-            'open_trades': len(account['open_trades'])
-        })
-        
+        return jsonify({'success': True, 'account_id': account['id']})
     except Exception as e:
-        logger.error(f'Batch webhook error: {e}')
-        return jsonify({'success': False, 'error': str(e)}), 500
+        logger.error(f'Webhook error: {e}')
+        return jsonify({'success': False}), 500
 
 if __name__ == '__main__':
-    logger.info('EA Trading Dashboard v3.3.0 starting...')
-    
-    data = load_data()
-    if not data.get('accounts'):
-        logger.info('No accounts yet...')
-    
+    logger.info('EA Dashboard v3.5.0 starting...')
     app.run(host='0.0.0.0', port=8099, debug=False)

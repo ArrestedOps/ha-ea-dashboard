@@ -1,4 +1,3 @@
 #!/usr/bin/with-contenv bashio
-bashio::log.info "EA Trading Dashboard v3.3.0 starting..."
-cd /app
-python3 /app/main.py
+bashio::log.info "EA Dashboard v3.5.0..."
+cd /app && python3 /app/main.py

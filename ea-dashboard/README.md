@@ -1,20 +1,36 @@
-# EA Trading Dashboard v3.3.0
+# EA Trading Dashboard v3.5.0
 
-## What's New in v3.3.0
+## 🎉 v3.5.0 - FULLY AUTOMATIC!
 
-✅ **BATCH WEBHOOK** - All trades in ONE request (faster, no duplicates!)
-✅ **FIXED Deposit** - Now correctly shows 2000$ if that's your initial balance
-✅ **FIXED Profit** - Correct calculation from all trades
-✅ **NO Duplicates** - Re-sending trades doesn't duplicate them
-✅ **Removed Scrollbar** - Clean table design
-✅ **Equity Charts** - Detail pages with full charts!
-✅ **Live/Today Side-by-Side** - With totals below
-✅ **Category Totals** - Sum per category (Live/Copy/Demo)
+### ✅ NO MORE MANUAL INPUT!
+EA v3.5 **automatically detects**:
+- ✅ Initial Deposit (from first balance)
+- ✅ All Deposits (found in history)
+- ✅ All Withdrawals (found in history)
+- ✅ Leverage
+- ✅ Everything!
 
-## Installation
+### How It Works
+1. EA analyzes your COMPLETE account history
+2. Finds first balance = Initial Deposit
+3. Searches for "deposit" / "withdrawal" in comments
+4. Tracks everything automatically
+5. Sends to dashboard
 
-1. Add repository: `https://github.com/ArrestedOps/ha-ea-dashboard`
-2. Install EA Trading Dashboard v3.3.0
-3. Install MT4 EA: `HA_TradeSync_MT4_v3.3.mq4`
-4. Configure EA with your webhook URL
-5. Done!
+### Installation
+1. GitHub: Upload `github-v3.5/` contents
+2. HA: Install v3.5.0
+3. MT4: Install EA v3.5 (NO manual input needed!)
+4. Done!
+
+### Detail Page Now Shows
+- Avg Win/Loss
+- Best/Worst Trade
+- Avg Duration
+- **Deposits (auto-detected)**
+- **Withdrawals (auto-detected)**
+- **Leverage**
+- Equity Curve
+- Top Symbols
+
+## Perfect!
