@@ -127,8 +127,13 @@ def get_accounts():
             if trades:
                 try:
                     first_trade = min(trades, key=lambda x: x.get('open_time', ''))
-                    days = (datetime.now() - datetime.fromisoformat(first_trade['open_time'].replace('Z', '+00:00'))).days
-                except:
+                    date_str = first_trade['open_time'].replace('Z', '+00:00')
+                    # Handle MT4 format: 2025.08.18 06:00:06
+                    if '.' in date_str and ':' in date_str and 'T' not in date_str:
+                        date_str = date_str.replace('.', '-').replace(' ', 'T')
+                    days = (datetime.now() - datetime.fromisoformat(date_str)).days
+                except Exception as e:
+                    logger.warning(f'Failed to parse date: {e}')
                     days = 0
             
             accounts_summary.append({
@@ -226,7 +231,11 @@ def get_today_trades():
                 close_time_str = trade.get('close_time', '')
                 if close_time_str:
                     try:
-                        close_time = datetime.fromisoformat(close_time_str.replace('Z', '+00:00'))
+                        # Handle MT4 format: 2025.08.18 06:00:06
+                        date_str = close_time_str.replace('Z', '+00:00')
+                        if '.' in date_str and ':' in date_str and 'T' not in date_str:
+                            date_str = date_str.replace('.', '-').replace(' ', 'T')
+                        close_time = datetime.fromisoformat(date_str)
                         if close_time.date() == today:
                             today_trades.append({
                                 **trade,

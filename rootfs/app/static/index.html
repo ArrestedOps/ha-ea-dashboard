@@ -644,8 +644,13 @@
         // Format date
         function formatDate(dateStr) {
             try {
-                // Remove microseconds for mobile compatibility
-                const cleanDate = dateStr.split('.')[0];
+                // Handle MT4 format: 2025.08.18 06:00:06
+                let cleanDate = dateStr;
+                if (cleanDate.includes('.') && cleanDate.includes(':') && !cleanDate.includes('T')) {
+                    cleanDate = cleanDate.replace(/\./g, '-').replace(' ', 'T');
+                }
+                // Remove microseconds
+                cleanDate = cleanDate.split('.')[0];
                 const date = new Date(cleanDate);
                 return new Intl.DateTimeFormat('de-DE', {
                     day: '2-digit',
@@ -661,8 +666,19 @@
         // Calculate duration
         function calculateDuration(openTime, closeTime) {
             try {
-                const open = new Date(openTime.split('.')[0]);
-                const close = closeTime ? new Date(closeTime.split('.')[0]) : new Date();
+                // Handle MT4 format
+                let cleanOpen = openTime;
+                let cleanClose = closeTime || new Date().toISOString();
+                
+                if (cleanOpen.includes('.') && cleanOpen.includes(':') && !cleanOpen.includes('T')) {
+                    cleanOpen = cleanOpen.replace(/\./g, '-').replace(' ', 'T');
+                }
+                if (cleanClose.includes('.') && cleanClose.includes(':') && !cleanClose.includes('T')) {
+                    cleanClose = cleanClose.replace(/\./g, '-').replace(' ', 'T');
+                }
+                
+                const open = new Date(cleanOpen.split('.')[0]);
+                const close = new Date(cleanClose.split('.')[0]);
                 const hours = Math.floor((close - open) / 3600000);
                 const minutes = Math.floor(((close - open) % 3600000) / 60000);
                 return hours > 0 ? `${hours}h` : `${minutes}m`;
