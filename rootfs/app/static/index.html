@@ -1168,14 +1168,16 @@
         // Initialize - Load data from API
         async function loadDataFromAPI() {
             try {
-                const response = await fetch('/api/accounts');
+                // Use current origin to support both direct and ingress access
+                const baseURL = window.location.origin + window.location.pathname.replace(/\/$/, '');
+                const response = await fetch(`${baseURL}/api/accounts`);
                 const data = await response.json();
                 
                 if (data.success && data.accounts) {
                     // Convert API data to dashboard format
                     data.accounts.forEach(account => {
                         // Fetch trades for this account
-                        fetch(`/api/accounts/${account.id}/trades`)
+                        fetch(`${baseURL}/api/accounts/${account.id}/trades`)
                             .then(r => r.json())
                             .then(tradesData => {
                                 if (tradesData.success) {
