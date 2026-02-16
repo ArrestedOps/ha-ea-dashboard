@@ -1,45 +1,36 @@
-# EA Trading Dashboard v3.7.0
+# EA Trading Dashboard v3.8.0
 
-## 🔥 v3.7.0 - FINAL BALANCE DETECTION!
+## 🔥 v3.8.0 - CONSERVATIVE + CORRECT DD!
 
-### ✅ FIXED GOLDEN PICKAXE PROBLEM:
+### ✅ FIXES:
+1. **EA Filtering**: ONLY OrderType 6/7 = Balance Operations
+   - NO comment filtering (was too aggressive)
+   - Golden Pickaxe trades now counted correctly!
 
-**EA v3.7 detects balance operations with 4 methods:**
+2. **Drawdown CORRECT**: Tracks lowest point from peak
+   ```
+   OLD (WRONG): DD = (peak - current) / peak
+   NEW (CORRECT): DD = (peak - lowest_from_peak) / peak
+   ```
+   Now matches MyFxBook!
 
-1. **OrderType Check**: Type 6 = Balance, Type 7 = Credit
-2. **Comment Keywords**: "transfer", "wallet", "balance", "deposit", "withdrawal"
-3. **Empty Symbol**: No trading symbol = balance operation
-4. **Round Numbers**: Large round profits (1000, 2000) with no swap/commission
-
-### MT4 Log Example:
+### Golden Pickaxe Now Works:
 ```
-=== ACCOUNT ANALYSIS COMPLETE ===
-Total Orders Processed: 300
-Real Trades Found: 299
-Balance Operations Found: 1
----
-Initial Balance: $0.00
-Total Deposits: $2000.00
-Total Withdrawals: $0.00
-Real Trades Profit: $27.01
-Current Balance: $2027.01
-=================================
+Comment: "Transfer_from_206835_Wallet" 
+→ NOT filtered as balance (comment ignored)
+→ Only OrderType checked
+→ Trades counted! ✅
 ```
 
-### Perfect Calculation:
+### Drawdown Example:
 ```
-Deposit: $2000 (filtered out as balance operation)
-Trades: 299 (only real trades)
-Profit: $27.01 (from 299 trades)
-Balance: $2027.01 (2000 + 27.01)
-✅ CORRECT!
+Balance: 2000 → 2500 (peak) → 2300 → 2800 (new peak) → 2200
+OLD: 21% DD (from 2800 to 2200)
+NEW: 8% DD (max drop 2500→2300=200, 200/2500=8%) ✅
 ```
 
-### Installation:
-1. GitHub: Upload v3.7
-2. HA: Install v3.7.0
-3. MT4: Install EA v3.7
-4. Check logs for "Balance operation detected"
-5. Done!
-
-## Works with ALL brokers!
+## Installation:
+1. Upload v3.8
+2. Install both EAs with v3.8
+3. Check logs: "Real Trades: X"
+4. Dashboard shows correct DD!

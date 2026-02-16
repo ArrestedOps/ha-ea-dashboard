@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""EA Trading Dashboard v3.7.0 - Complete with all MyFxBook-style stats"""
+"""EA Trading Dashboard v3.8.0 - Complete with all MyFxBook-style stats"""
 import os, json, logging
 from datetime import datetime, timedelta
 from flask import Flask, jsonify, request, send_file
@@ -75,18 +75,30 @@ def get_accounts():
         
         deposit = acc.get('deposit') or acc.get('initial_balance', 1000)
         
+        # CORRECT Drawdown: track lowest point from peak
         peak = deposit
+        lowest_point = deposit
         max_dd = 0
         sorted_trades = sorted(trades, key=lambda x: x.get('close_time', ''))
         running_balance = deposit
         
         for trade in sorted_trades:
             running_balance += trade.get('profit', 0)
+            
+            # Update peak
             if running_balance > peak:
                 peak = running_balance
-            dd = ((peak - running_balance) / peak * 100) if peak > 0 else 0
-            if dd > max_dd:
-                max_dd = dd
+                lowest_point = running_balance
+            
+            # Track lowest from peak
+            if running_balance < lowest_point:
+                lowest_point = running_balance
+            
+            # DD = (peak - lowest) / peak
+            if peak > 0:
+                dd = ((peak - lowest_point) / peak * 100)
+                if dd > max_dd:
+                    max_dd = dd
         
         days = 0
         if trades:
@@ -364,5 +376,5 @@ def webhook_batch():
         return jsonify({'success': False}), 500
 
 if __name__ == '__main__':
-    logger.info('EA Dashboard v3.7.0 starting...')
+    logger.info('EA Dashboard v3.8.0 starting...')
     app.run(host='0.0.0.0', port=8099, debug=False)
