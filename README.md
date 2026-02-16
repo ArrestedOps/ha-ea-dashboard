@@ -105,7 +105,7 @@ See `mt-experts/` folder for Expert Advisors
 
 **In MT4/MT5:**
 ```
-Webhook URL: http://api.(YOURURL).com/api/webhook/trade
+Webhook URL: http://api.dobko.it/api/webhook/trade
             (or your domain)
 
 Secret Key: your_secret_key_here
@@ -123,7 +123,7 @@ History Days: 90
 ```
 Tools → Options → Expert Advisors
 ✅ Allow WebRequest for listed URL:
-   http://api.{YOURUR}.com
+   http://api.dobko.it
 ```
 
 ---
