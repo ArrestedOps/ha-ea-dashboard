@@ -1165,9 +1165,56 @@
             window.scrollTo(0, 0);
         }
 
-        // Initialize
-        generateAllEAData();
-        renderOverview();
+        // Initialize - Load data from API
+        async function loadDataFromAPI() {
+            try {
+                const response = await fetch('/api/accounts');
+                const data = await response.json();
+                
+                if (data.success && data.accounts) {
+                    // Convert API data to dashboard format
+                    data.accounts.forEach(account => {
+                        // Fetch trades for this account
+                        fetch(`/api/accounts/${account.id}/trades`)
+                            .then(r => r.json())
+                            .then(tradesData => {
+                                if (tradesData.success) {
+                                    allEAData[account.name] = {
+                                        name: account.name,
+                                        status: account.status || 'active',
+                                        trades: tradesData.trades.map((t, idx) => ({
+                                            id: t.trade_id || idx,
+                                            openTime: t.open_time,
+                                            closeTime: t.close_time,
+                                            duration: Math.floor((new Date(t.close_time) - new Date(t.open_time)) / 3600000),
+                                            pair: t.symbol,
+                                            type: t.type,
+                                            lots: t.lots,
+                                            profit: t.profit,
+                                            balance: t.balance
+                                        })),
+                                        initialBalance: account.current_balance - account.total_profit
+                                    };
+                                    // Re-render after each EA loads
+                                    renderOverview();
+                                }
+                            });
+                    });
+                } else {
+                    // Fallback to mock data if API fails
+                    console.warn('API failed, using mock data');
+                    generateAllEAData();
+                    renderOverview();
+                }
+            } catch (error) {
+                console.error('Failed to load API data:', error);
+                // Fallback to mock data
+                generateAllEAData();
+                renderOverview();
+            }
+        }
+        
+        loadDataFromAPI();
     </script>
 </body>
 </html>
