@@ -1,6 +1,6 @@
 name: "EA Trading Dashboard"
 description: "Professional MetaTrader EA Statistics Dashboard v3.0"
-version: "3.0.0"
+version: "3.0.1"
 slug: ea-dashboard
 init: false
 arch:

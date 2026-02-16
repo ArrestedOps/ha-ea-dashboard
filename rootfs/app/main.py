@@ -24,9 +24,26 @@ EXCHANGE_RATE_API = 'https://api.exchangerate-api.com/v4/latest/USD'
 # Initialize data
 def load_data():
     if os.path.exists(DATA_FILE):
-        with open(DATA_FILE, 'r') as f:
-            return json.load(f)
-    return {'accounts': [], 'settings': {'display_currency': 'USD', 'last_exchange_rate': 1.0}}
+        try:
+            with open(DATA_FILE, 'r') as f:
+                data = json.load(f)
+                # Ensure proper structure
+                if 'accounts' not in data:
+                    data['accounts'] = []
+                if 'settings' not in data:
+                    data['settings'] = {'display_currency': 'USD', 'last_exchange_rate': 1.0}
+                return data
+        except Exception as e:
+            logger.error(f'Error loading data: {e}')
+    
+    # Return empty structure
+    return {
+        'accounts': [], 
+        'settings': {
+            'display_currency': 'USD', 
+            'last_exchange_rate': 1.0
+        }
+    }
 
 def save_data(data):
     with open(DATA_FILE, 'w') as f:
@@ -374,8 +391,7 @@ if __name__ == '__main__':
     
     # Initialize with demo data if empty
     data = load_data()
-    if not data['accounts']:
-        logger.info('Initializing with demo data...')
-        # Demo data would go here
+    if not data.get('accounts'):
+        logger.info('No accounts yet, waiting for first trade...')
     
     app.run(host='0.0.0.0', port=8099, debug=False)
