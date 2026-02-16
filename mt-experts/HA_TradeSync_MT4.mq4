@@ -144,7 +144,11 @@ bool SendTrade(int orderIndex)
    
    // Send HTTP POST
    char post[], result[];
+   string result_headers;
    string headers = "Content-Type: application/json\r\n";
+   
+   // Convert JSON string to char array
+   StringToCharArray(json, post, 0, StringLen(json));
    
    int timeout = 5000;
    int res = WebRequest(
@@ -152,19 +156,21 @@ bool SendTrade(int orderIndex)
       WebhookURL,
       headers,
       timeout,
-      StringToCharArray(json, post),
+      post,
       result,
-      headers
+      result_headers
    );
    
-   if(res == 200)
+   if(res == 200 || res == 201)
    {
       Print("✓ Trade #", OrderTicket(), " sent successfully");
       return true;
    }
    else
    {
-      Print("✗ Failed to send trade #", OrderTicket(), ". Error: ", res);
+      Print("✗ Failed to send trade #", OrderTicket(), ". Error code: ", res);
+      if(res == -1)
+         Print("Check: Tools → Options → Expert Advisors → Allow WebRequest for: ", WebhookURL);
       return false;
    }
 }

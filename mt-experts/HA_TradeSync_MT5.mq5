@@ -177,9 +177,13 @@ bool SendDeal(ulong ticket)
    
    // Send HTTP POST
    char post[], result[];
+   string result_headers;
    string headers = "Content-Type: application/json\r\n";
-   int timeout = 5000;
    
+   // Convert JSON to char array
+   StringToCharArray(json, post, 0, StringLen(json));
+   
+   int timeout = 5000;
    int res = WebRequest(
       "POST",
       WebhookURL,
@@ -187,22 +191,19 @@ bool SendDeal(ulong ticket)
       timeout,
       post,
       result,
-      headers
+      result_headers
    );
    
-   // Convert JSON to char array
-   StringToCharArray(json, post, 0, StringLen(json));
-   
-   res = WebRequest("POST", WebhookURL, headers, timeout, post, result, headers);
-   
-   if(res == 200)
+   if(res == 200 || res == 201)
    {
       Print("✓ Trade #", ticket, " sent successfully");
       return true;
    }
    else
    {
-      Print("✗ Failed to send trade #", ticket, ". Error: ", res);
+      Print("✗ Failed to send trade #", ticket, ". Error code: ", res);
+      if(res == -1)
+         Print("Check: Tools → Options → Expert Advisors → Allow WebRequest for: ", WebhookURL);
       return false;
    }
 }
