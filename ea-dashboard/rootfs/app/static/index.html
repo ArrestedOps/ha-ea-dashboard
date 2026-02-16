@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EA Trading Dashboard v3.0</title>
+    <title>EA Trading Dashboard v3.2</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Urbanist:wght@300;500;700;900&display=swap" rel="stylesheet">
     <style>
@@ -19,7 +19,6 @@
             --accent-blue: #00d4ff;
             --accent-orange: #ff9500;
             --accent-purple: #a78bfa;
-            --accent-yellow: #ffd700;
         }
         
         * {
@@ -46,21 +45,58 @@
         }
         
         .header h1 {
-            font-size: 56px;
+            font-size: 48px;
             font-weight: 900;
             letter-spacing: -2px;
             background: linear-gradient(135deg, #00ff87 0%, #00d4ff 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            background-clip: text;
             margin-bottom: 8px;
         }
         
         .header .subtitle {
-            font-size: 18px;
+            font-size: 16px;
             color: var(--text-secondary);
             font-weight: 300;
         }
+        
+        /* Overview Stats */
+        .overview-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+        
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+        
+        .stat-change {
+            font-size: 13px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        
+        .positive { color: var(--accent-green); }
+        .negative { color: var(--accent-red); }
         
         /* Tabs */
         .tabs-container {
@@ -89,16 +125,11 @@
             cursor: pointer;
             transition: all 0.2s;
             border-radius: 8px;
-            position: relative;
         }
         
         .tab-button.active {
             color: var(--accent-green);
             background: rgba(0, 255, 135, 0.1);
-        }
-        
-        .tab-button:hover {
-            background: var(--bg-hover);
         }
         
         .tab-content {
@@ -112,52 +143,12 @@
         .trade-item {
             display: flex;
             justify-content: space-between;
-            align-items: center;
             padding: 12px;
             background: var(--bg-hover);
             border-radius: 8px;
             margin-bottom: 8px;
             font-family: 'JetBrains Mono', monospace;
             font-size: 12px;
-        }
-        
-        .trade-item-left {
-            display: flex;
-            gap: 16px;
-            align-items: center;
-        }
-        
-        .trade-item-right {
-            display: flex;
-            gap: 16px;
-            align-items: center;
-        }
-        
-        .profit-positive {
-            color: var(--accent-green);
-        }
-        
-        .profit-negative {
-            color: var(--accent-red);
-        }
-        
-        .view-all-button {
-            width: 100%;
-            padding: 12px;
-            background: var(--bg-hover);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            color: var(--text-primary);
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 13px;
-            cursor: pointer;
-            transition: all 0.2s;
-            margin-top: 12px;
-        }
-        
-        .view-all-button:hover {
-            background: var(--bg-card);
-            border-color: var(--accent-blue);
         }
         
         /* Tables */
@@ -174,27 +165,18 @@
             font-weight: 700;
         }
         
-        .category-icon {
-            font-size: 24px;
-        }
-        
-        .category-count {
-            color: var(--text-secondary);
-            font-size: 16px;
-            font-weight: 400;
-        }
-        
         .accounts-table {
             width: 100%;
             background: var(--bg-card);
             border: 1px solid var(--border);
             border-radius: 12px;
-            overflow: hidden;
+            overflow-x: auto;
         }
         
         .accounts-table table {
             width: 100%;
             border-collapse: collapse;
+            min-width: 1400px;
         }
         
         .accounts-table th {
@@ -206,33 +188,7 @@
             font-weight: 600;
             color: var(--text-secondary);
             text-transform: uppercase;
-            letter-spacing: 1px;
             cursor: pointer;
-            user-select: none;
-            position: relative;
-        }
-        
-        .accounts-table th:hover {
-            background: var(--bg-dark);
-        }
-        
-        .accounts-table th.sortable::after {
-            content: '⇅';
-            position: absolute;
-            right: 8px;
-            opacity: 0.3;
-        }
-        
-        .accounts-table th.sorted-asc::after {
-            content: '↑';
-            opacity: 1;
-            color: var(--accent-blue);
-        }
-        
-        .accounts-table th.sorted-desc::after {
-            content: '↓';
-            opacity: 1;
-            color: var(--accent-blue);
         }
         
         .accounts-table td {
@@ -254,29 +210,44 @@
             font-weight: 600;
         }
         
-        .type-live {
-            background: rgba(0, 255, 135, 0.2);
-            color: var(--accent-green);
-        }
+        .type-live { background: rgba(0, 255, 135, 0.2); color: var(--accent-green); }
+        .type-demo { background: rgba(255, 149, 0, 0.2); color: var(--accent-orange); }
+        .type-copy { background: rgba(0, 212, 255, 0.2); color: var(--accent-blue); }
         
-        .type-demo {
-            background: rgba(255, 149, 0, 0.2);
-            color: var(--accent-orange);
-        }
-        
-        .type-copy {
-            background: rgba(0, 212, 255, 0.2);
+        .account-name-link {
             color: var(--accent-blue);
+            text-decoration: none;
+            cursor: pointer;
         }
         
-        .empty-state {
-            text-align: center;
-            padding: 40px;
-            color: var(--text-secondary);
-            font-size: 14px;
+        .account-name-link:hover {
+            color: var(--accent-green);
+            text-decoration: underline;
         }
         
-        /* Settings Modal */
+        /* Settings */
+        .settings-button {
+            position: fixed;
+            bottom: 32px;
+            right: 32px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--accent-blue);
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+            z-index: 100;
+        }
+        
+        .settings-button:hover {
+            background: var(--accent-green);
+            transform: rotate(90deg);
+            transition: all 0.3s;
+        }
+        
         .modal {
             display: none;
             position: fixed;
@@ -312,23 +283,12 @@
             margin-bottom: 24px;
         }
         
-        .modal-header h2 {
-            font-size: 24px;
-            font-weight: 700;
-        }
-        
         .close-button {
             background: none;
             border: none;
             color: var(--text-secondary);
             font-size: 24px;
             cursor: pointer;
-            padding: 4px 8px;
-            line-height: 1;
-        }
-        
-        .close-button:hover {
-            color: var(--text-primary);
         }
         
         .form-group {
@@ -343,8 +303,7 @@
             color: var(--text-secondary);
         }
         
-        .form-group input,
-        .form-group select {
+        .form-group input, .form-group select {
             width: 100%;
             padding: 12px;
             background: var(--bg-hover);
@@ -355,187 +314,125 @@
             font-size: 13px;
         }
         
-        .form-group input:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-        
-        .button-group {
-            display: flex;
-            gap: 12px;
-            margin-top: 24px;
-        }
-        
         .button {
-            flex: 1;
             padding: 12px 24px;
-            border: 1px solid var(--border);
             border-radius: 8px;
             font-family: 'JetBrains Mono', monospace;
             font-size: 13px;
             cursor: pointer;
-            transition: all 0.2s;
+            border: none;
         }
         
         .button-primary {
             background: var(--accent-green);
             color: var(--bg-dark);
-            border-color: var(--accent-green);
-        }
-        
-        .button-primary:hover {
-            background: var(--accent-blue);
-            border-color: var(--accent-blue);
         }
         
         .button-danger {
             background: var(--accent-red);
             color: white;
-            border-color: var(--accent-red);
         }
         
-        .button-danger:hover {
-            background: #cc0044;
-        }
-        
-        .button-secondary {
-            background: var(--bg-hover);
-            color: var(--text-primary);
-        }
-        
-        .button-secondary:hover {
-            background: var(--bg-dark);
-        }
-        
-        .settings-button {
-            position: fixed;
-            bottom: 32px;
-            right: 32px;
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            background: var(--accent-blue);
-            border: none;
-            color: white;
-            font-size: 24px;
-            cursor: pointer;
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
-            transition: all 0.2s;
-            z-index: 100;
-        }
-        
-        .settings-button:hover {
-            background: var(--accent-green);
-            transform: rotate(90deg);
-        }
-        
-        .account-item {
-            background: var(--bg-hover);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 16px;
-        }
-        
-        .account-item-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 16px;
-        }
-        
-        .account-name {
-            font-size: 18px;
-            font-weight: 700;
-        }
-        
-        .currency-display {
-            font-size: 12px;
+        .empty-state {
+            text-align: center;
+            padding: 40px;
             color: var(--text-secondary);
-            margin-left: 8px;
         }
         
-        /* Responsive */
+        /* Detail Page */
+        .detail-page {
+            display: none;
+        }
+        
+        .detail-page.active {
+            display: block;
+        }
+        
+        .back-button {
+            margin-bottom: 20px;
+            padding: 10px 20px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            cursor: pointer;
+        }
+        
         @media (max-width: 768px) {
-            .header h1 {
-                font-size: 36px;
-            }
-            
-            .accounts-table {
-                overflow-x: auto;
-            }
-            
-            .accounts-table table {
-                min-width: 1200px;
-            }
-            
-            .trade-item {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-            
-            .trade-item-right {
-                margin-top: 8px;
-            }
+            .header h1 { font-size: 32px; }
+            .overview-stats { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
     <div class="dashboard-container">
-        <!-- Header -->
-        <div class="header">
-            <h1>EA Trading Dashboard</h1>
-            <div class="subtitle">Multi-Account Übersicht - Alle Expert Advisors</div>
-        </div>
-        
-        <!-- Live/Today Trades Tabs -->
-        <div class="tabs-container">
-            <div class="tabs-header">
-                <button class="tab-button active" data-tab="live-trades">
-                    🔴 LIVE TRADES <span id="liveCount">(0)</span>
-                </button>
-                <button class="tab-button" data-tab="today-trades">
-                    📅 HEUTE <span id="todayCount">(0)</span>
-                </button>
+        <!-- Overview Page -->
+        <div id="overviewPage">
+            <div class="header">
+                <h1>EA Trading Dashboard</h1>
+                <div class="subtitle">Multi-Account Übersicht v3.2</div>
             </div>
             
-            <div class="tab-content active" id="live-trades">
-                <div id="liveTradesContent"></div>
+            <!-- Overview Stats -->
+            <div class="overview-stats">
+                <div class="stat-card">
+                    <div class="stat-label">💰 Gesamt Balance</div>
+                    <div class="stat-value" id="totalBalance">$0.00</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">📈 Gesamt Profit</div>
+                    <div class="stat-value" id="totalProfit">$0.00</div>
+                    <div class="stat-change" id="totalProfitChange">+0.00%</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">🎯 Konten</div>
+                    <div class="stat-value" id="totalAccounts">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">📊 Gesamt Trades</div>
+                    <div class="stat-value" id="totalTrades">0</div>
+                </div>
             </div>
             
-            <div class="tab-content" id="today-trades">
-                <div id="todayTradesContent"></div>
+            <!-- Live/Today Trades -->
+            <div class="tabs-container">
+                <div class="tabs-header">
+                    <button class="tab-button active" data-tab="live">🔴 LIVE <span id="liveCount">(0)</span></button>
+                    <button class="tab-button" data-tab="today">📅 HEUTE <span id="todayCount">(0)</span></button>
+                </div>
+                <div class="tab-content active" id="live"></div>
+                <div class="tab-content" id="today"></div>
+            </div>
+            
+            <!-- Live Accounts -->
+            <div class="category-section">
+                <div class="category-header">
+                    <span>🟢</span> LIVE KONTEN <span id="liveAccountsCount" style="color: var(--text-secondary); font-size: 16px;">(0)</span>
+                </div>
+                <div class="accounts-table" id="liveTable"></div>
+            </div>
+            
+            <!-- Copy Trading -->
+            <div class="category-section">
+                <div class="category-header">
+                    <span>🔵</span> COPY TRADING <span id="copyAccountsCount" style="color: var(--text-secondary); font-size: 16px;">(0)</span>
+                </div>
+                <div class="accounts-table" id="copyTable"></div>
+            </div>
+            
+            <!-- Demo -->
+            <div class="category-section">
+                <div class="category-header">
+                    <span>🟠</span> DEMO KONTEN <span id="demoAccountsCount" style="color: var(--text-secondary); font-size: 16px;">(0)</span>
+                </div>
+                <div class="accounts-table" id="demoTable"></div>
             </div>
         </div>
         
-        <!-- Live Accounts Table -->
-        <div class="category-section" id="liveSection">
-            <div class="category-header">
-                <span class="category-icon">🟢</span>
-                <span>LIVE KONTEN</span>
-                <span class="category-count" id="liveAccountsCount">(0)</span>
-            </div>
-            <div class="accounts-table" id="liveAccountsTable"></div>
-        </div>
-        
-        <!-- Copy Trading Accounts Table -->
-        <div class="category-section" id="copySection">
-            <div class="category-header">
-                <span class="category-icon">🔵</span>
-                <span>COPY TRADING</span>
-                <span class="category-count" id="copyAccountsCount">(0)</span>
-            </div>
-            <div class="accounts-table" id="copyAccountsTable"></div>
-        </div>
-        
-        <!-- Demo Accounts Table -->
-        <div class="category-section" id="demoSection">
-            <div class="category-header">
-                <span class="category-icon">🟠</span>
-                <span>DEMO KONTEN</span>
-                <span class="category-count" id="demoAccountsCount">(0)</span>
-            </div>
-            <div class="accounts-table" id="demoAccountsTable"></div>
+        <!-- Detail Page -->
+        <div id="detailPage" class="detail-page">
+            <button class="back-button" onclick="showOverview()">← Zurück zur Übersicht</button>
+            <div id="detailContent"></div>
         </div>
         
         <!-- Settings Button -->
@@ -548,45 +445,30 @@
                     <h2>⚙️ Einstellungen</h2>
                     <button class="close-button" onclick="closeSettings()">×</button>
                 </div>
-                
                 <div class="form-group">
                     <label>Anzeige-Währung</label>
-                    <select id="displayCurrency" onchange="updateDisplayCurrency()">
+                    <select id="displayCurrency" onchange="updateCurrency()">
                         <option value="USD">US Dollar ($)</option>
                         <option value="EUR">Euro (€)</option>
                         <option value="BOTH">Beide anzeigen</option>
                     </select>
                 </div>
-                
                 <hr style="border: none; border-top: 1px solid var(--border); margin: 24px 0;">
-                
-                <h3 style="margin-bottom: 16px;">Konten verwalten</h3>
+                <h3>Konten verwalten</h3>
                 <div id="accountsManagement"></div>
             </div>
         </div>
     </div>
     
     <script>
-        // Global state
         let allAccounts = [];
         let exchangeRate = 1.0;
         let displayCurrency = 'USD';
-        let sortColumn = null;
-        let sortDirection = 'asc';
         
-        // Simple relative URLs - works with both direct and Ingress access
         function getApiUrl(endpoint) {
-            return '.' + endpoint;  // Relative to current page
+            return '.' + endpoint;
         }
         
-        // Initialize
-        async function init() {
-            await loadData();
-            setupTabs();
-            setupEventListeners();
-        }
-        
-        // Load all data
         async function loadData() {
             try {
                 const [accountsRes, liveRes, todayRes, settingsRes] = await Promise.all([
@@ -604,6 +486,8 @@
                 if (accountsData.success) {
                     allAccounts = accountsData.accounts;
                     exchangeRate = accountsData.exchange_rate || 1.0;
+                    renderOverviewStats(accountsData.totals);
+                    renderAccountsTables();
                 }
                 
                 if (settingsData.success) {
@@ -613,165 +497,74 @@
                 
                 renderLiveTrades(liveData.live_trades || [], liveData.total || 0);
                 renderTodayTrades(todayData.today_trades || [], todayData.total || 0);
-                renderAccountsTables();
                 
             } catch (error) {
                 console.error('Failed to load data:', error);
             }
         }
         
-        // Format currency
-        function formatCurrency(amount, currency = 'USD') {
-            const symbol = currency === 'EUR' ? '€' : '$';
-            const formatted = Math.abs(amount).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-            return `${amount < 0 ? '-' : ''}${symbol}${formatted}`;
+        function formatCurrency(amount) {
+            const symbol = displayCurrency === 'EUR' ? '€' : '$';
+            return symbol + Math.abs(amount).toFixed(2);
         }
         
-        // Convert and display currency
-        function displayAmount(amount, accountCurrency = 'USD') {
-            if (displayCurrency === 'BOTH') {
-                const usd = accountCurrency === 'EUR' ? amount / exchangeRate : amount;
-                const eur = accountCurrency === 'USD' ? amount * exchangeRate : amount;
-                return `${formatCurrency(eur, 'EUR')} (≈${formatCurrency(usd, 'USD')})`;
-            } else if (displayCurrency === accountCurrency) {
-                return formatCurrency(amount, accountCurrency);
-            } else {
-                const converted = displayCurrency === 'EUR' ? amount * exchangeRate : amount / exchangeRate;
-                return formatCurrency(converted, displayCurrency);
-            }
+        function renderOverviewStats(totals) {
+            document.getElementById('totalBalance').textContent = formatCurrency(totals.total_balance);
+            document.getElementById('totalProfit').textContent = formatCurrency(totals.total_profit);
+            document.getElementById('totalProfit').className = 'stat-value ' + (totals.total_profit >= 0 ? 'positive' : 'negative');
+            document.getElementById('totalAccounts').textContent = totals.total_accounts;
+            document.getElementById('totalTrades').textContent = totals.total_trades;
         }
         
-        // Format date
-        function formatDate(dateStr) {
-            try {
-                // Handle MT4 format: 2025.08.18 06:00:06
-                let cleanDate = dateStr;
-                if (cleanDate.includes('.') && cleanDate.includes(':') && !cleanDate.includes('T')) {
-                    cleanDate = cleanDate.replace(/\./g, '-').replace(' ', 'T');
-                }
-                // Remove microseconds
-                cleanDate = cleanDate.split('.')[0];
-                const date = new Date(cleanDate);
-                return new Intl.DateTimeFormat('de-DE', {
-                    day: '2-digit',
-                    month: 'short',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                }).format(date);
-            } catch (e) {
-                return 'Invalid Date';
-            }
-        }
-        
-        // Calculate duration
-        function calculateDuration(openTime, closeTime) {
-            try {
-                // Handle MT4 format
-                let cleanOpen = openTime;
-                let cleanClose = closeTime || new Date().toISOString();
-                
-                if (cleanOpen.includes('.') && cleanOpen.includes(':') && !cleanOpen.includes('T')) {
-                    cleanOpen = cleanOpen.replace(/\./g, '-').replace(' ', 'T');
-                }
-                if (cleanClose.includes('.') && cleanClose.includes(':') && !cleanClose.includes('T')) {
-                    cleanClose = cleanClose.replace(/\./g, '-').replace(' ', 'T');
-                }
-                
-                const open = new Date(cleanOpen.split('.')[0]);
-                const close = new Date(cleanClose.split('.')[0]);
-                const hours = Math.floor((close - open) / 3600000);
-                const minutes = Math.floor(((close - open) % 3600000) / 60000);
-                return hours > 0 ? `${hours}h` : `${minutes}m`;
-            } catch (e) {
-                return '-';
-            }
-        }
-        
-        // Render live trades
         function renderLiveTrades(trades, total) {
             document.getElementById('liveCount').textContent = `(${total})`;
-            const container = document.getElementById('liveTradesContent');
+            const container = document.getElementById('live');
             
             if (trades.length === 0) {
                 container.innerHTML = '<div class="empty-state">Keine offenen Trades</div>';
                 return;
             }
             
-            let html = trades.slice(0, 10).map(trade => `
+            container.innerHTML = trades.map(t => `
                 <div class="trade-item">
-                    <div class="trade-item-left">
-                        <span style="color: var(--text-secondary);">${trade.account_name}</span>
-                        <span style="font-weight: 700;">${trade.symbol}</span>
-                        <span>${trade.type}</span>
-                        <span>${trade.lots}</span>
-                    </div>
-                    <div class="trade-item-right">
-                        <span class="${trade.profit >= 0 ? 'profit-positive' : 'profit-negative'}">
-                            ${trade.profit >= 0 ? '+' : ''}${displayAmount(trade.profit)}
-                        </span>
-                        <span style="color: var(--text-secondary);">${calculateDuration(trade.open_time)}</span>
-                    </div>
+                    <div>${t.account_name} - ${t.symbol} ${t.type} ${t.lots}</div>
+                    <div class="${t.profit >= 0 ? 'positive' : 'negative'}">${formatCurrency(t.profit)}</div>
                 </div>
             `).join('');
-            
-            if (total > 10) {
-                html += `<button class="view-all-button">📊 Alle ${total} Live Trades anzeigen</button>`;
-            }
-            
-            container.innerHTML = html;
         }
         
-        // Render today trades
         function renderTodayTrades(trades, total) {
             document.getElementById('todayCount').textContent = `(${total})`;
-            const container = document.getElementById('todayTradesContent');
+            const container = document.getElementById('today');
             
             if (trades.length === 0) {
-                container.innerHTML = '<div class="empty-state">Heute noch keine Trades geschlossen</div>';
+                container.innerHTML = '<div class="empty-state">Heute keine Trades</div>';
                 return;
             }
             
-            let html = trades.slice(0, 10).map(trade => `
+            container.innerHTML = trades.map(t => `
                 <div class="trade-item">
-                    <div class="trade-item-left">
-                        <span style="color: var(--text-secondary);">${trade.account_name}</span>
-                        <span style="font-weight: 700;">${trade.symbol}</span>
-                        <span>${trade.type}</span>
-                        <span>${trade.lots}</span>
-                    </div>
-                    <div class="trade-item-right">
-                        <span class="${trade.profit >= 0 ? 'profit-positive' : 'profit-negative'}">
-                            ${trade.profit >= 0 ? '+' : ''}${displayAmount(trade.profit)}
-                        </span>
-                        <span style="color: var(--text-secondary);">${formatDate(trade.close_time)}</span>
-                    </div>
+                    <div>${t.account_name} - ${t.symbol}</div>
+                    <div class="${t.profit >= 0 ? 'positive' : 'negative'}">${formatCurrency(t.profit)}</div>
                 </div>
             `).join('');
-            
-            if (total > 10) {
-                html += `<button class="view-all-button">📊 Alle ${total} heutigen Trades anzeigen</button>`;
-            }
-            
-            container.innerHTML = html;
         }
         
-        // Render accounts tables
         function renderAccountsTables() {
-            const liveAccounts = allAccounts.filter(a => a.category === 'live');
-            const copyAccounts = allAccounts.filter(a => a.category === 'copy');
-            const demoAccounts = allAccounts.filter(a => a.category === 'demo');
+            const live = allAccounts.filter(a => a.category === 'live');
+            const copy = allAccounts.filter(a => a.category === 'copy');
+            const demo = allAccounts.filter(a => a.category === 'demo');
             
-            document.getElementById('liveAccountsCount').textContent = `(${liveAccounts.length})`;
-            document.getElementById('copyAccountsCount').textContent = `(${copyAccounts.length})`;
-            document.getElementById('demoAccountsCount').textContent = `(${demoAccounts.length})`;
+            document.getElementById('liveAccountsCount').textContent = `(${live.length})`;
+            document.getElementById('copyAccountsCount').textContent = `(${copy.length})`;
+            document.getElementById('demoAccountsCount').textContent = `(${demo.length})`;
             
-            renderAccountTable('liveAccountsTable', liveAccounts);
-            renderAccountTable('copyAccountsTable', copyAccounts);
-            renderAccountTable('demoAccountsTable', demoAccounts);
+            renderTable('liveTable', live);
+            renderTable('copyTable', copy);
+            renderTable('demoTable', demo);
         }
         
-        // Render single account table
-        function renderAccountTable(containerId, accounts) {
+        function renderTable(containerId, accounts) {
             const container = document.getElementById(containerId);
             
             if (accounts.length === 0) {
@@ -779,247 +572,135 @@
                 return;
             }
             
-            const html = `
+            container.innerHTML = `
                 <table>
                     <thead>
                         <tr>
-                            <th class="sortable" onclick="sortTable('name')">STRATEGY</th>
-                            <th class="sortable" onclick="sortTable('type')">TYPE</th>
-                            <th class="sortable" onclick="sortTable('broker')">BROKER</th>
-                            <th class="sortable" onclick="sortTable('deposit')">DEPOSIT</th>
-                            <th class="sortable" onclick="sortTable('current_balance')">BALANCE</th>
-                            <th class="sortable" onclick="sortTable('floating_pl')">FLOATING P/L</th>
-                            <th class="sortable" onclick="sortTable('withdrawals')">WITHDRAWALS</th>
-                            <th class="sortable" onclick="sortTable('total_profit')">GAIN %</th>
-                            <th class="sortable" onclick="sortTable('total_trades')">TRADES</th>
-                            <th class="sortable" onclick="sortTable('days_running')">DAYS</th>
-                            <th class="sortable" onclick="sortTable('profit_factor')">PF</th>
-                            <th>ACTIONS</th>
+                            <th>NAME</th>
+                            <th>BROKER</th>
+                            <th>DEPOSIT</th>
+                            <th>BALANCE</th>
+                            <th>PROFIT</th>
+                            <th>GAIN %</th>
+                            <th>TRADES</th>
+                            <th>WIN RATE</th>
+                            <th>PF</th>
+                            <th>DD</th>
+                            <th>DAYS</th>
                         </tr>
                     </thead>
                     <tbody>
-                        ${accounts.map(acc => {
-                            const gainPercent = acc.deposit > 0 ? ((acc.total_profit / acc.deposit) * 100) : 0;
-                            return `
+                        ${accounts.map(acc => `
                             <tr>
-                                <td style="font-weight: 700;">${acc.name}</td>
-                                <td><span class="type-badge type-${acc.category}">${acc.type}</span></td>
+                                <td><a class="account-name-link" onclick="showDetail(${acc.id})">${acc.name}</a></td>
                                 <td>${acc.broker}</td>
-                                <td>${displayAmount(acc.deposit, acc.currency)}</td>
-                                <td style="font-weight: 700;">${displayAmount(acc.current_balance, acc.currency)}</td>
-                                <td class="${acc.floating_pl >= 0 ? 'profit-positive' : 'profit-negative'}">
-                                    ${displayAmount(acc.floating_pl, acc.currency)}
-                                </td>
-                                <td>${displayAmount(acc.withdrawals, acc.currency)}</td>
-                                <td class="${gainPercent >= 0 ? 'profit-positive' : 'profit-negative'}">
-                                    ${gainPercent >= 0 ? '+' : ''}${gainPercent.toFixed(2)}%
-                                </td>
+                                <td>${formatCurrency(acc.deposit)}</td>
+                                <td>${formatCurrency(acc.current_balance)}</td>
+                                <td class="${acc.total_profit >= 0 ? 'positive' : 'negative'}">${formatCurrency(acc.total_profit)}</td>
+                                <td class="${acc.gain_percent >= 0 ? 'positive' : 'negative'}">${acc.gain_percent >= 0 ? '+' : ''}${acc.gain_percent}%</td>
                                 <td>${acc.total_trades}</td>
-                                <td>${acc.days_running} days</td>
+                                <td>${acc.win_rate}%</td>
                                 <td>${acc.profit_factor}</td>
-                                <td>
-                                    <button class="button button-secondary" style="padding: 6px 12px; font-size: 11px;" 
-                                            onclick="editAccount(${acc.id})">✏️</button>
-                                </td>
+                                <td>${acc.max_drawdown}%</td>
+                                <td>${acc.days_running}</td>
                             </tr>
-                            `;
-                        }).join('')}
+                        `).join('')}
                     </tbody>
                 </table>
             `;
-            
-            container.innerHTML = html;
         }
         
-        // Sort table
-        function sortTable(column) {
-            if (sortColumn === column) {
-                sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
-            } else {
-                sortColumn = column;
-                sortDirection = 'asc';
-            }
+        function showDetail(accountId) {
+            const account = allAccounts.find(a => a.id === accountId);
+            if (!account) return;
             
-            allAccounts.sort((a, b) => {
-                let aVal = a[column];
-                let bVal = b[column];
-                
-                if (typeof aVal === 'string') {
-                    return sortDirection === 'asc' 
-                        ? aVal.localeCompare(bVal) 
-                        : bVal.localeCompare(aVal);
-                } else {
-                    return sortDirection === 'asc' 
-                        ? aVal - bVal 
-                        : bVal - aVal;
-                }
-            });
+            document.getElementById('overviewPage').style.display = 'none';
+            document.getElementById('detailPage').classList.add('active');
             
-            renderAccountsTables();
-            
-            // Update sort indicators
-            document.querySelectorAll('.accounts-table th').forEach(th => {
-                th.classList.remove('sorted-asc', 'sorted-desc');
-            });
-            
-            const targetTh = event?.target;
-            if (targetTh) {
-                targetTh.classList.add(`sorted-${sortDirection}`);
-            }
+            document.getElementById('detailContent').innerHTML = `
+                <h1>${account.name}</h1>
+                <div class="overview-stats">
+                    <div class="stat-card">
+                        <div class="stat-label">Balance</div>
+                        <div class="stat-value">${formatCurrency(account.current_balance)}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Profit</div>
+                        <div class="stat-value ${account.total_profit >= 0 ? 'positive' : 'negative'}">${formatCurrency(account.total_profit)}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Gain</div>
+                        <div class="stat-value ${account.gain_percent >= 0 ? 'positive' : 'negative'}">${account.gain_percent >= 0 ? '+' : ''}${account.gain_percent}%</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Trades</div>
+                        <div class="stat-value">${account.total_trades}</div>
+                    </div>
+                </div>
+                <p style="color: var(--text-secondary); margin-top: 20px;">Detaillierte Statistiken und Charts folgen in Kürze...</p>
+            `;
         }
         
-        // Setup tabs
-        function setupTabs() {
-            document.querySelectorAll('.tab-button').forEach(button => {
-                button.addEventListener('click', () => {
-                    document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
-                    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-                    
-                    button.classList.add('active');
-                    document.getElementById(button.dataset.tab).classList.add('active');
-                });
-            });
+        function showOverview() {
+            document.getElementById('detailPage').classList.remove('active');
+            document.getElementById('overviewPage').style.display = 'block';
         }
         
-        // Setup event listeners
-        function setupEventListeners() {
-            // Auto-refresh every 10 seconds
-            setInterval(loadData, 10000);
-        }
-        
-        // Settings modal
         function openSettings() {
-            loadAccountsManagement();
             document.getElementById('settingsModal').classList.add('active');
+            loadAccountsManagement();
         }
         
         function closeSettings() {
             document.getElementById('settingsModal').classList.remove('active');
         }
         
-        // Load accounts for management
         function loadAccountsManagement() {
             const container = document.getElementById('accountsManagement');
-            
-            const html = allAccounts.map(acc => `
-                <div class="account-item">
-                    <div class="account-item-header">
-                        <span class="account-name">${acc.name}</span>
-                        <span class="type-badge type-${acc.category}">${acc.category.toUpperCase()}</span>
-                    </div>
-                    
+            container.innerHTML = allAccounts.map(acc => `
+                <div style="background: var(--bg-hover); padding: 16px; border-radius: 8px; margin: 16px 0;">
+                    <h4>${acc.name}</h4>
                     <div class="form-group">
-                        <label>Name</label>
-                        <input type="text" value="${acc.name}" id="name_${acc.id}">
+                        <label>Deposit</label>
+                        <input type="number" value="${acc.deposit}" id="deposit_${acc.id}">
                     </div>
-                    
-                    <div class="form-group">
-                        <label>Broker</label>
-                        <input type="text" value="${acc.broker}" id="broker_${acc.id}">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Type</label>
-                        <select id="type_${acc.id}">
-                            <option value="Live" ${acc.type === 'Live' ? 'selected' : ''}>Live</option>
-                            <option value="Demo" ${acc.type === 'Demo' ? 'selected' : ''}>Demo</option>
-                            <option value="Copy" ${acc.type === 'Copy' ? 'selected' : ''}>Copy</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Kategorie</label>
-                        <select id="category_${acc.id}">
-                            <option value="live" ${acc.category === 'live' ? 'selected' : ''}>🟢 Live</option>
-                            <option value="copy" ${acc.category === 'copy' ? 'selected' : ''}>🔵 Copy Trading</option>
-                            <option value="demo" ${acc.category === 'demo' ? 'selected' : ''}>🟠 Demo</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Währung</label>
-                        <select id="currency_${acc.id}">
-                            <option value="USD" ${acc.currency === 'USD' ? 'selected' : ''}>US Dollar ($)</option>
-                            <option value="EUR" ${acc.currency === 'EUR' ? 'selected' : ''}>Euro (€)</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Startkapital (Deposit)</label>
-                        <input type="number" step="0.01" value="${acc.deposit || ''}" 
-                               id="deposit_${acc.id}" ${acc.deposit ? '' : ''}>
-                        <span class="currency-display">Manuell eintragbar wenn nicht automatisch erkannt</span>
-                    </div>
-                    
-                    <div class="button-group">
-                        <button class="button button-primary" onclick="saveAccount(${acc.id})">💾 Speichern</button>
-                        <button class="button button-danger" onclick="deleteAccount(${acc.id})">🗑️ Löschen</button>
-                    </div>
+                    <button class="button button-primary" onclick="saveAccount(${acc.id})">Speichern</button>
+                    <button class="button button-danger" onclick="deleteAccount(${acc.id})">Löschen</button>
                 </div>
             `).join('');
-            
-            container.innerHTML = html;
         }
         
-        // Save account
         async function saveAccount(accountId) {
-            const updates = {
-                name: document.getElementById(`name_${accountId}`).value,
-                broker: document.getElementById(`broker_${accountId}`).value,
-                type: document.getElementById(`type_${accountId}`).value,
-                category: document.getElementById(`category_${accountId}`).value,
-                currency: document.getElementById(`currency_${accountId}`).value,
-                deposit: parseFloat(document.getElementById(`deposit_${accountId}`).value) || null
-            };
+            const deposit = document.getElementById(`deposit_${accountId}`).value;
             
             try {
-                const response = await fetch(getApiUrl(`/api/accounts/${accountId}`), {
+                await fetch(getApiUrl(`/api/accounts/${accountId}`), {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(updates)
+                    body: JSON.stringify({ deposit: parseFloat(deposit) })
                 });
                 
-                if (response.ok) {
-                    alert('✅ Konto gespeichert!');
-                    await loadData();
-                    loadAccountsManagement();
-                }
+                alert('✅ Gespeichert!');
+                await loadData();
             } catch (error) {
-                alert('❌ Fehler beim Speichern');
+                alert('❌ Fehler!');
             }
         }
         
-        // Delete account
         async function deleteAccount(accountId) {
-            if (!confirm('Konto wirklich löschen? Trade-Historie bleibt erhalten.')) {
-                return;
-            }
+            if (!confirm('Wirklich löschen?')) return;
             
             try {
-                const response = await fetch(getApiUrl(`/api/accounts/${accountId}`), {
-                    method: 'DELETE'
-                });
-                
-                if (response.ok) {
-                    alert('✅ Konto gelöscht!');
-                    await loadData();
-                    closeSettings();
-                }
+                await fetch(getApiUrl(`/api/accounts/${accountId}`), { method: 'DELETE' });
+                alert('✅ Gelöscht!');
+                closeSettings();
+                await loadData();
             } catch (error) {
-                alert('❌ Fehler beim Löschen');
+                alert('❌ Fehler!');
             }
         }
         
-        // Edit account (quick access)
-        function editAccount(accountId) {
-            openSettings();
-            setTimeout(() => {
-                document.getElementById(`name_${accountId}`).scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }, 100);
-        }
-        
-        // Update display currency
-        async function updateDisplayCurrency() {
+        async function updateCurrency() {
             displayCurrency = document.getElementById('displayCurrency').value;
             
             try {
@@ -1029,14 +710,25 @@
                     body: JSON.stringify({ display_currency: displayCurrency })
                 });
                 
-                renderAccountsTables();
+                await loadData();
             } catch (error) {
                 console.error('Failed to update currency');
             }
         }
         
-        // Initialize on load
-        init();
+        // Tab switching
+        document.querySelectorAll('.tab-button').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                btn.classList.add('active');
+                document.getElementById(btn.dataset.tab).classList.add('active');
+            });
+        });
+        
+        // Initialize
+        loadData();
+        setInterval(loadData, 10000);
     </script>
 </body>
 </html>
