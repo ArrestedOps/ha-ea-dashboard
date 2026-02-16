@@ -574,19 +574,11 @@
         let sortColumn = null;
         let sortDirection = 'asc';
         
-        // Get API base URL (works with both direct access and Ingress)
+        // Get API URL with ingress path support
         function getApiUrl(endpoint) {
-            // Check if we're in Ingress mode
-            const path = window.location.pathname;
-            if (path.includes('_ea-dashboard')) {
-                // Ingress mode: extract base path
-                const match = path.match(/^(\/[^\/]+_ea-dashboard)/);
-                if (match) {
-                    return match[1] + endpoint;
-                }
-            }
-            // Direct mode: use relative URL
-            return endpoint;
+            // Use injected ingress path from backend
+            const ingressPath = window.INGRESS_PATH || '';
+            return ingressPath + endpoint;
         }
         
         // Initialize

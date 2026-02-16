@@ -74,7 +74,19 @@ def convert_currency(amount, from_curr, to_curr, rate):
 # Routes
 @app.route('/')
 def index():
-    return send_from_directory('static', 'index.html')
+    # Get ingress path from headers
+    ingress_path = request.headers.get('X-Ingress-Path', '')
+    
+    # Read the HTML file
+    html_path = os.path.join(app.static_folder, 'index.html')
+    with open(html_path, 'r', encoding='utf-8') as f:
+        html_content = f.read()
+    
+    # Inject the ingress path as a global variable
+    injection = f'<script>window.INGRESS_PATH = "{ingress_path}";</script>'
+    html_content = html_content.replace('<head>', f'<head>{injection}', 1)
+    
+    return html_content
 
 @app.route('/api/status')
 def status():
@@ -85,7 +97,7 @@ def status():
             'accounts_count': len(data['accounts']),
             'total_accounts': len(data['accounts']),
             'last_check': datetime.now().isoformat(),
-            'version': '3.0.0'
+            'version': '3.1.0'
         }
     })
 
@@ -390,7 +402,7 @@ def webhook_trade():
         return jsonify({'success': False, 'error': str(e)}), 500
 
 if __name__ == '__main__':
-    logger.info('EA Trading Dashboard v3.0 starting...')
+    logger.info('EA Trading Dashboard v3.1.0 starting...')
     
     # Initialize with demo data if empty
     data = load_data()
