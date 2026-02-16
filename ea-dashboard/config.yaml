@@ -1,6 +1,6 @@
 name: "EA Trading Dashboard"
-description: "v3.6 - Proper deposit/trade filtering, secret key restored"
-version: "3.6.0"
+description: "v3.7 - FINAL balance detection (transfer, wallet, type checks)"
+version: "3.7.0"
 slug: ea-dashboard
 init: false
 arch: [armhf, armv7, aarch64, amd64, i386]
