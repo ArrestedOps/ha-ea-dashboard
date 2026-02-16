@@ -1,5 +1,5 @@
 name: "EA Trading Dashboard"
-description: "Professional MetaTrader EA Statistics Dashboard v3.0"
+description: "Professional MetaTrader EA Statistics Dashboard v3.1"
 version: "3.1.0"
 slug: ea-dashboard
 init: false
@@ -14,7 +14,6 @@ ports:
 webui: "http://[HOST]:[PORT:8099]"
 ingress: true
 ingress_port: 8099
-ingress_entry: /
 panel_icon: mdi:chart-line
 panel_title: EA Dashboard
 startup: application

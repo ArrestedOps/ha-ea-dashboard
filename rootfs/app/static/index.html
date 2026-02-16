@@ -574,11 +574,9 @@
         let sortColumn = null;
         let sortDirection = 'asc';
         
-        // Get API URL with ingress path support
+        // Simple relative URLs - works with both direct and Ingress access
         function getApiUrl(endpoint) {
-            // Use injected ingress path from backend
-            const ingressPath = window.INGRESS_PATH || '';
-            return ingressPath + endpoint;
+            return '.' + endpoint;  // Relative to current page
         }
         
         // Initialize
