@@ -1,5 +1,15 @@
 # Changelog
 
+## [2.0.1] - 2026-02-16
+
+### Fixed
+- Dashboard now loads real data from API instead of mock data
+- Trades from MT4 EA now display correctly
+
+### Technical
+- Changed loadDataFromAPI() to fetch from /api/accounts
+- Auto-fallback to mock data if API unavailable
+
 ## [2.0.0] - 2026-02-16
 
 ### Added
