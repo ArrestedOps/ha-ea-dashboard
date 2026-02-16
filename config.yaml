@@ -1,0 +1,25 @@
+name: "EA Trading Dashboard"
+description: "Multi-Account MetaTrader EA Statistics with Webhook Support"
+version: "2.0.0"
+slug: ea-dashboard
+init: false
+arch:
+  - armhf
+  - armv7
+  - aarch64
+  - amd64
+  - i386
+ports:
+  8099/tcp: 8099
+webui: "http://[HOST]:[PORT:8099]"
+ingress: true
+ingress_port: 8099
+ingress_entry: /
+panel_icon: mdi:chart-line
+panel_title: EA Dashboard
+startup: application
+boot: auto
+options:
+  webhook_secret: ""
+schema:
+  webhook_secret: password?
