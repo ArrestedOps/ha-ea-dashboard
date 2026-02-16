@@ -1,36 +1,14 @@
-# EA Trading Dashboard v3.8.0
+# EA Trading Dashboard v3.9.0 - FINAL
 
-## 🔥 v3.8.0 - CONSERVATIVE + CORRECT DD!
+## SMART Balance Detection + Mobile Ready!
 
-### ✅ FIXES:
-1. **EA Filtering**: ONLY OrderType 6/7 = Balance Operations
-   - NO comment filtering (was too aggressive)
-   - Golden Pickaxe trades now counted correctly!
+### ✅ Multi-Broker Support:
+- Method 1: OrderType 6/7 (LiteFinance)
+- Method 2: "balance" in comment
+- Method 3: Large round numbers (Black Bull: 1000, 2000, etc.)
 
-2. **Drawdown CORRECT**: Tracks lowest point from peak
-   ```
-   OLD (WRONG): DD = (peak - current) / peak
-   NEW (CORRECT): DD = (peak - lowest_from_peak) / peak
-   ```
-   Now matches MyFxBook!
+### ✅ Mobile Responsive (iPhone optimized!)
+### ✅ Complete Detail Pages with charts
+### ✅ Correct Drawdown calculation
 
-### Golden Pickaxe Now Works:
-```
-Comment: "Transfer_from_206835_Wallet" 
-→ NOT filtered as balance (comment ignored)
-→ Only OrderType checked
-→ Trades counted! ✅
-```
-
-### Drawdown Example:
-```
-Balance: 2000 → 2500 (peak) → 2300 → 2800 (new peak) → 2200
-OLD: 21% DD (from 2800 to 2200)
-NEW: 8% DD (max drop 2500→2300=200, 200/2500=8%) ✅
-```
-
-## Installation:
-1. Upload v3.8
-2. Install both EAs with v3.8
-3. Check logs: "Real Trades: X"
-4. Dashboard shows correct DD!
+## Works with ALL brokers!

@@ -1,8 +1,8 @@
 //+------------------------------------------------------------------+
-//|                                        HA_TradeSync_MT4_v3.8.mq4 |
-//|                    CONSERVATIVE: Only filter OrderType 6/7       |
+//|                                        HA_TradeSync_MT4_v3.9.mq4 |
+//|                    SMART: Multi-broker balance detection         |
 //+------------------------------------------------------------------+
-#property version   "3.80"
+#property version   "3.90"
 #property strict
 
 input string WebhookURL = "http://api.dobko.it/api/webhook/batch";
@@ -19,14 +19,13 @@ double totalWithdrawals = 0;
 
 int OnInit()
 {
-   Print("=== EA Dashboard v3.8 - CONSERVATIVE FILTERING ===");
+   Print("=== EA Dashboard v3.9 - SMART BALANCE DETECTION ===");
    AnalyzeAccountHistory();
    SendBatchData();
    return(INIT_SUCCEEDED);
 }
 
 void OnDeinit(const int reason) { }
-
 void OnTick()
 {
    if(TimeCurrent() - lastCheck >= LiveTradesIntervalSec)
@@ -41,25 +40,40 @@ bool IsBalanceOperation(int orderIndex)
    if(!OrderSelect(orderIndex, SELECT_BY_POS, MODE_HISTORY))
       return false;
    
-   // ONLY check OrderType - most reliable method
    int orderType = OrderType();
+   string comment = OrderComment();
+   StringToLower(comment);
+   double profit = OrderProfit();
+   double swap = OrderSwap();
+   double commission = OrderCommission();
    
-   // OrderType 6 = Balance, 7 = Credit
+   // Method 1: OrderType (LiteFinance, etc.)
    if(orderType == 6 || orderType == 7)
-   {
-      Print("→ Balance Op (Type ", orderType, "): ", OrderComment());
       return true;
-   }
    
-   // DO NOT filter by comment! Comments can be misleading
-   // Only filter by type to be safe
+   // Method 2: Comment with "balance" keyword
+   if(StringFind(comment, "balance") >= 0)
+      return true;
+   
+   // Method 3: Large round deposit (Black Bull, etc.)
+   // Must be: BUY/SELL type, no swap, no commission, large round number
+   if(orderType <= 1 && swap == 0 && commission == 0 && MathAbs(profit) >= 1000)
+   {
+      // Check if it's a round number
+      double absProfit = MathAbs(profit);
+      if(MathMod(absProfit, 1000) == 0 || MathMod(absProfit, 500) == 0)
+      {
+         Print("→ Deposit detected (round): $", DoubleToString(profit, 2));
+         return true;
+      }
+   }
    
    return false;
 }
 
 void AnalyzeAccountHistory()
 {
-   Print("Analyzing account (OrderType-based filtering only)...");
+   Print("Analyzing (smart multi-broker detection)...");
    
    datetime startDate = TimeCurrent() - (HistoryDays * 86400);
    int totalOrders = OrdersHistoryTotal();
@@ -85,7 +99,7 @@ void AnalyzeAccountHistory()
                   totalWithdrawals += MathAbs(amount);
                balanceOpsCount++;
             }
-            else if(OrderType() <= 1) // Only BUY/SELL
+            else if(OrderType() <= 1)
             {
                tradesProfitSum += OrderProfit() + OrderSwap() + OrderCommission();
                realTradesCount++;
@@ -95,9 +109,10 @@ void AnalyzeAccountHistory()
    }
    
    initialBalance = AccountBalance() - tradesProfitSum - totalDeposits + totalWithdrawals;
-   if(initialBalance < 10) initialBalance = 1000;
+   if(initialBalance < 10) initialBalance = 0;
    
    Print("=== ANALYSIS ===");
+   Print("Broker: ", AccountCompany());
    Print("Real Trades: ", realTradesCount);
    Print("Balance Ops: ", balanceOpsCount);
    Print("Initial: $", DoubleToString(initialBalance, 2));
@@ -134,19 +149,16 @@ void SendBatchData()
    {
       if(OrderSelect(i, SELECT_BY_POS, MODE_HISTORY))
       {
-         if(OrderCloseTime() >= startDate)
+         if(OrderCloseTime() >= startDate && OrderType() <= 1)
          {
             if(IsBalanceOperation(i))
                continue;
-            
-            int orderType = OrderType();
-            if(orderType > 1) continue; // Skip pending
             
             if(count > 0) json += ",";
             json += "{";
             json += "\"trade_id\":" + IntegerToString(OrderTicket()) + ",";
             json += "\"symbol\":\"" + OrderSymbol() + "\",";
-            json += "\"type\":\"" + (orderType == 0 ? "BUY" : "SELL") + "\",";
+            json += "\"type\":\"" + (OrderType() == 0 ? "BUY" : "SELL") + "\",";
             json += "\"lots\":" + DoubleToString(OrderLots(), 2) + ",";
             json += "\"open_price\":" + DoubleToString(OrderOpenPrice(), 5) + ",";
             json += "\"close_price\":" + DoubleToString(OrderClosePrice(), 5) + ",";
@@ -168,23 +180,20 @@ void SendBatchData()
    
    for(int i = 0; i < totalOpen; i++)
    {
-      if(OrderSelect(i, SELECT_BY_POS, MODE_TRADES))
+      if(OrderSelect(i, SELECT_BY_POS, MODE_TRADES) && OrderType() <= 1)
       {
-         if(OrderType() <= 1)
-         {
-            if(openCount > 0) json += ",";
-            json += "{";
-            json += "\"trade_id\":" + IntegerToString(OrderTicket()) + ",";
-            json += "\"symbol\":\"" + OrderSymbol() + "\",";
-            json += "\"type\":\"" + (OrderType() == 0 ? "BUY" : "SELL") + "\",";
-            json += "\"lots\":" + DoubleToString(OrderLots(), 2) + ",";
-            json += "\"open_price\":" + DoubleToString(OrderOpenPrice(), 5) + ",";
-            json += "\"current_price\":" + DoubleToString(OrderClosePrice(), 5) + ",";
-            json += "\"open_time\":\"" + TimeToStr(OrderOpenTime(), TIME_DATE|TIME_MINUTES) + "\",";
-            json += "\"profit\":" + DoubleToString(OrderProfit() + OrderSwap() + OrderCommission(), 2);
-            json += "}";
-            openCount++;
-         }
+         if(openCount > 0) json += ",";
+         json += "{";
+         json += "\"trade_id\":" + IntegerToString(OrderTicket()) + ",";
+         json += "\"symbol\":\"" + OrderSymbol() + "\",";
+         json += "\"type\":\"" + (OrderType() == 0 ? "BUY" : "SELL") + "\",";
+         json += "\"lots\":" + DoubleToString(OrderLots(), 2) + ",";
+         json += "\"open_price\":" + DoubleToString(OrderOpenPrice(), 5) + ",";
+         json += "\"current_price\":" + DoubleToString(OrderClosePrice(), 5) + ",";
+         json += "\"open_time\":\"" + TimeToStr(OrderOpenTime(), TIME_DATE|TIME_MINUTES) + "\",";
+         json += "\"profit\":" + DoubleToString(OrderProfit() + OrderSwap() + OrderCommission(), 2);
+         json += "}";
+         openCount++;
       }
    }
    json += "]}";
@@ -198,9 +207,9 @@ void SendBatchData()
    int res = WebRequest("POST", WebhookURL, headers, 5000, post, result, result_headers);
    
    if(res == 200)
-      Print("✓ Sent: ", count, " trades, ", openCount, " open");
+      Print("✓ OK: ", count, " trades");
    else if(res == -1)
-      Print("✗ WebRequest ERROR!");
+      Print("✗ ERROR!");
    else
       Print("✗ Server: ", res);
 }
