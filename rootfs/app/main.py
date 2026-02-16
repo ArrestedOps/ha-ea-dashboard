@@ -112,7 +112,10 @@ def get_accounts():
             profit_factor = (gross_profit / gross_loss) if gross_loss > 0 else 0
             
             # Drawdown calculation
-            deposit = acc.get('deposit', acc.get('current_balance', 0) - total_profit)
+            deposit = acc.get('deposit') or acc.get('current_balance', 0) - total_profit
+            if deposit is None or deposit <= 0:
+                deposit = 1000  # Fallback default
+            
             peak = deposit
             max_dd = 0
             
