@@ -1,8 +1,8 @@
 //+------------------------------------------------------------------+
-//|                                        HA_TradeSync_MT4_v3.9.mq4 |
-//|                    SMART: Multi-broker balance detection         |
+//|                                        HA_TradeSync_MT4_v4.0.mq4 |
+//|                              FINAL PERFECT - Based on statements |
 //+------------------------------------------------------------------+
-#property version   "3.90"
+#property version   "4.00"
 #property strict
 
 input string WebhookURL = "http://api.dobko.it/api/webhook/batch";
@@ -19,7 +19,7 @@ double totalWithdrawals = 0;
 
 int OnInit()
 {
-   Print("=== EA Dashboard v3.9 - SMART BALANCE DETECTION ===");
+   Print("=== EA Dashboard v4.0 - FINAL PERFECT ===");
    AnalyzeAccountHistory();
    SendBatchData();
    return(INIT_SUCCEEDED);
@@ -41,39 +41,20 @@ bool IsBalanceOperation(int orderIndex)
       return false;
    
    int orderType = OrderType();
-   string comment = OrderComment();
-   StringToLower(comment);
-   double profit = OrderProfit();
-   double swap = OrderSwap();
-   double commission = OrderCommission();
    
-   // Method 1: OrderType (LiteFinance, etc.)
-   if(orderType == 6 || orderType == 7)
+   // CRITICAL: Both brokers use OrderType 6 for balance operations
+   // Black Bull: Type=6, Comment="Transfer_from_206835_Wallet"
+   // LiteFinance: Type=6, Comment="DPST-IT-5208013: USD 2000.00"
+   
+   if(orderType == 6 || orderType == 7) // Balance or Credit
       return true;
-   
-   // Method 2: Comment with "balance" keyword
-   if(StringFind(comment, "balance") >= 0)
-      return true;
-   
-   // Method 3: Large round deposit (Black Bull, etc.)
-   // Must be: BUY/SELL type, no swap, no commission, large round number
-   if(orderType <= 1 && swap == 0 && commission == 0 && MathAbs(profit) >= 1000)
-   {
-      // Check if it's a round number
-      double absProfit = MathAbs(profit);
-      if(MathMod(absProfit, 1000) == 0 || MathMod(absProfit, 500) == 0)
-      {
-         Print("→ Deposit detected (round): $", DoubleToString(profit, 2));
-         return true;
-      }
-   }
    
    return false;
 }
 
 void AnalyzeAccountHistory()
 {
-   Print("Analyzing (smart multi-broker detection)...");
+   Print("Analyzing account history...");
    
    datetime startDate = TimeCurrent() - (HistoryDays * 86400);
    int totalOrders = OrdersHistoryTotal();
@@ -94,12 +75,18 @@ void AnalyzeAccountHistory()
             {
                double amount = OrderProfit();
                if(amount > 0)
+               {
                   totalDeposits += amount;
+                  Print("→ DEPOSIT: $", DoubleToString(amount, 2), " [", OrderComment(), "]");
+               }
                else if(amount < 0)
+               {
                   totalWithdrawals += MathAbs(amount);
+                  Print("→ WITHDRAWAL: $", DoubleToString(MathAbs(amount), 2), " [", OrderComment(), "]");
+               }
                balanceOpsCount++;
             }
-            else if(OrderType() <= 1)
+            else if(OrderType() <= 1) // Only BUY/SELL
             {
                tradesProfitSum += OrderProfit() + OrderSwap() + OrderCommission();
                realTradesCount++;
@@ -108,18 +95,22 @@ void AnalyzeAccountHistory()
       }
    }
    
-   initialBalance = AccountBalance() - tradesProfitSum - totalDeposits + totalWithdrawals;
-   if(initialBalance < 10) initialBalance = 0;
+   // Calculate initial balance
+   initialBalance = totalDeposits > 0 ? 0 : (AccountBalance() - tradesProfitSum);
    
-   Print("=== ANALYSIS ===");
+   if(initialBalance < 0) initialBalance = 0;
+   
+   Print("=== FINAL ANALYSIS ===");
    Print("Broker: ", AccountCompany());
    Print("Real Trades: ", realTradesCount);
-   Print("Balance Ops: ", balanceOpsCount);
-   Print("Initial: $", DoubleToString(initialBalance, 2));
-   Print("Deposits: $", DoubleToString(totalDeposits, 2));
-   Print("Withdrawals: $", DoubleToString(totalWithdrawals, 2));
-   Print("Profit: $", DoubleToString(tradesProfitSum, 2));
-   Print("================");
+   Print("Balance Operations: ", balanceOpsCount);
+   Print("---");
+   Print("Initial Balance: $", DoubleToString(initialBalance, 2));
+   Print("Total Deposits: $", DoubleToString(totalDeposits, 2));
+   Print("Total Withdrawals: $", DoubleToString(totalWithdrawals, 2));
+   Print("Trades Profit: $", DoubleToString(tradesProfitSum, 2));
+   Print("Current Balance: $", DoubleToString(AccountBalance(), 2));
+   Print("======================");
 }
 
 void SendBatchData()
@@ -207,9 +198,9 @@ void SendBatchData()
    int res = WebRequest("POST", WebhookURL, headers, 5000, post, result, result_headers);
    
    if(res == 200)
-      Print("✓ OK: ", count, " trades");
+      Print("✓ Success: ", count, " trades sent");
    else if(res == -1)
-      Print("✗ ERROR!");
+      Print("✗ ERROR: Add URL to allowed list!");
    else
-      Print("✗ Server: ", res);
+      Print("✗ Server error: ", res);
 }
