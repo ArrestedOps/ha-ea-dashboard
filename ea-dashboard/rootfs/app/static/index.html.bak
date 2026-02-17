@@ -231,10 +231,8 @@ function toDisplay(usdValue) {
 }
 
 function toOther(usdValue) {
-  // Show equivalent in the OTHER currency
-  // API values are always USD
-  if (currency === 'USD') return usdValue * fxRates.EUR;  // USD → show EUR
-  return usdValue;  // EUR display → show original USD value
+  if (currency === 'USD') return usdValue * fxRates.EUR;
+  return usdValue / fxRates.EUR;
 }
 
 function sym() { return currency === 'EUR' ? '€' : '$'; }
