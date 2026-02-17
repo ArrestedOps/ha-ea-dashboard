@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""EA Trading Dashboard v4.2.0 - Complete with all MyFxBook-style stats"""
+"""EA Trading Dashboard v4.3.0 - Complete with all MyFxBook-style stats"""
 import os, json, logging
 from datetime import datetime, timedelta
 from flask import Flask, jsonify, request, send_file
@@ -114,10 +114,10 @@ def get_accounts():
         gain_percent = ((total_profit_acc / deposit) * 100) if deposit > 0 else 0
         current_balance = acc.get('current_balance', 0)
         
-        total_balance += current_balance
-        # Only add to overview totals if live or copy (not demo)
+        # Only count live/copy in overview totals (never demo)
         cat = acc.get('category', 'live')
         if cat != 'demo':
+            total_balance += current_balance
             total_profit += total_profit_acc
             total_trades_count += len(trades)
         
@@ -383,5 +383,5 @@ def webhook_batch():
         return jsonify({'success': False}), 500
 
 if __name__ == '__main__':
-    logger.info('EA Dashboard v4.2.0 starting...')
+    logger.info('EA Dashboard v4.3.0 starting...')
     app.run(host='0.0.0.0', port=8099, debug=False)

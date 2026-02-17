@@ -3,279 +3,249 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=5">
-<title>EA Dashboard v4.2</title>
+<title>EA Dashboard v4.3</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Inter:wght@300;500;700;900&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#0a0e14;--card:#13171f;--hover:#1a1f2b;--border:#252a35;--text:#e6e8eb;--sec:#8b92a0;--green:#00ff87;--red:#ff3366;--blue:#00d4ff;--purple:#b97cff}
+:root{--bg:#0a0e14;--card:#13171f;--hover:#1a1f2b;--border:#252a35;--text:#e6e8eb;--muted:#8b92a0;--green:#00ff87;--red:#ff3366;--blue:#00d4ff}
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:Inter,sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased}
-.wrap{max-width:1920px;margin:0 auto;padding:clamp(16px,3vw,36px)}
+body{font-family:Inter,sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;min-height:100vh}
+.page{display:none}.page.on{display:block}
+.wrap{max-width:1800px;margin:0 auto;padding:clamp(16px,3vw,32px)}
 
-/* HEADER */
-.header{margin-bottom:28px}
-.header h1{font-size:clamp(26px,5vw,44px);font-weight:900;letter-spacing:-1.5px;background:linear-gradient(135deg,var(--green),var(--blue));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.version{color:var(--sec);font-size:12px;margin-top:4px}
+/* ─── TYPOGRAPHY ─── */
+h1.dash{font-size:clamp(26px,5vw,42px);font-weight:900;letter-spacing:-1.5px;background:linear-gradient(130deg,var(--green),var(--blue));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:4px}
+.sub{color:var(--muted);font-size:12px;margin-bottom:28px}
 
-/* CARDS */
-.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,190px),1fr));gap:16px;margin-bottom:24px}
-.stat-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px 24px}
-.stat-card .lbl{font-size:10px;font-family:'JetBrains Mono';color:var(--sec);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px}
-.stat-card .val{font-size:clamp(22px,4vw,30px);font-weight:700}
+/* ─── GRID HELPERS ─── */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+@media(max-width:900px){.g4{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:560px){.g4{grid-template-columns:1fr 1fr}.g2{grid-template-columns:1fr}}
 
-/* LIVE / TODAY */
-.lt-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}
-@media(max-width:640px){.lt-grid{grid-template-columns:1fr}}
-.lt-box{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px}
-.lt-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
-.lt-title{font-weight:700;font-size:14px;font-family:'JetBrains Mono';display:flex;align-items:center;gap:8px}
-.lt-badge{background:var(--hover);padding:2px 8px;border-radius:20px;font-size:11px;color:var(--sec)}
-.lt-item{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:var(--hover);border-radius:8px;margin-bottom:6px;font-family:'JetBrains Mono';font-size:12px}
-.lt-total{border-top:1px solid var(--border);padding-top:12px;margin-top:8px;display:flex;justify-content:space-between;font-family:'JetBrains Mono';font-size:13px;font-weight:700}
-.empty-msg{text-align:center;padding:28px;color:var(--sec);font-size:12px}
+/* ─── CARDS ─── */
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:clamp(16px,2.5vw,22px)}
+.card-sm{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px}
+.lbl{font-size:10px;font-family:'JetBrains Mono';color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px}
+.big{font-size:clamp(22px,4vw,30px);font-weight:700}
+.med{font-size:clamp(16px,2.5vw,20px);font-weight:600}
 
-/* TABLE */
-.section{margin-bottom:36px}
-.section-hdr{display:flex;align-items:center;gap:10px;margin-bottom:14px;font-size:18px;font-weight:700}
-.section-hdr .count{color:var(--sec);font-size:14px;font-weight:400}
+/* ─── LIVE / TODAY PANELS ─── */
+.lt-wrap{margin-bottom:20px}
+.lt-box{padding:clamp(16px,2.5vw,22px)}
+.lt-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.lt-title{font-weight:700;font-size:13px;font-family:'JetBrains Mono';display:flex;align-items:center;gap:8px}
+.badge{background:var(--hover);color:var(--muted);font-size:10px;padding:2px 8px;border-radius:20px;font-family:'JetBrains Mono'}
+.lt-note{font-size:10px;color:var(--muted);font-family:'JetBrains Mono'}
+.lt-row{display:flex;justify-content:space-between;align-items:center;padding:9px 12px;background:var(--hover);border-radius:8px;margin-bottom:6px;font-family:'JetBrains Mono';font-size:12px}
+.lt-footer{border-top:1px solid var(--border);padding-top:12px;margin-top:10px;display:flex;justify-content:space-between;font-family:'JetBrains Mono';font-weight:700;font-size:13px}
+.empty{text-align:center;padding:24px 0;color:var(--muted);font-size:12px}
+
+/* ─── TABLE ─── */
+.section-hdr{display:flex;align-items:center;gap:10px;margin:28px 0 14px;font-size:17px;font-weight:700}
+.section-count{color:var(--muted);font-weight:400;font-size:14px}
 .tbl-wrap{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow-x:auto;-webkit-overflow-scrolling:touch}
-table{width:100%;border-collapse:collapse;min-width:580px}
-th{background:var(--hover);padding:14px 12px;text-align:left;font-family:'JetBrains Mono';font-size:10px;font-weight:600;color:var(--sec);text-transform:uppercase;white-space:nowrap}
-td{padding:14px 12px;border-top:1px solid var(--border);font-family:'JetBrains Mono';font-size:12px;white-space:nowrap}
+table{width:100%;border-collapse:collapse;min-width:560px}
+th{background:var(--hover);padding:12px 14px;text-align:left;font-family:'JetBrains Mono';font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;white-space:nowrap}
+td{padding:13px 14px;border-top:1px solid var(--border);font-family:'JetBrains Mono';font-size:12px;white-space:nowrap}
 tr:hover td{background:var(--hover)}
-.tbl-link{color:var(--blue);cursor:pointer;text-decoration:none}
-.tbl-link:hover{color:var(--green)}
-.total-row td{font-weight:700;color:var(--green);background:rgba(0,255,135,.04)}
-.broker-col{display:table-cell}
-@media(max-width:760px){.broker-col{display:none}}
+.alink{color:var(--blue);cursor:pointer}.alink:hover{color:var(--green)}
+.total-row td{color:var(--green);font-weight:700;background:rgba(0,255,135,.04);border-top:1px solid var(--green)!important}
+@media(max-width:760px){.brkr{display:none}}
 
-/* COLORS */
-.g{color:var(--green)}.r{color:var(--red)}.b{color:var(--blue)}
+/* ─── COLORS ─── */
+.g{color:var(--green)}.r{color:var(--red)}.m{color:var(--muted)}
 
-/* SETTINGS BTN */
-.settings-wrap{text-align:center;margin:40px 0 20px}
-.settings-btn{width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.06);border:1px solid var(--border);color:var(--sec);font-size:18px;cursor:pointer;transition:.2s}
-.settings-btn:hover{color:var(--text);border-color:var(--blue)}
+/* ─── SETTINGS BTN ─── */
+.settings-area{text-align:center;padding:48px 0 24px}
+.set-btn{width:40px;height:40px;border-radius:50%;background:var(--hover);border:1px solid var(--border);color:var(--muted);font-size:16px;cursor:pointer;transition:.2s}
+.set-btn:hover{border-color:var(--blue);color:var(--text)}
 
-/* MODAL */
-.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;align-items:center;justify-content:center;padding:16px}
-.modal.open{display:flex}
-.modal-box{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:28px;max-width:560px;width:100%;max-height:90vh;overflow-y:auto}
-.modal-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}
-.modal-close{background:none;border:none;color:var(--sec);font-size:22px;cursor:pointer}
-.form-row{margin-bottom:18px}
-.form-row label{display:block;font-size:11px;font-family:'JetBrains Mono';color:var(--sec);margin-bottom:6px;text-transform:uppercase}
-.form-row input{width:100%;padding:11px 14px;background:var(--hover);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'JetBrains Mono';font-size:13px}
-.btn{padding:10px 22px;border-radius:8px;font-family:'JetBrains Mono';font-size:12px;cursor:pointer;border:none;margin:0 6px 6px 0}
-.btn-g{background:var(--green);color:#000}
-.btn-r{background:var(--red);color:#fff}
-.acc-card{background:var(--hover);border-radius:10px;padding:16px;margin:12px 0}
+/* ─── MODAL ─── */
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:500;align-items:center;justify-content:center;padding:16px}
+.modal.on{display:flex}
+.mbox{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:28px;max-width:540px;width:100%;max-height:90vh;overflow-y:auto}
+.mhdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px}
+.mclose{background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer}
+.frow{margin-bottom:16px}
+.frow label{display:block;font-size:10px;font-family:'JetBrains Mono';color:var(--muted);text-transform:uppercase;margin-bottom:6px}
+.frow input{width:100%;padding:11px 14px;background:var(--hover);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'JetBrains Mono';font-size:13px}
+.btn{padding:10px 20px;border-radius:8px;font-family:'JetBrains Mono';font-size:12px;cursor:pointer;border:none;margin:0 6px 6px 0}
+.bg{background:var(--green);color:#000}.br{background:var(--red);color:#fff}
+.acc-item{background:var(--hover);border-radius:10px;padding:16px;margin:12px 0}
 
-/* ============ DETAIL PAGE ============ */
-.detail{display:none}
-.detail.on{display:block}
-.back-btn{display:inline-flex;align-items:center;gap:8px;padding:10px 18px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);cursor:pointer;font-family:'JetBrains Mono';font-size:13px;margin-bottom:24px;transition:.2s}
-.back-btn:hover{border-color:var(--blue)}
+/* ─── DETAIL PAGE ─── */
+.back-btn{display:inline-flex;align-items:center;gap:8px;padding:9px 16px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--muted);cursor:pointer;font-family:'JetBrains Mono';font-size:12px;margin-bottom:24px;transition:.2s;border:none}
+.back-btn:hover{color:var(--text)}
 
-/* Period filter tabs */
-.period-tabs{display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap}
-.ptab{padding:8px 20px;border-radius:24px;border:1px solid var(--border);background:var(--card);color:var(--sec);font-family:'JetBrains Mono';font-size:12px;cursor:pointer;transition:.2s}
-.ptab.active{background:var(--green);color:#000;border-color:var(--green)}
-.ptab:hover:not(.active){border-color:var(--blue);color:var(--text)}
+/* Period tabs */
+.ptabs{display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap}
+.ptab{padding:7px 18px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:'JetBrains Mono';font-size:11px;cursor:pointer;transition:.15s}
+.ptab.on{background:var(--green);color:#000;border-color:var(--green);font-weight:600}
+.ptab:hover:not(.on){color:var(--text);border-color:var(--muted)}
 
-/* Period performance banner */
-.period-banner{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,140px),1fr));gap:12px;margin-bottom:24px}
-.pb-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px}
-.pb-card .lbl{font-size:10px;font-family:'JetBrains Mono';color:var(--sec);text-transform:uppercase;margin-bottom:6px}
-.pb-card .val{font-size:20px;font-weight:700}
+/* Key metrics row */
+.kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,160px),1fr));gap:12px;margin-bottom:24px}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px 18px}
+.kpi .lbl{font-size:10px;font-family:'JetBrains Mono';color:var(--muted);text-transform:uppercase;margin-bottom:6px}
+.kpi .val{font-size:clamp(18px,3vw,22px);font-weight:700}
 
-/* Info cards grid */
-.info-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,140px),1fr));gap:12px;margin-bottom:24px}
-.info-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;cursor:default}
-.info-card .lbl{font-size:10px;font-family:'JetBrains Mono';color:var(--sec);text-transform:uppercase;margin-bottom:6px}
-.info-card .val{font-size:17px;font-weight:600}
+/* Period highlight box */
+.period-box{background:var(--hover);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:24px;display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:16px}
+.period-stat .lbl{font-size:10px;font-family:'JetBrains Mono';color:var(--muted);margin-bottom:4px}
+.period-stat .val{font-size:18px;font-weight:700}
 
 /* Charts */
-.charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}
-@media(max-width:900px){.charts-grid{grid-template-columns:1fr}}
+.chart-row{display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:20px}
+@media(max-width:800px){.chart-row{grid-template-columns:1fr}}
 .chart-box{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px}
-.chart-box h3{font-size:14px;font-weight:600;margin-bottom:16px;font-family:'JetBrains Mono';color:var(--sec);text-transform:uppercase;letter-spacing:.6px}
-.chart-full{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:24px}
-.chart-full h3{font-size:14px;font-weight:600;margin-bottom:16px;font-family:'JetBrains Mono';color:var(--sec);text-transform:uppercase;letter-spacing:.6px}
+.chart-box h4{font-family:'JetBrains Mono';font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:16px}
+.chart-full{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:20px}
+.chart-full h4{font-family:'JetBrains Mono';font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:16px}
 
-/* Trades table */
-.trades-tbl-wrap{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:24px}
-.trades-tbl-hdr{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
-.trades-tbl-hdr h3{font-size:14px;font-weight:600;font-family:'JetBrains Mono'}
-.trades-scroll{max-height:460px;overflow-y:auto}
+/* Trades section */
+.trades-box{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:20px}
+.trades-head{padding:14px 18px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border)}
+.trades-head h4{font-family:'JetBrains Mono';font-size:12px;font-weight:600}
+.trades-scroll{max-height:400px;overflow-y:auto;overflow-x:auto}
 </style>
 </head>
 <body>
+
+<!-- ═══════════ OVERVIEW PAGE ═══════════ -->
+<div id="pgOverview" class="page on">
 <div class="wrap">
+  <h1 class="dash">EA Trading Dashboard</h1>
+  <div class="sub">v4.3 — Precise Detection · Balance excludes Demo</div>
 
-<!-- OVERVIEW -->
-<div id="overview">
-  <div class="header"><h1>EA Trading Dashboard</h1><div class="version">v4.2 — Smart Detection + Filters</div></div>
-
-  <div class="lt-grid">
-    <div class="lt-box">
+  <!-- Live / Today -->
+  <div class="lt-wrap g2">
+    <div class="card lt-box">
       <div class="lt-head">
-        <div class="lt-title"><span style="color:var(--red)">●</span> LIVE <span class="lt-badge" id="liveCnt">0</span></div>
-        <span style="font-family:'JetBrains Mono';font-size:11px;color:var(--sec)">Live/Copy only</span>
+        <div class="lt-title"><span style="color:var(--red);font-size:8px">●</span> LIVE <span class="badge" id="liveCnt">0</span></div>
+        <span class="lt-note">Live &amp; Copy only</span>
       </div>
-      <div id="liveContent"></div>
-      <div class="lt-total"><span>TOTAL</span><span id="livePL" class="g">$0.00</span></div>
+      <div id="liveContent"><div class="empty">No open positions</div></div>
+      <div class="lt-footer"><span>Total P&amp;L</span><span id="livePL">$0.00</span></div>
     </div>
-    <div class="lt-box">
+    <div class="card lt-box">
       <div class="lt-head">
-        <div class="lt-title"><span style="color:var(--blue)">▪</span> TODAY <span class="lt-badge" id="todayCnt">0</span></div>
-        <span style="font-family:'JetBrains Mono';font-size:11px;color:var(--sec)">Live/Copy only</span>
+        <div class="lt-title"><span style="color:var(--blue);font-size:10px">■</span> TODAY <span class="badge" id="todayCnt">0</span></div>
+        <span class="lt-note">Live &amp; Copy only</span>
       </div>
-      <div id="todayContent"></div>
-      <div class="lt-total"><span>TOTAL</span><span id="todayPL" class="g">$0.00</span></div>
+      <div id="todayContent"><div class="empty">No trades today</div></div>
+      <div class="lt-footer"><span>Total P&amp;L</span><span id="todayPL">$0.00</span></div>
     </div>
   </div>
 
-  <div class="stat-grid">
-    <div class="stat-card"><div class="lbl">💰 Balance</div><div class="val" id="totBal">$0</div></div>
-    <div class="stat-card"><div class="lbl">📈 Profit (Live+Copy)</div><div class="val g" id="totPro">$0</div></div>
-    <div class="stat-card"><div class="lbl">🎯 Accounts</div><div class="val" id="totAcc">0</div></div>
-    <div class="stat-card"><div class="lbl">📊 Trades (Live+Copy)</div><div class="val" id="totTrd">0</div></div>
+  <!-- KPIs -->
+  <div class="g4" style="margin-bottom:28px">
+    <div class="card"><div class="lbl">💰 Balance (Live+Copy)</div><div class="big" id="totBal">–</div></div>
+    <div class="card"><div class="lbl">📈 Profit (Live+Copy)</div><div class="big g" id="totPro">–</div></div>
+    <div class="card"><div class="lbl">🎯 Accounts</div><div class="big" id="totAcc">–</div></div>
+    <div class="card"><div class="lbl">📊 Trades (Live+Copy)</div><div class="big" id="totTrd">–</div></div>
   </div>
 
-  <div class="section">
-    <div class="section-hdr">🟢 LIVE <span class="count" id="liveAccCnt"></span></div>
-    <div class="tbl-wrap" id="liveTbl"></div>
-  </div>
-  <div class="section">
-    <div class="section-hdr">🔵 COPY <span class="count" id="copyAccCnt"></span></div>
-    <div class="tbl-wrap" id="copyTbl"></div>
-  </div>
-  <div class="section">
-    <div class="section-hdr">🟠 DEMO <span class="count" id="demoAccCnt"></span></div>
-    <div class="tbl-wrap" id="demoTbl"></div>
-  </div>
+  <!-- Account tables -->
+  <div class="section-hdr">🟢 Live <span class="section-count" id="liveAccCnt">(0)</span></div>
+  <div class="tbl-wrap" id="liveTbl"></div>
+  <div class="section-hdr">🔵 Copy <span class="section-count" id="copyAccCnt">(0)</span></div>
+  <div class="tbl-wrap" id="copyTbl"></div>
+  <div class="section-hdr">🟠 Demo <span class="section-count" id="demoAccCnt">(0)</span></div>
+  <div class="tbl-wrap" id="demoTbl"></div>
 
-  <div class="settings-wrap"><button class="settings-btn" onclick="openSettings()">⚙️</button></div>
+  <div class="settings-area"><button class="set-btn" onclick="openSettings()" title="Settings">⚙</button></div>
+</div>
 </div>
 
-<!-- DETAIL PAGE -->
-<div class="detail" id="detail">
-  <button class="back-btn" onclick="backToOverview()">← Back</button>
-  <div id="detailInner"></div>
+<!-- ═══════════ DETAIL PAGE ═══════════ -->
+<div id="pgDetail" class="page">
+<div class="wrap">
+  <button class="back-btn" onclick="goBack()">← Back</button>
+  <div id="detailBody"></div>
+</div>
 </div>
 
-<!-- SETTINGS MODAL -->
+<!-- ═══════════ SETTINGS MODAL ═══════════ -->
 <div class="modal" id="settingsModal">
-  <div class="modal-box">
-    <div class="modal-hdr"><h2>⚙️ Settings</h2><button class="modal-close" onclick="closeSettings()">×</button></div>
-    <div class="form-row"><label>Webhook Secret</label><input type="password" id="secKey" placeholder="Secret key"></div>
+  <div class="mbox">
+    <div class="mhdr"><h2 style="font-size:18px;font-weight:700">Settings</h2><button class="mclose" onclick="closeSettings()">×</button></div>
+    <div class="frow"><label>Webhook Secret</label><input type="password" id="secKey" placeholder="Secret key"></div>
     <div id="accMgmt"></div>
   </div>
 </div>
 
-</div><!-- /wrap -->
-
 <script>
-// ============================================================
-// STATE
-// ============================================================
-let accounts = [], charts = {}, currentPeriod = 'all';
+// ═══════════════════════════════════════════
+// GLOBALS
+// ═══════════════════════════════════════════
+let accounts = [], charts = {}, currentPeriod = 'all', detailData = null;
 
-// ============================================================
-// HELPERS
-// ============================================================
 const $ = id => document.getElementById(id);
-const api = path => '.' + path;
-const f = v => (v >= 0 ? '' : '- ') + '$' + Math.abs(v).toFixed(2);
+const api = p => '.' + p;
+const fmt = v => (v >= 0 ? '' : '- ') + '$' + Math.abs(v).toFixed(2);
 const pct = v => (v >= 0 ? '+' : '') + v.toFixed(2) + '%';
-const cls = v => v >= 0 ? 'g' : 'r';
+const gc = v => v >= 0 ? 'g' : 'r';
+const R = (v, d = 2) => Math.round(v * 10 ** d) / 10 ** d;
 
-function filterByPeriod(trades, period) {
-  if (period === 'all') return trades;
-  const now = new Date();
-  const cuts = { today: 1, week: 7, month: 30, year: 365 };
-  const days = cuts[period];
-  const cutoff = new Date(now - days * 86400000);
-  return trades.filter(t => {
-    const d = new Date(t.close_time || t.open_time || '');
-    return d >= cutoff;
-  });
-}
-
-function calcStats(trades, deposits) {
-  if (!trades.length) return { profit: 0, gain: 0, trades: 0, wins: 0, wr: 0 };
-  const profit = trades.reduce((s, t) => s + (t.profit || 0), 0);
-  const wins = trades.filter(t => t.profit > 0).length;
-  const gain = deposits > 0 ? (profit / deposits * 100) : 0;
-  return { profit: round(profit), gain: round(gain), trades: trades.length, wins, wr: round(wins / trades.length * 100) };
-}
-
-function round(v, d = 2) { return Math.round(v * 10 ** d) / 10 ** d; }
-
-function destroyChart(key) {
-  if (charts[key]) { charts[key].destroy(); delete charts[key]; }
-}
-
-// ============================================================
-// LOAD
-// ============================================================
-async function loadAll() {
+// ═══════════════════════════════════════════
+// DATA LOAD
+// ═══════════════════════════════════════════
+async function load() {
   try {
     const [ar, lr, tr] = await Promise.all([
       fetch(api('/api/accounts')).then(r => r.json()),
       fetch(api('/api/live-trades')).then(r => r.json()),
-      fetch(api('/api/today-trades')).then(r => r.json())
+      fetch(api('/api/today-trades')).then(r => r.json()),
     ]);
     if (ar.success) { accounts = ar.accounts; renderOverview(ar.totals); }
-    renderLive(lr);
-    renderToday(tr);
+    renderLiveBox(lr);
+    renderTodayBox(tr);
   } catch(e) { console.error(e); }
 }
 
-// ============================================================
-// OVERVIEW RENDER
-// ============================================================
-function renderOverview(totals) {
-  $('totBal').textContent = f(totals.total_balance);
-  $('totPro').textContent = f(totals.total_profit);
-  $('totPro').className = 'val ' + cls(totals.total_profit);
-  $('totAcc').textContent = totals.total_accounts;
-  $('totTrd').textContent = totals.total_trades;
+// ═══════════════════════════════════════════
+// OVERVIEW
+// ═══════════════════════════════════════════
+function renderOverview(t) {
+  $('totBal').textContent = fmt(t.total_balance);
+  $('totPro').textContent = fmt(t.total_profit);
+  $('totPro').className = 'big ' + gc(t.total_profit);
+  $('totAcc').textContent = t.total_accounts;
+  $('totTrd').textContent = t.total_trades;
 
   const live = accounts.filter(a => a.category === 'live');
   const copy = accounts.filter(a => a.category === 'copy');
   const demo = accounts.filter(a => a.category === 'demo');
-
   $('liveAccCnt').textContent = `(${live.length})`;
   $('copyAccCnt').textContent = `(${copy.length})`;
   $('demoAccCnt').textContent = `(${demo.length})`;
-
-  renderTable('liveTbl', live);
-  renderTable('copyTbl', copy);
-  renderTable('demoTbl', demo);
+  buildTable('liveTbl', live);
+  buildTable('copyTbl', copy);
+  buildTable('demoTbl', demo);
 }
 
-function renderTable(id, accs) {
+function buildTable(id, accs) {
   const el = $(id);
-  if (!accs.length) { el.innerHTML = '<div class="empty-msg">No accounts</div>'; return; }
-  const sumDep = accs.reduce((s, a) => s + (a.deposit || 0), 0);
-  const sumBal = accs.reduce((s, a) => s + (a.current_balance || 0), 0);
-  const sumPro = accs.reduce((s, a) => s + (a.total_profit || 0), 0);
-  const sumTrd = accs.reduce((s, a) => s + (a.total_trades || 0), 0);
+  if (!accs.length) { el.innerHTML = '<div class="empty" style="padding:28px">No accounts</div>'; return; }
+  const sD = accs.reduce((s, a) => s + (a.deposit || 0), 0);
+  const sB = accs.reduce((s, a) => s + (a.current_balance || 0), 0);
+  const sP = accs.reduce((s, a) => s + (a.total_profit || 0), 0);
+  const sT = accs.reduce((s, a) => s + (a.total_trades || 0), 0);
   el.innerHTML = `<table>
     <thead><tr>
-      <th>Name</th><th class="broker-col">Broker</th><th>Deposits</th><th>Balance</th>
-      <th>Profit</th><th>Gain</th><th>Trades</th><th>Win%</th><th>PF</th><th>DD</th><th>Days</th>
+      <th>Name</th><th class="brkr">Broker</th>
+      <th>Deposits</th><th>Balance</th><th>Profit</th>
+      <th>Gain</th><th>Trades</th><th>Win%</th><th>PF</th><th>DD</th><th>Days</th>
     </tr></thead>
     <tbody>
     ${accs.map(a => `<tr>
-      <td><a class="tbl-link" onclick="openDetail(${a.id})">${a.name}</a></td>
-      <td class="broker-col">${a.broker || '–'}</td>
-      <td>${f(a.deposit || 0)}</td>
-      <td>${f(a.current_balance || 0)}</td>
-      <td class="${cls(a.total_profit)}">${f(a.total_profit)}</td>
-      <td class="${cls(a.gain_percent)}">${pct(a.gain_percent)}</td>
+      <td><span class="alink" onclick="openDetail(${a.id})">${a.name}</span></td>
+      <td class="brkr m">${a.broker || '–'}</td>
+      <td>${fmt(a.deposit || 0)}</td>
+      <td>${fmt(a.current_balance || 0)}</td>
+      <td class="${gc(a.total_profit)}">${fmt(a.total_profit)}</td>
+      <td class="${gc(a.gain_percent)}">${pct(a.gain_percent)}</td>
       <td>${a.total_trades}</td>
       <td>${a.win_rate}%</td>
       <td>${a.profit_factor}</td>
@@ -283,304 +253,243 @@ function renderTable(id, accs) {
       <td>${a.days_running}</td>
     </tr>`).join('')}
     <tr class="total-row">
-      <td>TOTAL</td><td class="broker-col"></td>
-      <td>${f(sumDep)}</td><td>${f(sumBal)}</td>
-      <td class="${cls(sumPro)}">${f(sumPro)}</td>
-      <td></td><td>${sumTrd}</td><td></td><td></td><td></td><td></td>
+      <td>TOTAL</td><td class="brkr"></td>
+      <td>${fmt(sD)}</td><td>${fmt(sB)}</td>
+      <td class="${gc(sP)}">${fmt(sP)}</td>
+      <td></td><td>${sT}</td><td></td><td></td><td></td><td></td>
     </tr>
     </tbody></table>`;
 }
 
-function renderLive(lr) {
-  const trades = lr.live_trades || [];
+function renderLiveBox(lr) {
+  const ts = lr.live_trades || [], pl = lr.total_pl || 0;
   $('liveCnt').textContent = lr.total || 0;
-  const pl = lr.total_pl || 0;
-  $('livePL').textContent = f(pl);
-  $('livePL').className = cls(pl);
-  $('liveContent').innerHTML = !trades.length
-    ? '<div class="empty-msg">No open positions</div>'
-    : trades.map(t => `<div class="lt-item">
-        <div>${t.account_name} · ${t.symbol} ${t.type}</div>
-        <div class="${cls(t.profit)}">${f(t.profit)}</div>
-      </div>`).join('');
+  const plEl = $('livePL');
+  plEl.textContent = fmt(pl);
+  plEl.className = gc(pl);
+  $('liveContent').innerHTML = ts.length
+    ? ts.map(t => `<div class="lt-row"><span>${t.account_name} · <b>${t.symbol}</b> ${t.type}</span><span class="${gc(t.profit)}">${fmt(t.profit)}</span></div>`).join('')
+    : '<div class="empty">No open positions</div>';
 }
 
-function renderToday(tr) {
-  const trades = tr.today_trades || [];
+function renderTodayBox(tr) {
+  const ts = tr.today_trades || [], pl = tr.total_pl || 0;
   $('todayCnt').textContent = tr.total || 0;
-  const pl = tr.total_pl || 0;
-  $('todayPL').textContent = f(pl);
-  $('todayPL').className = cls(pl);
-  $('todayContent').innerHTML = !trades.length
-    ? '<div class="empty-msg">No trades today</div>'
-    : trades.map(t => `<div class="lt-item">
-        <div>${t.account_name} · ${t.symbol}</div>
-        <div class="${cls(t.profit)}">${f(t.profit)}</div>
-      </div>`).join('');
+  const plEl = $('todayPL');
+  plEl.textContent = fmt(pl);
+  plEl.className = gc(pl);
+  $('todayContent').innerHTML = ts.length
+    ? ts.map(t => `<div class="lt-row"><span>${t.account_name} · <b>${t.symbol}</b></span><span class="${gc(t.profit)}">${fmt(t.profit)}</span></div>`).join('')
+    : '<div class="empty">No trades today</div>';
 }
 
-// ============================================================
-// DETAIL PAGE
-// ============================================================
+// ═══════════════════════════════════════════
+// DETAIL
+// ═══════════════════════════════════════════
 async function openDetail(id) {
-  $('overview').style.display = 'none';
-  $('detail').classList.add('on');
+  $('pgOverview').classList.remove('on');
+  $('pgDetail').classList.add('on');
   currentPeriod = 'all';
 
   const res = await fetch(api(`/api/accounts/${id}`));
   const data = await res.json();
-  const acc = accounts.find(a => a.id === id);
-
-  window._detailData = { data, acc };
-  renderDetail(data, acc, 'all');
+  detailData = { data, acc: accounts.find(a => a.id === id) };
+  renderDetail();
 }
 
-function renderDetail(data, acc, period) {
+function renderDetail() {
+  const { data, acc } = detailData;
   const allTrades = data.account.trades || [];
-  const filteredTrades = filterByPeriod(allTrades, period);
+  const trades = filterPeriod(allTrades, currentPeriod);
   const dep = acc.deposit || 1;
 
-  // Period stats
-  const ps = calcStats(filteredTrades, dep);
-  const winTrades = filteredTrades.filter(t => t.profit > 0);
-  const lossTrades = filteredTrades.filter(t => t.profit < 0);
-  const grossProfit = winTrades.reduce((s, t) => s + t.profit, 0);
-  const grossLoss = Math.abs(lossTrades.reduce((s, t) => s + t.profit, 0));
-  const pf = grossLoss > 0 ? round(grossProfit / grossLoss) : grossProfit > 0 ? '∞' : 0;
+  // Calculate stats for current period
+  const profit = R(trades.reduce((s, t) => s + (t.profit || 0), 0));
+  const wins = trades.filter(t => t.profit > 0);
+  const losses = trades.filter(t => t.profit < 0);
+  const gProfit = wins.reduce((s, t) => s + t.profit, 0);
+  const gLoss = Math.abs(losses.reduce((s, t) => s + t.profit, 0));
+  const wr = trades.length ? R(wins.length / trades.length * 100) : 0;
+  const pf = gLoss > 0 ? R(gProfit / gLoss) : (gProfit > 0 ? '∞' : '0');
+  const gain = R(profit / dep * 100);
 
-  $('detailInner').innerHTML = `
-    <h1 style="font-size:clamp(24px,4vw,34px);font-weight:900;margin-bottom:24px">${acc.name}</h1>
+  $('detailBody').innerHTML = `
+    <h1 style="font-size:clamp(22px,4vw,32px);font-weight:900;margin-bottom:20px">${acc.name}
+      <span style="font-size:12px;font-family:'JetBrains Mono';color:var(--muted);font-weight:400;margin-left:12px">${acc.broker || ''}</span>
+    </h1>
 
     <!-- Period tabs -->
-    <div class="period-tabs">
+    <div class="ptabs">
       ${['all','today','week','month','year'].map(p =>
-        `<button class="ptab ${p===period?'active':''}" onclick="switchPeriod('${p}')">${p.charAt(0).toUpperCase()+p.slice(1)}</button>`
+        `<button class="ptab ${p===currentPeriod?'on':''}" onclick="setPeriod('${p}')">${({all:'All Time',today:'Today',week:'This Week',month:'This Month',year:'This Year'})[p]}</button>`
       ).join('')}
     </div>
 
-    <!-- Period performance banner -->
-    <div class="period-banner">
-      <div class="pb-card"><div class="lbl">Profit (${period})</div><div class="val ${cls(ps.profit)}">${f(ps.profit)}</div></div>
-      <div class="pb-card"><div class="lbl">Return (${period})</div><div class="val ${cls(ps.gain)}">${pct(ps.gain)}</div></div>
-      <div class="pb-card"><div class="lbl">Trades (${period})</div><div class="val">${ps.trades}</div></div>
-      <div class="pb-card"><div class="lbl">Win Rate (${period})</div><div class="val">${ps.wr}%</div></div>
+    <!-- Period highlighted stats -->
+    <div class="period-box">
+      <div class="period-stat"><div class="lbl">Profit</div><div class="val ${gc(profit)}">${fmt(profit)}</div></div>
+      <div class="period-stat"><div class="lbl">Return</div><div class="val ${gc(gain)}">${pct(gain)}</div></div>
+      <div class="period-stat"><div class="lbl">Trades</div><div class="val">${trades.length}</div></div>
+      <div class="period-stat"><div class="lbl">Win Rate</div><div class="val">${wr}%</div></div>
+      <div class="period-stat"><div class="lbl">Profit Factor</div><div class="val">${pf}</div></div>
     </div>
 
-    <!-- All-time top stats -->
-    <div class="stat-grid" style="margin-bottom:24px">
-      <div class="stat-card"><div class="lbl">Balance</div><div class="val">${f(acc.current_balance)}</div></div>
-      <div class="stat-card"><div class="lbl">Total Profit</div><div class="val ${cls(acc.total_profit)}">${f(acc.total_profit)}</div></div>
-      <div class="stat-card"><div class="lbl">Total Gain</div><div class="val ${cls(acc.gain_percent)}">${pct(acc.gain_percent)}</div></div>
-      <div class="stat-card"><div class="lbl">Total Trades</div><div class="val">${acc.total_trades}</div></div>
+    <!-- All-time KPIs -->
+    <div class="kpi-row">
+      <div class="kpi"><div class="lbl">Balance</div><div class="val">${fmt(acc.current_balance)}</div></div>
+      <div class="kpi"><div class="lbl">Total Deposits</div><div class="val g">${fmt(acc.total_deposits||0)}</div></div>
+      <div class="kpi"><div class="lbl">Withdrawals</div><div class="val">${fmt(acc.total_withdrawals||0)}</div></div>
+      <div class="kpi"><div class="lbl">Max Drawdown</div><div class="val r">${acc.max_drawdown}%</div></div>
+      <div class="kpi"><div class="lbl">Avg Win</div><div class="val g">${fmt(wins.length ? R(gProfit/wins.length) : 0)}</div></div>
+      <div class="kpi"><div class="lbl">Avg Loss</div><div class="val r">${fmt(losses.length ? R(gLoss/losses.length) : 0)}</div></div>
+      <div class="kpi"><div class="lbl">Best Trade</div><div class="val g">${fmt(trades.length ? Math.max(...trades.map(t=>t.profit||0)) : 0)}</div></div>
+      <div class="kpi"><div class="lbl">Avg Duration</div><div class="val">${acc.avg_trade_duration}h</div></div>
     </div>
 
-    <!-- Info cards -->
-    <div class="info-grid">
-      <div class="info-card"><div class="lbl">Deposits</div><div class="val g">${f(acc.total_deposits||0)}</div></div>
-      <div class="info-card"><div class="lbl">Withdrawals</div><div class="val r">${f(acc.total_withdrawals||0)}</div></div>
-      <div class="info-card"><div class="lbl">Profit Factor</div><div class="val">${pf}</div></div>
-      <div class="info-card"><div class="lbl">Win Rate</div><div class="val">${ps.wr}%</div></div>
-      <div class="info-card"><div class="lbl">Avg Win</div><div class="val g">${f(winTrades.length?round(grossProfit/winTrades.length):0)}</div></div>
-      <div class="info-card"><div class="lbl">Avg Loss</div><div class="val r">${f(lossTrades.length?round(grossLoss/lossTrades.length):0)}</div></div>
-      <div class="info-card"><div class="lbl">Best Trade</div><div class="val g">${f(filteredTrades.length?Math.max(...filteredTrades.map(t=>t.profit)):0)}</div></div>
-      <div class="info-card"><div class="lbl">Worst Trade</div><div class="val r">${f(filteredTrades.length?Math.min(...filteredTrades.map(t=>t.profit)):0)}</div></div>
-      <div class="info-card"><div class="lbl">Max DD</div><div class="val r">${acc.max_drawdown}%</div></div>
-      <div class="info-card"><div class="lbl">Avg Duration</div><div class="val">${acc.avg_trade_duration}h</div></div>
-      <div class="info-card"><div class="lbl">Leverage</div><div class="val">1:${acc.leverage||0}</div></div>
-      <div class="info-card"><div class="lbl">Days Running</div><div class="val">${acc.days_running}</div></div>
+    <!-- Equity + Win/Loss -->
+    <div class="chart-row">
+      <div class="chart-box"><h4>Equity Curve</h4><canvas id="cEq"></canvas></div>
+      <div class="chart-box"><h4>Win / Loss</h4><canvas id="cWl"></canvas></div>
     </div>
 
-    <!-- Charts row -->
-    <div class="charts-grid">
-      <div class="chart-box"><h3>Win/Loss Distribution</h3><canvas id="wlChart"></canvas></div>
-      <div class="chart-box"><h3>Profit by Symbol</h3><canvas id="symChart"></canvas></div>
-    </div>
+    <!-- Monthly bars -->
+    <div class="chart-full"><h4>Monthly Performance</h4><canvas id="cMonth"></canvas></div>
 
-    <!-- Equity curve full width -->
-    <div class="chart-full"><h3>Equity Curve</h3><canvas id="eqChart"></canvas></div>
-
-    <!-- Monthly return bar chart -->
-    <div class="chart-full"><h3>Monthly Performance</h3><canvas id="monthChart"></canvas></div>
-
-    <!-- Symbols table -->
-    <div class="trades-tbl-wrap">
-      <div class="trades-tbl-hdr"><h3>Top Symbols</h3></div>
-      <div style="overflow-x:auto">${renderSymTable(filteredTrades)}</div>
-    </div>
-
-    <!-- All trades -->
-    <div class="trades-tbl-wrap">
-      <div class="trades-tbl-hdr">
-        <h3>Trades (${filteredTrades.length})</h3>
+    <!-- Trades table -->
+    <div class="trades-box">
+      <div class="trades-head">
+        <h4>Trade History <span class="m">(${trades.length})</span></h4>
       </div>
-      <div class="trades-scroll" style="overflow-x:auto">${renderTradesTable(filteredTrades)}</div>
+      <div class="trades-scroll">
+        ${buildTradesTable(trades)}
+      </div>
     </div>
   `;
 
-  // Build charts after DOM ready
+  // Draw charts
   setTimeout(() => {
-    buildEquityChart(allTrades, acc.deposit || 1000, period);
-    buildWLChart(winTrades.length, lossTrades.length);
-    buildSymChart(filteredTrades);
-    buildMonthChart(allTrades);
-  }, 50);
+    destroyCharts();
+    drawEquity(allTrades, dep, currentPeriod);
+    drawWL(wins.length, losses.length);
+    drawMonthly(allTrades);
+  }, 30);
 }
 
-function switchPeriod(p) {
-  currentPeriod = p;
-  const { data, acc } = window._detailData;
-  renderDetail(data, acc, p);
+function setPeriod(p) { currentPeriod = p; renderDetail(); }
+
+function filterPeriod(trades, period) {
+  if (period === 'all') return trades;
+  const days = { today: 1, week: 7, month: 30, year: 365 }[period];
+  const cut = Date.now() - days * 86400000;
+  return trades.filter(t => new Date(t.close_time || t.open_time || 0) >= cut);
 }
 
-// ============================================================
-// CHART BUILDERS
-// ============================================================
-const chartDefaults = {
-  color: { text: '#8b92a0', grid: '#252a35' },
-  font: { family: 'JetBrains Mono', size: 11 }
-};
+// ═══════════════════════════════════════════
+// CHARTS
+// ═══════════════════════════════════════════
+const GRID = '#252a35', TICK = { color: '#8b92a0', font: { family: 'JetBrains Mono', size: 10 }};
+const scaleX = { ticks: {...TICK, maxRotation: 45 }, grid: { display: false } };
+const scaleY = { ticks: TICK, grid: { color: GRID } };
 
-function buildEquityChart(trades, deposit, period) {
-  destroyChart('eq');
-  const filtered = filterByPeriod(trades, period);
-  const sorted = [...filtered].sort((a, b) => new Date(a.close_time) - new Date(b.close_time));
-  let bal = deposit;
-  const pts = [{ x: sorted[0]?.close_time || '', y: deposit }];
-  for (const t of sorted) { bal += t.profit || 0; pts.push({ x: t.close_time, y: round(bal) }); }
-
-  charts.eq = new Chart($('eqChart'), {
-    type: 'line',
-    data: {
-      labels: pts.map(p => new Date(p.x).toLocaleDateString('de-DE')),
-      datasets: [{ data: pts.map(p => p.y), borderColor: '#00ff87', backgroundColor: 'rgba(0,255,135,.08)', fill: true, tension: 0.35, pointRadius: pts.length > 80 ? 0 : 2 }]
-    },
-    options: { responsive: true, plugins: { legend: { display: false } },
-      scales: { y: { ticks: { color: '#8b92a0', font: { family: 'JetBrains Mono', size: 10 } }, grid: { color: '#252a35' } },
-                x: { ticks: { color: '#8b92a0', maxRotation: 45, font: { family: 'JetBrains Mono', size: 9 } }, grid: { color: '#252a35' } } } }
-  });
-}
-
-function buildWLChart(wins, losses) {
-  destroyChart('wl');
-  charts.wl = new Chart($('wlChart'), {
-    type: 'doughnut',
-    data: { labels: ['Wins', 'Losses'], datasets: [{ data: [wins, losses], backgroundColor: ['#00ff87', '#ff3366'], borderWidth: 0 }] },
-    options: { responsive: true, plugins: {
-      legend: { position: 'bottom', labels: { color: '#8b92a0', font: { family: 'JetBrains Mono', size: 11 }, padding: 16 } }
-    }}
-  });
-}
-
-function buildSymChart(trades) {
-  destroyChart('sym');
-  const symMap = {};
-  for (const t of trades) {
-    symMap[t.symbol] = (symMap[t.symbol] || 0) + (t.profit || 0);
-  }
-  const top = Object.entries(symMap).sort((a, b) => Math.abs(b[1]) - Math.abs(a[1])).slice(0, 8);
-  charts.sym = new Chart($('symChart'), {
-    type: 'bar',
-    data: {
-      labels: top.map(e => e[0]),
-      datasets: [{ data: top.map(e => round(e[1])), backgroundColor: top.map(e => e[1] >= 0 ? 'rgba(0,255,135,.7)' : 'rgba(255,51,102,.7)'), borderRadius: 4 }]
-    },
-    options: { responsive: true, plugins: { legend: { display: false } },
-      scales: { y: { ticks: { color: '#8b92a0', font: { family: 'JetBrains Mono', size: 10 } }, grid: { color: '#252a35' } },
-                x: { ticks: { color: '#8b92a0', font: { family: 'JetBrains Mono', size: 10 } }, grid: { display: false } } } }
-  });
-}
-
-function buildMonthChart(trades) {
-  destroyChart('month');
-  const monthly = {};
-  for (const t of trades) {
-    const d = new Date(t.close_time || '');
-    if (isNaN(d)) continue;
-    const key = d.toLocaleDateString('de-DE', { year: '2-digit', month: 'short' });
-    monthly[key] = (monthly[key] || 0) + (t.profit || 0);
-  }
-  const entries = Object.entries(monthly);
-  charts.month = new Chart($('monthChart'), {
-    type: 'bar',
-    data: {
-      labels: entries.map(e => e[0]),
-      datasets: [{ data: entries.map(e => round(e[1])), backgroundColor: entries.map(e => e[1] >= 0 ? 'rgba(0,255,135,.75)' : 'rgba(255,51,102,.75)'), borderRadius: 4 }]
-    },
-    options: { responsive: true, plugins: { legend: { display: false } },
-      scales: { y: { ticks: { color: '#8b92a0', font: { family: 'JetBrains Mono', size: 10 } }, grid: { color: '#252a35' } },
-                x: { ticks: { color: '#8b92a0', maxRotation: 45, font: { family: 'JetBrains Mono', size: 10 } }, grid: { display: false } } } }
-  });
-}
-
-function renderSymTable(trades) {
-  const map = {};
-  for (const t of trades) {
-    if (!map[t.symbol]) map[t.symbol] = { sym: t.symbol, cnt: 0, profit: 0, wins: 0 };
-    map[t.symbol].cnt++;
-    map[t.symbol].profit += t.profit || 0;
-    if ((t.profit || 0) > 0) map[t.symbol].wins++;
-  }
-  const rows = Object.values(map).sort((a, b) => b.profit - a.profit);
-  if (!rows.length) return '<div class="empty-msg">No trades</div>';
-  return `<table><thead><tr><th>Symbol</th><th>Trades</th><th>Profit</th><th>Win%</th></tr></thead><tbody>
-    ${rows.slice(0,10).map(r => `<tr>
-      <td>${r.sym}</td><td>${r.cnt}</td>
-      <td class="${cls(r.profit)}">${f(round(r.profit))}</td>
-      <td>${round(r.wins/r.cnt*100)}%</td>
-    </tr>`).join('')}
-  </tbody></table>`;
-}
-
-function renderTradesTable(trades) {
-  if (!trades.length) return '<div class="empty-msg">No trades</div>';
-  const sorted = [...trades].sort((a, b) => new Date(b.close_time) - new Date(a.close_time));
-  return `<table><thead><tr><th>Close</th><th>Symbol</th><th>Type</th><th>Lots</th><th>Open</th><th>Close</th><th>Profit</th></tr></thead><tbody>
-    ${sorted.map(t => `<tr>
-      <td style="font-size:10px">${new Date(t.close_time).toLocaleDateString('de-DE')}</td>
-      <td>${t.symbol}</td><td>${t.type}</td><td>${t.lots}</td>
-      <td>${t.open_price}</td><td>${t.close_price}</td>
-      <td class="${cls(t.profit||0)}">${f(t.profit||0)}</td>
-    </tr>`).join('')}
-  </tbody></table>`;
-}
-
-function backToOverview() {
-  Object.values(charts).forEach(c => { try { c.destroy(); } catch(e){} });
+function destroyCharts() {
+  Object.values(charts).forEach(c => { try { c.destroy(); } catch(e) {} });
   charts = {};
-  $('detail').classList.remove('on');
-  $('overview').style.display = '';
 }
 
-// ============================================================
+function drawEquity(trades, dep, period) {
+  const src = filterPeriod([...trades].sort((a,b) => new Date(a.close_time)-new Date(b.close_time)), period);
+  let bal = dep;
+  const pts = [{ x: src[0]?.close_time, y: dep }];
+  src.forEach(t => { bal = R(bal + (t.profit||0)); pts.push({ x: t.close_time, y: bal }); });
+  const ctx = $('cEq');
+  if (!ctx) return;
+  charts.eq = new Chart(ctx, {
+    type: 'line',
+    data: { labels: pts.map(p => new Date(p.x).toLocaleDateString('de-DE')),
+            datasets: [{ data: pts.map(p => p.y), borderColor: '#00ff87', backgroundColor: 'rgba(0,255,135,.07)', fill: true, tension: 0.3, pointRadius: pts.length > 60 ? 0 : 2 }] },
+    options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: scaleY, x: scaleX } }
+  });
+}
+
+function drawWL(wins, losses) {
+  const ctx = $('cWl'); if (!ctx) return;
+  charts.wl = new Chart(ctx, {
+    type: 'doughnut',
+    data: { labels: [`Wins (${wins})`, `Losses (${losses})`],
+            datasets: [{ data: [wins, losses], backgroundColor: ['rgba(0,255,135,.8)','rgba(255,51,102,.8)'], borderWidth: 0 }] },
+    options: { responsive: true, cutout: '68%',
+      plugins: { legend: { position: 'bottom', labels: { color: '#8b92a0', font: { family: 'JetBrains Mono', size: 11 }, padding: 16, boxWidth: 12 } } } }
+  });
+}
+
+function drawMonthly(trades) {
+  const ctx = $('cMonth'); if (!ctx) return;
+  const map = {};
+  trades.forEach(t => {
+    const d = new Date(t.close_time||'');
+    if (isNaN(d)) return;
+    const k = d.toLocaleDateString('de-DE', { year:'2-digit', month:'short' });
+    map[k] = R((map[k]||0) + (t.profit||0));
+  });
+  const entries = Object.entries(map);
+  charts.month = new Chart(ctx, {
+    type: 'bar',
+    data: { labels: entries.map(e => e[0]),
+            datasets: [{ data: entries.map(e => e[1]), backgroundColor: entries.map(e => e[1]>=0 ? 'rgba(0,255,135,.75)' : 'rgba(255,51,102,.75)'), borderRadius: 4 }] },
+    options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: scaleY, x: scaleX } }
+  });
+}
+
+function buildTradesTable(trades) {
+  if (!trades.length) return '<div class="empty" style="padding:28px">No trades in this period</div>';
+  const sorted = [...trades].sort((a,b) => new Date(b.close_time)-new Date(a.close_time));
+  return `<table><thead><tr>
+    <th>Date</th><th>Symbol</th><th>Type</th><th>Lots</th><th>Open</th><th>Close</th><th>Profit</th>
+  </tr></thead><tbody>
+    ${sorted.map(t => `<tr>
+      <td class="m" style="font-size:10px">${new Date(t.close_time).toLocaleDateString('de-DE')}</td>
+      <td><b>${t.symbol}</b></td><td>${t.type}</td><td>${t.lots}</td>
+      <td class="m">${t.open_price}</td><td class="m">${t.close_price}</td>
+      <td class="${gc(t.profit||0)}">${fmt(t.profit||0)}</td>
+    </tr>`).join('')}
+  </tbody></table>`;
+}
+
+function goBack() {
+  destroyCharts();
+  $('pgDetail').classList.remove('on');
+  $('pgOverview').classList.add('on');
+}
+
+// ═══════════════════════════════════════════
 // SETTINGS
-// ============================================================
+// ═══════════════════════════════════════════
 function openSettings() {
-  $('settingsModal').classList.add('open');
-  $('accMgmt').innerHTML = '<hr style="border:none;border-top:1px solid var(--border);margin:20px 0"><h3 style="margin-bottom:12px">Accounts</h3>'
-    + accounts.map(a => `<div class="acc-card">
-        <div style="font-weight:600;margin-bottom:12px">${a.name} <span style="color:var(--sec);font-size:11px">(${a.category})</span></div>
-        <div class="form-row"><label>Deposits</label><input type="number" value="${a.deposit||0}" id="dep_${a.id}"></div>
-        <button class="btn btn-g" onclick="saveAcc(${a.id})">Save</button>
-        <button class="btn btn-r" onclick="delAcc(${a.id})">Delete</button>
+  $('settingsModal').classList.add('on');
+  $('accMgmt').innerHTML = '<hr style="border:none;border-top:1px solid var(--border);margin:20px 0"><h3 style="margin-bottom:12px;font-size:15px">Accounts</h3>'
+    + accounts.map(a => `<div class="acc-item">
+        <div style="font-weight:600;margin-bottom:10px">${a.name} <span style="color:var(--muted);font-size:10px;font-family:JetBrains Mono">${a.category.toUpperCase()}</span></div>
+        <div class="frow"><label>Deposits</label><input type="number" value="${a.deposit||0}" id="dep_${a.id}"></div>
+        <button class="btn bg" onclick="saveAcc(${a.id})">Save</button>
+        <button class="btn br" onclick="delAcc(${a.id})">Delete</button>
       </div>`).join('');
 }
-function closeSettings() { $('settingsModal').classList.remove('open'); }
+function closeSettings() { $('settingsModal').classList.remove('on'); }
 async function saveAcc(id) {
-  const v = $(`dep_${id}`).value;
-  await fetch(api(`/api/accounts/${id}`), { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ deposit: parseFloat(v) }) });
-  closeSettings(); loadAll();
+  await fetch(api(`/api/accounts/${id}`), { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ deposit: parseFloat($(`dep_${id}`).value) }) });
+  closeSettings(); load();
 }
 async function delAcc(id) {
-  if (!confirm('Delete?')) return;
-  await fetch(api(`/api/accounts/${id}`), { method: 'DELETE' });
-  closeSettings(); loadAll();
+  if (!confirm('Delete account?')) return;
+  await fetch(api(`/api/accounts/${id}`), { method:'DELETE' });
+  closeSettings(); load();
 }
 
-// ============================================================
+// ═══════════════════════════════════════════
 // INIT
-// ============================================================
-loadAll();
-setInterval(loadAll, 10000);
+// ═══════════════════════════════════════════
+load();
+setInterval(load, 10000);
 </script>
 </body>
 </html>
