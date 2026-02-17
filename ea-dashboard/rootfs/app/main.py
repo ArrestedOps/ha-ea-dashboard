@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""EA Trading Dashboard v4.1.0 - Complete with all MyFxBook-style stats"""
+"""EA Trading Dashboard v4.2.0 - Complete with all MyFxBook-style stats"""
 import os, json, logging
 from datetime import datetime, timedelta
 from flask import Flask, jsonify, request, send_file
@@ -115,8 +115,11 @@ def get_accounts():
         current_balance = acc.get('current_balance', 0)
         
         total_balance += current_balance
-        total_profit += total_profit_acc
-        total_trades_count += len(trades)
+        # Only add to overview totals if live or copy (not demo)
+        cat = acc.get('category', 'live')
+        if cat != 'demo':
+            total_profit += total_profit_acc
+            total_trades_count += len(trades)
         
         # Calculate advanced stats (MyFxBook style)
         avg_win = (gross_profit / len(winning_trades)) if winning_trades else 0
@@ -232,7 +235,7 @@ def get_live_trades():
     data = load_data()
     live_trades = []
     for acc in data['accounts']:
-        if acc.get('status') != 'deleted':
+        if acc.get('status') != 'deleted' and acc.get('category', 'live') != 'demo':
             for trade in acc.get('open_trades', []):
                 live_trades.append({**trade, 'account_name': acc['name'], 'account_id': acc['id']})
     
@@ -253,7 +256,7 @@ def get_today_trades():
     today_trades = []
     
     for acc in data['accounts']:
-        if acc.get('status') != 'deleted':
+        if acc.get('status') != 'deleted' and acc.get('category', 'live') != 'demo':
             for trade in acc.get('trades', []):
                 close_date = parse_date(trade.get('close_time', ''))
                 if close_date and close_date.date() == today:
@@ -380,5 +383,5 @@ def webhook_batch():
         return jsonify({'success': False}), 500
 
 if __name__ == '__main__':
-    logger.info('EA Dashboard v4.1.0 starting...')
+    logger.info('EA Dashboard v4.2.0 starting...')
     app.run(host='0.0.0.0', port=8099, debug=False)
