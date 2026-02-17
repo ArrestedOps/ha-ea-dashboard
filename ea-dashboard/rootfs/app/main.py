@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""EA Trading Dashboard v4.0.0 - Complete with all MyFxBook-style stats"""
+"""EA Trading Dashboard v4.1.0 - Complete with all MyFxBook-style stats"""
 import os, json, logging
 from datetime import datetime, timedelta
 from flask import Flask, jsonify, request, send_file
@@ -73,7 +73,11 @@ def get_accounts():
         gross_loss = abs(sum(t['profit'] for t in losing_trades)) if losing_trades else 0
         profit_factor = (gross_profit / gross_loss) if gross_loss > 0 else 0
         
-        deposit = acc.get('deposit') or acc.get('initial_balance', 1000)
+        deposit = acc.get('total_deposits', 0)
+        if deposit == 0:
+            deposit = acc.get('deposit', 0)
+        if deposit == 0:
+            deposit = acc.get('initial_balance', 1000)
         
         # CORRECT Drawdown: track lowest point from peak
         peak = deposit
@@ -376,5 +380,5 @@ def webhook_batch():
         return jsonify({'success': False}), 500
 
 if __name__ == '__main__':
-    logger.info('EA Dashboard v4.0.0 starting...')
+    logger.info('EA Dashboard v4.1.0 starting...')
     app.run(host='0.0.0.0', port=8099, debug=False)

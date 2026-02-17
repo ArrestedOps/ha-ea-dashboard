@@ -1,8 +1,8 @@
 //+------------------------------------------------------------------+
-//|                                        HA_TradeSync_MT4_v4.0.mq4 |
+//|                                        HA_TradeSync_MT4_v4.1.mq4 |
 //|                              FINAL PERFECT - Based on statements |
 //+------------------------------------------------------------------+
-#property version   "4.00"
+#property version   "4.10"
 #property strict
 
 input string WebhookURL = "http://api.dobko.it/api/webhook/batch";
@@ -19,7 +19,7 @@ double totalWithdrawals = 0;
 
 int OnInit()
 {
-   Print("=== EA Dashboard v4.0 - FINAL PERFECT ===");
+   Print("=== EA Dashboard v4.1 - FINAL PERFECT ===");
    AnalyzeAccountHistory();
    SendBatchData();
    return(INIT_SUCCEEDED);
@@ -56,7 +56,7 @@ void AnalyzeAccountHistory()
 {
    Print("Analyzing account history...");
    
-   datetime startDate = TimeCurrent() - (HistoryDays * 86400);
+   datetime startDate = TimeCurrent() - (HistoryDays * 864.1);
    int totalOrders = OrdersHistoryTotal();
    
    double tradesProfitSum = 0;
@@ -115,7 +115,7 @@ void AnalyzeAccountHistory()
 
 void SendBatchData()
 {
-   datetime startDate = TimeCurrent() - (HistoryDays * 86400);
+   datetime startDate = TimeCurrent() - (HistoryDays * 864.1);
    
    string json = "{";
    json += "\"secret\":\"" + SecretKey + "\",";

@@ -1,6 +1,6 @@
 name: "EA Trading Dashboard"
 description: "v3.8 - FINAL balance detection (transfer, wallet, type checks)"
-version: "4.0.0"
+version: "4.1.0"
 slug: ea-dashboard
 init: false
 arch: [armhf, armv7, aarch64, amd64, i386]
