@@ -1,10 +1,10 @@
 //+------------------------------------------------------------------+
-//|                                        HA_TradeSync_MT4_v4.3.mq4 |
+//|                                        HA_TradeSync_MT4_v4.5.mq4 |
 //|  DEFINITIVE FIX: Precise comment pattern matching               |
 //|  Black Bull: "Transfer_from_XXXXX_Wallet" = Deposit             |
 //|  Black Bull Trade: "#17164000 XAU Balanced[tp]" = REAL TRADE    |
 //+------------------------------------------------------------------+
-#property version "4.30"
+#property version "4.50"
 #property strict
 
 input string WebhookURL  = "http://api.dobko.it/api/webhook/batch";
@@ -20,7 +20,7 @@ double   gWithdraw = 0;
 
 int OnInit()
 {
-   Print("=== EA Dashboard MT4 v4.3 ===");
+   Print("=== EA Dashboard MT4 v4.5.0 ===");
    Print("Broker: ", AccountCompany());
    ScanHistory();
    SendData();
@@ -138,7 +138,7 @@ void SendData()
    j += "\"current_equity\":"    + DoubleToString(AccountEquity(), 2) + ",";
    j += "\"total_deposits\":"    + DoubleToString(gDeposits, 2) + ",";
    j += "\"total_withdrawals\":" + DoubleToString(gWithdraw, 2) + ",";
-   j += "\"currency\":\"USD\",";
+   j += "\"currency\":\"" + AccountCurrency() + "\",";
    j += "\"leverage\":"          + IntegerToString(AccountLeverage()) + ",";
 
    // Closed trades

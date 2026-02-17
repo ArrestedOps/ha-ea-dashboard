@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=5">
-<title>EA Dashboard v4.4</title>
+<title>EA Dashboard v4.5</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Inter:wght@300;500;700;900&display=swap" rel="stylesheet">
 <style>
@@ -118,7 +118,7 @@ tr:hover td{background:var(--hover)}
 <div class="wrap">
   <h1 class="dash">EA Trading Dashboard</h1>
   <div class="sub">
-    <span>v4.4 — Currency Conversion</span>
+    <span>v4.5 — Per-Account Currency Detection</span>
     <span class="fx-badge" id="fxRateBadge">Loading rates...</span>
   </div>
 
@@ -226,28 +226,53 @@ async function fetchRates() {
 }
 
 function toDisplay(usdValue) {
+  // Legacy: assumes USD input → display currency
   if (currency === 'EUR') return usdValue * fxRates.EUR;
   return usdValue;
 }
 
-function toOther(usdValue) {
-  // Show equivalent in the OTHER currency
-  // API values are always USD
-  if (currency === 'USD') return usdValue * fxRates.EUR;  // USD → show EUR
-  return usdValue;  // EUR display → show original USD value
+function toOther(nativeValue, acctCurrency) {
+  // nativeValue is in the ACCOUNT's own currency (USD or EUR)
+  // We want to show the equivalent in the OTHER display currency
+  const aC = acctCurrency || 'USD';
+  if (currency === 'USD') {
+    // Displaying USD: if account is EUR, convert EUR→USD for "other"
+    if (aC === 'EUR') return nativeValue / fxRates.EUR;  // EUR→USD
+    return nativeValue * fxRates.EUR;  // USD→EUR (to show EUR as "other")
+  } else {
+    // Displaying EUR: if account is USD, show raw USD as "other"
+    if (aC === 'USD') return nativeValue;  // raw USD
+    return nativeValue / fxRates.EUR;  // EUR→USD for "other"
+  }
+}
+
+// Convert a value FROM its account currency TO the display currency
+function toDisplayAcc(nativeValue, acctCurrency) {
+  const aC = acctCurrency || 'USD';
+  if (currency === aC) return nativeValue;  // same currency, no conversion
+  if (currency === 'EUR' && aC === 'USD') return nativeValue * fxRates.EUR;
+  if (currency === 'USD' && aC === 'EUR') return nativeValue / fxRates.EUR;
+  return nativeValue;
 }
 
 function sym() { return currency === 'EUR' ? '€' : '$'; }
 function otherSym() { return currency === 'EUR' ? '$' : '€'; }
 
-function fmt(usdVal) {
-  const v = toDisplay(usdVal);
+// fmt: converts from account currency to display currency
+function fmt(val, acctCurrency) {
+  const v = toDisplayAcc(val, acctCurrency || 'USD');
   return (v >= 0 ? '' : '- ') + sym() + Math.abs(v).toFixed(2);
 }
 
-function fmtOther(usdVal) {
-  const v = toOther(usdVal);
+// fmtOther: shows value in the OTHER currency
+function fmtOther(val, acctCurrency) {
+  const v = toOther(val, acctCurrency || 'USD');
   return '≈ ' + otherSym() + Math.abs(v).toFixed(0);
+}
+
+// For aggregate totals (already converted to display currency by backend)
+function fmtDisplay(displayVal) {
+  return (displayVal >= 0 ? '' : '- ') + sym() + Math.abs(displayVal).toFixed(2);
 }
 
 function setCurrency(c) {
@@ -282,11 +307,19 @@ async function load() {
 // OVERVIEW
 // ═══════════════════════════════════════════
 function renderOverview(t) {
-  $('totBal').textContent = fmt(t.total_balance);
-  $('totBalSub').textContent = fmtOther(t.total_balance);
-  $('totPro').textContent = fmt(t.total_profit);
-  $('totPro').className = 'big ' + gc(t.total_profit);
-  $('totProSub').textContent = fmtOther(t.total_profit);
+  // Totals come pre-summed in mixed currencies → recalculate from accounts
+  const liveCopy = accounts.filter(a => a.category !== 'demo');
+  const totalBal = liveCopy.reduce((s, a) => s + toDisplayAcc(a.current_balance||0, a.currency), 0);
+  const totalPro = liveCopy.reduce((s, a) => s + toDisplayAcc(a.total_profit||0, a.currency), 0);
+  const totalBal_other = liveCopy.reduce((s, a) => s + toOther(a.current_balance||0, a.currency), 0);
+  const totalPro_other = liveCopy.reduce((s, a) => s + toOther(a.total_profit||0, a.currency), 0);
+
+  const fmtD = v => (v>=0?'':'-') + sym() + Math.abs(v).toFixed(2);
+  $('totBal').textContent = fmtD(totalBal);
+  $('totBalSub').textContent = '≈ ' + otherSym() + Math.abs(totalBal_other).toFixed(0);
+  $('totPro').textContent = fmtD(totalPro);
+  $('totPro').className = 'big ' + gc(totalPro);
+  $('totProSub').textContent = '≈ ' + otherSym() + Math.abs(totalPro_other).toFixed(0);
   $('totAcc').textContent = t.total_accounts;
   $('totTrd').textContent = t.total_trades;
 
@@ -304,10 +337,12 @@ function renderOverview(t) {
 function buildTable(id, accs) {
   const el = $(id);
   if (!accs.length) { el.innerHTML = '<div class="empty" style="padding:28px">No accounts</div>'; return; }
-  const sD = accs.reduce((s, a) => s + (a.deposit || 0), 0);
-  const sB = accs.reduce((s, a) => s + (a.current_balance || 0), 0);
-  const sP = accs.reduce((s, a) => s + (a.total_profit || 0), 0);
+  // Totals: sum everything converted to display currency
+  const sD = accs.reduce((s, a) => s + toDisplayAcc(a.deposit || 0, a.currency), 0);
+  const sB = accs.reduce((s, a) => s + toDisplayAcc(a.current_balance || 0, a.currency), 0);
+  const sP = accs.reduce((s, a) => s + toDisplayAcc(a.total_profit || 0, a.currency), 0);
   const sT = accs.reduce((s, a) => s + (a.total_trades || 0), 0);
+  const fmtTotal = v => (v >= 0 ? '' : '- ') + sym() + Math.abs(v).toFixed(2);
   el.innerHTML = `<table>
     <thead><tr>
       <th>Name</th><th class="brkr">Broker</th>
@@ -315,47 +350,68 @@ function buildTable(id, accs) {
       <th>Gain</th><th>Trades</th><th>Win%</th><th>PF</th><th>DD</th><th>Days</th>
     </tr></thead>
     <tbody>
-    ${accs.map(a => `<tr>
-      <td><span class="alink" onclick="openDetail(${a.id})">${a.name}</span></td>
-      <td class="brkr m">${a.broker || '–'}</td>
-      <td>${fmt(a.deposit || 0)}<span class="td-sub">${fmtOther(a.deposit||0)}</span></td>
-      <td>${fmt(a.current_balance || 0)}<span class="td-sub">${fmtOther(a.current_balance||0)}</span></td>
-      <td class="${gc(a.total_profit)}">${fmt(a.total_profit)}<span class="td-sub">${fmtOther(a.total_profit)}</span></td>
-      <td class="${gc(a.gain_percent)}">${pct(a.gain_percent)}</td>
-      <td>${a.total_trades}</td>
-      <td>${a.win_rate}%</td>
-      <td>${a.profit_factor}</td>
-      <td class="r">${a.max_drawdown}%</td>
-      <td>${a.days_running}</td>
-    </tr>`).join('')}
+    ${accs.map(a => {
+      const ac = a.currency || 'USD';
+      const acBadge = ac !== 'USD' ? ` <span style="font-size:9px;color:var(--blue)">${ac}</span>` : '';
+      return `<tr>
+        <td><span class="alink" onclick="openDetail(${a.id})">${a.name}</span>${acBadge}</td>
+        <td class="brkr m">${a.broker || '–'}</td>
+        <td>${fmt(a.deposit || 0, ac)}<span class="td-sub">${fmtOther(a.deposit||0, ac)}</span></td>
+        <td>${fmt(a.current_balance || 0, ac)}<span class="td-sub">${fmtOther(a.current_balance||0, ac)}</span></td>
+        <td class="${gc(a.total_profit)}">${fmt(a.total_profit, ac)}<span class="td-sub">${fmtOther(a.total_profit, ac)}</span></td>
+        <td class="${gc(a.gain_percent)}">${pct(a.gain_percent)}</td>
+        <td>${a.total_trades}</td>
+        <td>${a.win_rate}%</td>
+        <td>${a.profit_factor}</td>
+        <td class="r">${a.max_drawdown}%</td>
+        <td>${a.days_running}</td>
+      </tr>`;
+    }).join('')}
     <tr class="total-row">
       <td>TOTAL</td><td class="brkr"></td>
-      <td>${fmt(sD)}</td><td>${fmt(sB)}</td>
-      <td class="${gc(sP)}">${fmt(sP)}</td>
+      <td>${fmtTotal(sD)}</td><td>${fmtTotal(sB)}</td>
+      <td class="${gc(sP)}">${fmtTotal(sP)}</td>
       <td></td><td>${sT}</td><td></td><td></td><td></td><td></td>
     </tr>
     </tbody></table>`;
 }
 
 function renderLiveBox(lr) {
-  const ts = lr.live_trades || [], pl = lr.total_pl || 0;
+  const ts = lr.live_trades || [];
   $('liveCnt').textContent = lr.total || 0;
-  $('livePL').textContent = fmt(pl);
+  // Recalculate total P&L with proper currency conversion
+  const pl = ts.reduce((s, t) => {
+    const acc = accounts.find(a => a.id === t.account_id);
+    return s + toDisplayAcc(t.profit || 0, acc?.currency || 'USD');
+  }, 0);
+  $('livePL').textContent = (pl>=0?'':'-') + sym() + Math.abs(pl).toFixed(2);
   $('livePL').className = gc(pl);
-  $('livePLSub').textContent = fmtOther(pl);
+  $('livePLSub').textContent = '≈ ' + otherSym() + Math.abs(toOther(pl, 'USD')).toFixed(0);
   $('liveContent').innerHTML = ts.length
-    ? ts.map(t => `<div class="lt-row"><span>${t.account_name} · <b>${t.symbol}</b> ${t.type}</span><span class="${gc(t.profit)}">${fmt(t.profit)}</span></div>`).join('')
+    ? ts.map(t => {
+        const acc = accounts.find(a => a.id === t.account_id);
+        const ac = acc?.currency || 'USD';
+        return `<div class="lt-row"><span>${t.account_name} · <b>${t.symbol}</b> ${t.type}</span><span class="${gc(t.profit)}">${fmt(t.profit, ac)}</span></div>`;
+      }).join('')
     : '<div class="empty">No open positions</div>';
 }
 
 function renderTodayBox(tr) {
-  const ts = tr.today_trades || [], pl = tr.total_pl || 0;
+  const ts = tr.today_trades || [];
   $('todayCnt').textContent = tr.total || 0;
-  $('todayPL').textContent = fmt(pl);
+  const pl = ts.reduce((s, t) => {
+    const acc = accounts.find(a => a.id === t.account_id);
+    return s + toDisplayAcc(t.profit || 0, acc?.currency || 'USD');
+  }, 0);
+  $('todayPL').textContent = (pl>=0?'':'-') + sym() + Math.abs(pl).toFixed(2);
   $('todayPL').className = gc(pl);
-  $('todayPLSub').textContent = fmtOther(pl);
+  $('todayPLSub').textContent = '≈ ' + otherSym() + Math.abs(toOther(pl, 'USD')).toFixed(0);
   $('todayContent').innerHTML = ts.length
-    ? ts.map(t => `<div class="lt-row"><span>${t.account_name} · <b>${t.symbol}</b></span><span class="${gc(t.profit)}">${fmt(t.profit)}</span></div>`).join('')
+    ? ts.map(t => {
+        const acc = accounts.find(a => a.id === t.account_id);
+        const ac = acc?.currency || 'USD';
+        return `<div class="lt-row"><span>${t.account_name} · <b>${t.symbol}</b></span><span class="${gc(t.profit)}">${fmt(t.profit, ac)}</span></div>`;
+      }).join('')
     : '<div class="empty">No trades today</div>';
 }
 
@@ -408,6 +464,7 @@ function calcAvgDuration(trades) {
 
 function renderDetail() {
   const { data, acc } = detailData;
+  const ac = acc.currency || 'USD';  // account's own currency
   const allTrades = data.account.trades || [];
   const trades = filterPeriod(allTrades, currentPeriod);
   const dep = acc.deposit || 1;
@@ -426,7 +483,9 @@ function renderDetail() {
   const worst = trades.length ? Math.min(...trades.map(t => t.profit || 0)) : 0;
 
   $('detailBody').innerHTML = `
-    <h1 style="font-size:clamp(22px,4vw,32px);font-weight:900;margin-bottom:6px">${acc.name}</h1>
+    <h1 style="font-size:clamp(22px,4vw,32px);font-weight:900;margin-bottom:6px">${acc.name}
+      <span style="font-size:11px;font-family:'JetBrains Mono';background:var(--hover);border:1px solid var(--border);border-radius:20px;padding:3px 10px;margin-left:8px;vertical-align:middle;font-weight:400">${ac}</span>
+    </h1>
     <div style="font-family:'JetBrains Mono';font-size:11px;color:var(--muted);margin-bottom:24px">${acc.broker || ''} · ${acc.platform || 'MT4'} · 1:${acc.leverage || 0}</div>
 
     <div class="ptabs">
@@ -437,7 +496,7 @@ function renderDetail() {
 
     <!-- Period snapshot -->
     <div class="period-box">
-      <div class="period-stat"><div class="lbl">Profit</div><div class="val ${gc(profit)}">${fmt(profit)}</div><div class="sval">${fmtOther(profit)}</div></div>
+      <div class="period-stat"><div class="lbl">Profit</div><div class="val ${gc(profit)}">${fmt(profit, ac)}</div><div class="sval">${fmtOther(profit, ac)}</div></div>
       <div class="period-stat"><div class="lbl">Return</div><div class="val ${gc(gain)}">${pct(gain)}</div></div>
       <div class="period-stat"><div class="lbl">Trades</div><div class="val">${trades.length}</div></div>
       <div class="period-stat"><div class="lbl">Win Rate</div><div class="val">${wr}%</div></div>
@@ -447,13 +506,13 @@ function renderDetail() {
 
     <!-- KPIs all-time context -->
     <div class="kpi-row">
-      <div class="kpi"><div class="lbl">Balance</div><div class="val">${fmt(acc.current_balance)}</div><div class="sval">${fmtOther(acc.current_balance)}</div></div>
-      <div class="kpi"><div class="lbl">Total Deposits</div><div class="val g">${fmt(acc.total_deposits||0)}</div><div class="sval">${fmtOther(acc.total_deposits||0)}</div></div>
-      <div class="kpi"><div class="lbl">Withdrawals</div><div class="val">${fmt(acc.total_withdrawals||0)}</div><div class="sval">${fmtOther(acc.total_withdrawals||0)}</div></div>
-      <div class="kpi"><div class="lbl">Avg Win</div><div class="val g">${fmt(wins.length ? R(gP/wins.length) : 0)}</div></div>
-      <div class="kpi"><div class="lbl">Avg Loss</div><div class="val r">${fmt(losses.length ? R(gL/losses.length) : 0)}</div></div>
-      <div class="kpi"><div class="lbl">Best Trade</div><div class="val g">${fmt(best)}</div></div>
-      <div class="kpi"><div class="lbl">Worst Trade</div><div class="val r">${fmt(worst)}</div></div>
+      <div class="kpi"><div class="lbl">Balance</div><div class="val">${fmt(acc.current_balance, ac)}</div><div class="sval">${fmtOther(acc.current_balance, ac)}</div></div>
+      <div class="kpi"><div class="lbl">Total Deposits</div><div class="val g">${fmt(acc.total_deposits||0, ac)}</div><div class="sval">${fmtOther(acc.total_deposits||0, ac)}</div></div>
+      <div class="kpi"><div class="lbl">Withdrawals</div><div class="val">${fmt(acc.total_withdrawals||0, ac)}</div><div class="sval">${fmtOther(acc.total_withdrawals||0, ac)}</div></div>
+      <div class="kpi"><div class="lbl">Avg Win</div><div class="val g">${fmt(wins.length ? R(gP/wins.length) : 0, ac)}</div></div>
+      <div class="kpi"><div class="lbl">Avg Loss</div><div class="val r">${fmt(losses.length ? R(gL/losses.length) : 0, ac)}</div></div>
+      <div class="kpi"><div class="lbl">Best Trade</div><div class="val g">${fmt(best, ac)}</div></div>
+      <div class="kpi"><div class="lbl">Worst Trade</div><div class="val r">${fmt(worst, ac)}</div></div>
       <div class="kpi"><div class="lbl">Avg Duration</div><div class="val">${avgDur}h</div></div>
     </div>
 
@@ -465,7 +524,7 @@ function renderDetail() {
 
     <div class="trades-box">
       <div class="trades-head"><h4>Trade History <span class="m">(${trades.length})</span></h4></div>
-      <div class="trades-scroll">${buildTradesTable(trades)}</div>
+      <div class="trades-scroll">${buildTradesTable(trades, ac)}</div>
     </div>
   `;
 
@@ -528,7 +587,8 @@ function drawMonthly(trades) {
   });
 }
 
-function buildTradesTable(trades) {
+function buildTradesTable(trades, ac) {
+  ac = ac || 'USD';
   if (!trades.length) return '<div class="empty" style="padding:28px">No trades in this period</div>';
   const sorted=[...trades].sort((a,b)=>new Date(b.close_time)-new Date(a.close_time));
   return `<table><thead><tr><th>Date</th><th>Symbol</th><th>Type</th><th>Lots</th><th>Open</th><th>Close</th><th>Profit</th></tr></thead><tbody>
@@ -536,7 +596,7 @@ function buildTradesTable(trades) {
       <td class="m" style="font-size:10px">${new Date(t.close_time).toLocaleDateString('de-DE')}</td>
       <td><b>${t.symbol}</b></td><td>${t.type}</td><td>${t.lots}</td>
       <td class="m">${t.open_price}</td><td class="m">${t.close_price}</td>
-      <td class="${gc(t.profit||0)}">${fmt(t.profit||0)}<span class="td-sub">${fmtOther(t.profit||0)}</span></td>
+      <td class="${gc(t.profit||0)}">${fmt(t.profit||0, ac)}<span class="td-sub">${fmtOther(t.profit||0, ac)}</span></td>
     </tr>`).join('')}
   </tbody></table>`;
 }
@@ -551,16 +611,33 @@ function openSettings() {
   $('btnUSD').classList.toggle('on', currency==='USD');
   $('btnEUR').classList.toggle('on', currency==='EUR');
   $('accMgmt').innerHTML = '<h3 style="font-size:14px;font-weight:600;margin-bottom:12px">Accounts</h3>'
-    + accounts.map(a=>`<div class="acc-item">
-        <div style="font-weight:600;margin-bottom:10px">${a.name} <span style="color:var(--muted);font-size:10px;font-family:JetBrains Mono">${a.category.toUpperCase()}</span></div>
-        <div class="frow"><label>Deposits (USD)</label><input type="number" value="${a.deposit||0}" id="dep_${a.id}"></div>
+    + accounts.map(a => `<div class="acc-item">
+        <div style="font-weight:600;margin-bottom:10px">${a.name}
+          <span style="color:var(--muted);font-size:10px;font-family:JetBrains Mono"> ${a.category.toUpperCase()}</span>
+        </div>
+        <div class="frow"><label>Account Currency (auto-detected: ${a.currency || 'USD'})</label>
+          <select id="cur_${a.id}">
+            <option value="USD" ${(a.currency||'USD')==='USD'?'selected':''}>USD — US Dollar</option>
+            <option value="EUR" ${(a.currency||'USD')==='EUR'?'selected':''}>EUR — Euro</option>
+            <option value="GBP" ${(a.currency||'USD')==='GBP'?'selected':''}>GBP — British Pound</option>
+          </select>
+        </div>
+        <div class="frow"><label>Deposits (in ${a.currency || 'USD'})</label>
+          <input type="number" value="${a.deposit||0}" id="dep_${a.id}">
+        </div>
         <button class="btn bg" onclick="saveAcc(${a.id})">Save</button>
         <button class="btn br" onclick="delAcc(${a.id})">Delete</button>
       </div>`).join('');
 }
 function closeSettings() { $('settingsModal').classList.remove('on'); }
 async function saveAcc(id) {
-  await fetch(api(`/api/accounts/${id}`),{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({deposit:parseFloat($(`dep_${id}`).value)})});
+  const dep = parseFloat($(`dep_${id}`).value);
+  const cur = $(`cur_${id}`).value;
+  await fetch(api(`/api/accounts/${id}`), {
+    method: 'PUT',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ deposit: dep, currency: cur })
+  });
   closeSettings(); load();
 }
 async function delAcc(id) {

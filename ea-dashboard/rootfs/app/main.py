@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""EA Trading Dashboard v4.4.0 - Complete with all MyFxBook-style stats"""
+"""EA Trading Dashboard v4.5.0 - Complete with all MyFxBook-style stats"""
 import os, json, logging
 from datetime import datetime, timedelta
 from flask import Flask, jsonify, request, send_file
@@ -285,6 +285,8 @@ def update_account(account_id):
         account['initial_balance'] = float(updates['deposit'])
     if 'name' in updates:
         account['name'] = updates['name']
+    if 'currency' in updates:
+        account['currency'] = updates['currency']  # manual override
     
     account['last_update'] = datetime.now().isoformat()
     save_data(data)
@@ -383,5 +385,5 @@ def webhook_batch():
         return jsonify({'success': False}), 500
 
 if __name__ == '__main__':
-    logger.info('EA Dashboard v4.4.0 starting...')
+    logger.info('EA Dashboard v4.5.0 starting...')
     app.run(host='0.0.0.0', port=8099, debug=False)

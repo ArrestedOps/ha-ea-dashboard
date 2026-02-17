@@ -1,7 +1,7 @@
 //+------------------------------------------------------------------+
-//|                                        HA_TradeSync_MT5_v4.3.mq5 |
+//|                                        HA_TradeSync_MT5_v4.5.mq5 |
 //+------------------------------------------------------------------+
-#property version "4.30"
+#property version "4.50"
 
 input string WebhookURL  = "http://api.dobko.it/api/webhook/batch";
 input string SecretKey   = "your_secret";
@@ -14,7 +14,7 @@ datetime lastSent = 0;
 double   gDeposits = 0;
 double   gWithdraw = 0;
 
-int OnInit() { Print("HA TradeSync MT5 v4.3"); ScanHistory(); SendData(); return INIT_SUCCEEDED; }
+int OnInit() { Print("HA TradeSync MT5 v4.5.0"); ScanHistory(); SendData(); return INIT_SUCCEEDED; }
 void OnDeinit(const int r) {}
 void OnTick() { if(TimeCurrent()-lastSent>=UpdateSec){ SendData(); lastSent=TimeCurrent(); } }
 
@@ -56,7 +56,7 @@ void SendData()
    j+="\"current_equity\":"+DoubleToString(AccountInfoDouble(ACCOUNT_EQUITY),2)+",";
    j+="\"total_deposits\":"+DoubleToString(gDeposits,2)+",";
    j+="\"total_withdrawals\":"+DoubleToString(gWithdraw,2)+",";
-   j+="\"currency\":\"USD\",";
+   j+="\"currency\":\""+AccountInfoString(ACCOUNT_CURRENCY)+"\",";
    j+="\"leverage\":"+IntegerToString((int)AccountInfoInteger(ACCOUNT_LEVERAGE))+",";
    j+="\"trades\":[";
    int n=HistoryDealsTotal(),cnt=0;
