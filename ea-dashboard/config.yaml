@@ -1,6 +1,6 @@
 name: "EA Trading Dashboard"
 description: "v4.6.1 - Online status + iOS fixes + pagination + period filters"
-version: "4.6.1"
+version: "4.6.1.1"
 slug: ea-dashboard
 init: false
 arch: [armhf, armv7, aarch64, amd64, i386]

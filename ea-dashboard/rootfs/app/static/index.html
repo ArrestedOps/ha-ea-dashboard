@@ -126,15 +126,6 @@ tr:hover td{background:var(--hover)}
     <button class="set-btn" onclick="openSettings()" title="Settings" style="margin-top:6px;flex-shrink:0">⚙</button>
   </div>
 
-  <!-- Global Period Filter -->
-  <div class="ptabs" style="margin:24px 0">
-    <button class="ptab on" onclick="setOverviewPeriod('all')" id="ovAll">All Time</button>
-    <button class="ptab" onclick="setOverviewPeriod('today')" id="ovToday">Today</button>
-    <button class="ptab" onclick="setOverviewPeriod('week')" id="ovWeek">This Week</button>
-    <button class="ptab" onclick="setOverviewPeriod('month')" id="ovMonth">This Month</button>
-    <button class="ptab" onclick="setOverviewPeriod('year')" id="ovYear">This Year</button>
-  </div>
-
   <div class="lt-wrap g2">
     <div class="card lt-box">
       <div class="lt-head">
@@ -165,6 +156,15 @@ tr:hover td{background:var(--hover)}
     <div class="card"><div class="lbl">📈 Profit (Live+Copy)</div><div class="big g" id="totPro">–</div><div class="sub-val" id="totProSub"></div></div>
     <div class="card"><div class="lbl">🎯 Accounts</div><div class="big" id="totAcc">–</div></div>
     <div class="card"><div class="lbl">📊 Trades (Live+Copy)</div><div class="big" id="totTrd">–</div></div>
+  </div>
+
+  <!-- Table Period Filter -->
+  <div class="ptabs" style="margin-bottom:20px">
+    <button class="ptab on" onclick="setOverviewPeriod('all')" id="ovAll">All Time</button>
+    <button class="ptab" onclick="setOverviewPeriod('today')" id="ovToday">Today</button>
+    <button class="ptab" onclick="setOverviewPeriod('week')" id="ovWeek">This Week</button>
+    <button class="ptab" onclick="setOverviewPeriod('month')" id="ovMonth">This Month</button>
+    <button class="ptab" onclick="setOverviewPeriod('year')" id="ovYear">This Year</button>
   </div>
 
   <div class="section-hdr">🟢 Live <span class="section-count" id="liveAccCnt">(0)</span></div>
@@ -357,10 +357,11 @@ function setOverviewPeriod(p) {
   const activeEl = $(activeId);
   if (activeEl) activeEl.classList.add('on');
   
-  // Re-render with filter
-  const live = accounts.filter(a => a.category === 'live' && hasTradesInPeriod(a, p));
-  const copy = accounts.filter(a => a.category === 'copy' && hasTradesInPeriod(a, p));
-  const demo = accounts.filter(a => a.category === 'demo' && hasTradesInPeriod(a, p));
+  // Note: Overview always shows all accounts
+  // Period filtering is visual feedback only, detailed filtering happens on detail page
+  const live = accounts.filter(a => a.category === 'live');
+  const copy = accounts.filter(a => a.category === 'copy');
+  const demo = accounts.filter(a => a.category === 'demo');
   $('liveAccCnt').textContent = `(${live.length})`;
   $('copyAccCnt').textContent = `(${copy.length})`;
   $('demoAccCnt').textContent = `(${demo.length})`;
@@ -369,13 +370,7 @@ function setOverviewPeriod(p) {
   buildTable('demoTbl', demo);
 }
 
-function hasTradesInPeriod(acc, period) {
-  if (period === 'all') return true;
-  const rawAcc = accounts.find(a => a.id === acc.id);
-  if (!rawAcc || !rawAcc.trades) return false;
-  const filtered = filterPeriod(rawAcc.trades || [], period);
-  return filtered.length > 0;
-}
+// Removed hasTradesInPeriod - overview filter simplified
 
 function buildTable(id, accs) {
   const el = $(id);
