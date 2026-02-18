@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""EA Trading Dashboard v4.7.0 - Complete with all MyFxBook-style stats"""
+"""EA Trading Dashboard v4.7.1 - Complete with all MyFxBook-style stats"""
 import os, json, logging
 from datetime import datetime, timedelta
 from flask import Flask, jsonify, request, send_file
@@ -334,17 +334,33 @@ def settings():
 @app.route('/api/webhook/batch', methods=['POST'])
 def webhook_batch():
     try:
+        # Log raw request data
+        logger.info(f'Webhook received - Content-Type: {request.content_type}')
+        logger.info(f'Webhook raw data length: {len(request.data)} bytes')
+        
         payload = request.json
         if not payload:
             logger.error('Webhook: No JSON payload')
+            logger.error(f'Webhook: Raw data: {request.data[:500]}')  # First 500 bytes
             return jsonify({'success': False, 'error': 'No JSON payload'}), 400
+        
+        # Log complete payload (sanitized)
+        logger.info(f'Webhook: Payload keys: {list(payload.keys())}')
+        logger.info(f'Webhook: account_number={payload.get("account_number")}')
+        logger.info(f'Webhook: ea_name={payload.get("ea_name")}')
+        logger.info(f'Webhook: broker={payload.get("broker")}')
+        logger.info(f'Webhook: category={payload.get("category")}')
+        logger.info(f'Webhook: trades_count={len(payload.get("trades", []))}')
+        logger.info(f'Webhook: open_trades_count={len(payload.get("open_trades", []))}')
             
         account_number = payload.get('account_number')
         ea_name = payload.get('ea_name')
         
         if not account_number or not ea_name:
-            logger.error(f'Webhook: Missing required fields - account_number={account_number}, ea_name={ea_name}')
-            logger.error(f'Webhook: Full payload keys: {list(payload.keys())}')
+            logger.error(f'Webhook: Missing required fields!')
+            logger.error(f'Webhook: account_number={account_number} (type: {type(account_number)})')
+            logger.error(f'Webhook: ea_name={ea_name} (type: {type(ea_name)})')
+            logger.error(f'Webhook: Full payload: {payload}')
             return jsonify({'success': False, 'error': 'Missing account_number or ea_name'}), 400
         
         data = load_data()
@@ -413,5 +429,5 @@ def webhook_batch():
         return jsonify({'success': False}), 500
 
 if __name__ == '__main__':
-    logger.info('EA Dashboard v4.7.0 starting...')
+    logger.info('EA Dashboard v4.7.1 starting...')
     app.run(host='0.0.0.0', port=8099, debug=False)

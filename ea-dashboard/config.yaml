@@ -1,6 +1,6 @@
 name: "EA Trading Dashboard"
-description: "v4.7.0 - Advanced filters, unified settings, pagination, improved logging"
-version: "4.7.0"
+description: "v4.7.1 - Advanced filters, unified settings, pagination, improved logging"
+version: "4.7.1"
 slug: ea-dashboard
 init: false
 arch: [armhf, armv7, aarch64, amd64, i386]
