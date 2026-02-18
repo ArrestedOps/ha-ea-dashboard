@@ -1,6 +1,6 @@
 name: "EA Trading Dashboard"
-description: "v4.7.2 - Advanced filters, unified settings, pagination, improved logging"
-version: "4.7.2"
+description: "v4.8.0 - Table settings, sortable columns, manual deposits, restructured UI"
+version: "4.8.0"
 slug: ea-dashboard
 init: false
 arch: [armhf, armv7, aarch64, amd64, i386]
@@ -13,5 +13,13 @@ startup: application
 boot: auto
 options:
   webhook_secret: ""
+  log_level: "normal"
 schema:
   webhook_secret: password?
+  log_level:
+    type: list
+    options:
+      - "normal"
+      - "debug"
+    default: "normal"
+    description: "Normal = essential logs only, Debug = detailed webhook logging"
