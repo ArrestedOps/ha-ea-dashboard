@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=5">
-<title>EA Dashboard v4.8.3</title>
+<title>EA Dashboard v4.8.4</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Inter:wght@300;500;700;900&display=swap" rel="stylesheet">
 <style>
@@ -120,7 +120,7 @@ tr:hover td{background:var(--hover)}
     <div>
       <h1 class="dash">EA Trading Dashboard</h1>
       <div class="sub">
-        <span>v4.8.3 — Advanced Filters + Unified Settings + Pagination</span>
+        <span>v4.8.4 — Advanced Filters + Unified Settings + Pagination</span>
         <span class="fx-badge" id="fxRateBadge">Loading rates...</span>
       </div>
     </div>
@@ -475,7 +475,7 @@ function buildTable(id, accs, sortState) {
     <tbody>
     ${accs.map(a => {
       const ac = a.currency || 'USD';
-      const acBadge = ac !== 'USD' ? \` <span style="font-size:9px;color:var(--blue)">${ac}</span>\` : '';
+      const acBadge = ac !== 'USD' ? ` <span style="font-size:9px;color:var(--blue)">${ac}</span>` : '';
       const onlineIcon = a.is_online 
         ? '<span style="color:var(--green);margin-right:6px;font-size:8px">●</span>'
         : '<span style="color:var(--red);margin-right:6px;font-size:8px">●</span>';
@@ -483,7 +483,7 @@ function buildTable(id, accs, sortState) {
       const days = a.days_running || 1;
       const monthlyGain = days > 0 ? ((a.total_profit || 0) / days * 30) / (a.deposit || 1) * 100 : 0;
       
-      return \`<tr>
+      return `<tr>
         <td>${onlineIcon}<span class="alink" onclick="openDetail(${a.id})">${a.name}</span>${acBadge}</td>
         <td>${fmt(a.deposit || 0, ac)}<span class="td-sub">${fmtOther(a.deposit||0, ac)}</span></td>
         <td>${fmt(a.current_balance || 0, ac)}<span class="td-sub">${fmtOther(a.current_balance||0, ac)}</span></td>
@@ -495,7 +495,7 @@ function buildTable(id, accs, sortState) {
         <td>${a.profit_factor}</td>
         <td class="r">${a.max_drawdown}%</td>
         <td>${a.days_running}</td>
-      </tr>\`;
+      </tr>`;
     }).join('')}
     <tr class="total-row">
       <td>TOTAL</td>
@@ -503,7 +503,7 @@ function buildTable(id, accs, sortState) {
       <td class="${gc(sP)}">${fmtTotal(sP)}</td>
       <td></td><td></td><td>${sT}</td><td></td><td></td><td></td><td></td>
     </tr>
-    </tbody></table>\`;
+    </tbody></table>`;
 }
 
 function renderBoxes(liveData, todayData) {
