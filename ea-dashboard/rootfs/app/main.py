@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""EA Trading Dashboard v4.6.1 - Complete with all MyFxBook-style stats"""
+"""EA Trading Dashboard v4.6.2 - Complete with all MyFxBook-style stats"""
 import os, json, logging
 from datetime import datetime, timedelta
 from flask import Flask, jsonify, request, send_file
@@ -407,5 +407,5 @@ def webhook_batch():
         return jsonify({'success': False}), 500
 
 if __name__ == '__main__':
-    logger.info('EA Dashboard v4.6.1 starting...')
+    logger.info('EA Dashboard v4.6.2 starting...')
     app.run(host='0.0.0.0', port=8099, debug=False)

@@ -165,6 +165,8 @@ tr:hover td{background:var(--hover)}
   <div class="tbl-wrap" id="copyTbl"></div>
   <div class="section-hdr">🟠 Demo <span class="section-count" id="demoAccCnt">(0)</span></div>
   <div class="tbl-wrap" id="demoTbl"></div>
+
+  <div class="settings-area"><button class="set-btn" onclick="openSettings()" title="Settings">⚙</button></div>
 </div>
 </div>
 
@@ -356,11 +358,8 @@ function buildTable(id, accs) {
     ${accs.map(a => {
       const ac = a.currency || 'USD';
       const acBadge = ac !== 'USD' ? ` <span style="font-size:9px;color:var(--blue)">${ac}</span>` : '';
-      const onlineIcon = a.is_online 
-        ? '<span style="color:var(--green);margin-right:6px;font-size:8px">●</span>'
-        : '<span style="color:var(--red);margin-right:6px;font-size:8px">●</span>';
       return `<tr>
-        <td>${onlineIcon}<span class="alink" onclick="openDetail(${a.id})">${a.name}</span>${acBadge}</td>
+        <td><span class="alink" onclick="openDetail(${a.id})">${a.name}</span>${acBadge}</td>
         <td class="brkr m">${a.broker || '–'}</td>
         <td>${fmt(a.deposit || 0, ac)}<span class="td-sub">${fmtOther(a.deposit||0, ac)}</span></td>
         <td>${fmt(a.current_balance || 0, ac)}<span class="td-sub">${fmtOther(a.current_balance||0, ac)}</span></td>
@@ -434,33 +433,11 @@ async function openDetail(id) {
   renderDetail();
 }
 
-// iOS-safe date parser: MT4 sends "2026.01.15 09:00" which Safari rejects
-function parseDate(mt4Date) {
-  if (!mt4Date) return null;
-  try {
-    const cleaned = mt4Date.replace(/\./g, '-').replace(' ', 'T');
-    return new Date(cleaned.length === 16 ? cleaned + ':00' : cleaned);
-  } catch { return null; }
-}
-
-function getStartOfToday() {
-  const now = new Date();
-  return new Date(now.getFullYear(), now.getMonth(), now.getDate());
-}
-
 function filterPeriod(trades, period) {
   if (period === 'all') return trades;
-  let cutoff;
-  if (period === 'today') {
-    cutoff = getStartOfToday();  // 00:00 today, not 24h ago
-  } else {
-    const days = { week: 7, month: 30, year: 365 }[period] || 1;
-    cutoff = new Date(Date.now() - days * 86400000);
-  }
-  return trades.filter(t => {
-    const d = parseDate(t.close_time || t.open_time);
-    return d && d >= cutoff;
-  });
+  const days = { today: 1, week: 7, month: 30, year: 365 }[period];
+  const cut = Date.now() - days * 86400000;
+  return trades.filter(t => new Date(t.close_time || t.open_time || 0) >= cut);
 }
 
 // ─── CORRECT DD from filtered trades ───
@@ -618,21 +595,14 @@ function drawMonthly(trades) {
 function buildTradesTable(trades, ac) {
   ac = ac || 'USD';
   if (!trades.length) return '<div class="empty" style="padding:28px">No trades in this period</div>';
-  const sorted = [...trades].sort((a,b) => {
-    const da = parseDate(b.close_time), db = parseDate(a.close_time);
-    return (da||0) - (db||0);
-  });
+  const sorted=[...trades].sort((a,b)=>new Date(b.close_time)-new Date(a.close_time));
   return `<table><thead><tr><th>Date</th><th>Symbol</th><th>Type</th><th>Lots</th><th>Open</th><th>Close</th><th>Profit</th></tr></thead><tbody>
-    ${sorted.map(t => {
-      const d = parseDate(t.close_time);
-      const dateStr = d ? d.toLocaleDateString('de-DE') : 'Invalid';
-      return `<tr>
-        <td class="m" style="font-size:10px">${dateStr}</td>
-        <td><b>${t.symbol}</b></td><td>${t.type}</td><td>${t.lots}</td>
-        <td class="m">${t.open_price}</td><td class="m">${t.close_price}</td>
-        <td class="${gc(t.profit||0)}">${fmt(t.profit||0, ac)}<span class="td-sub">${fmtOther(t.profit||0, ac)}</span></td>
-      </tr>`;
-    }).join('')}
+    ${sorted.map(t=>`<tr>
+      <td class="m" style="font-size:10px">${new Date(t.close_time).toLocaleDateString('de-DE')}</td>
+      <td><b>${t.symbol}</b></td><td>${t.type}</td><td>${t.lots}</td>
+      <td class="m">${t.open_price}</td><td class="m">${t.close_price}</td>
+      <td class="${gc(t.profit||0)}">${fmt(t.profit||0, ac)}<span class="td-sub">${fmtOther(t.profit||0, ac)}</span></td>
+    </tr>`).join('')}
   </tbody></table>`;
 }
 
@@ -665,10 +635,6 @@ function openSettings() {
           <label>Deposits (in ${a.currency || 'USD'})</label>
           <input type="number" value="${a.deposit||0}" id="dep_${a.id}">
         </div>
-        <div class="frow">
-          <label>🟢 Online Timeout (seconds)</label>
-          <input type="number" value="${a.online_timeout||60}" id="timeout_${a.id}" min="10" max="600">
-        </div>
         <button class="btn bg" onclick="saveAcc(${a.id})">Save</button>
         <button class="btn br" onclick="delAcc(${a.id})">Delete</button>
       </div>`).join('');
@@ -677,11 +643,10 @@ function closeSettings() { $('settingsModal').classList.remove('on'); }
 async function saveAcc(id) {
   const dep = parseFloat($(`dep_${id}`).value);
   const cur = $(`cur_${id}`).value;
-  const timeout = parseInt($(`timeout_${id}`).value) || 60;
   await fetch(api(`/api/accounts/${id}`), {
     method: 'PUT',
     headers: {'Content-Type':'application/json'},
-    body: JSON.stringify({ deposit: dep, currency: cur, online_timeout: timeout })
+    body: JSON.stringify({ deposit: dep, currency: cur })
   });
   closeSettings(); load();
 }

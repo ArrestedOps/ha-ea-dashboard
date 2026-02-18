@@ -1,12 +1,12 @@
-# v4.6.1 — Hotfix
+# v4.6.2 — Stability Fix
 
 ## 🐛 Critical Fixes
-- **Dashboard empty**: Fixed fetchRates() blocking load() when network unavailable
-- **Duplicate Settings button**: Removed bottom button, kept header button only
-- **Error handling**: Dashboard now loads even if FX rates fail
-- **Filter position**: Moved period filter tabs below KPI cards, above Live/Copy/Demo tables
+- **Dashboard loading**: Reverted to v4.5 stable base + only essential patches
+- **iOS Safari date parsing**: Fixed "Invalid Date" errors on iPhone/iPad
+- **Today filter accuracy**: Now shows 00:00 today onwards (not last 24 hours)
+- **Settings button**: Removed duplicate, kept header button only
+- **Online status**: Green/red indicator dot + configurable timeout per account
 
-## 📝 Notes
-- FX rates are now optional - dashboard works without them
-- Period filter (All Time/Today/Week/Month/Year) is visual only - shows all accounts
-- Detailed period filtering available on detail pages
+## Technical Notes
+Based on proven v4.5 codebase with minimal targeted changes for maximum stability.
+All v4.6 features work, but complex filter logic removed to prevent JS errors.
