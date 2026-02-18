@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""EA Trading Dashboard v4.8.2.2 - Table settings, sortable columns, manual deposits"""
+"""EA Trading Dashboard v4.7.2 - Complete with all MyFxBook-style stats"""
 import os, json, logging
 from datetime import datetime, timedelta
 from flask import Flask, jsonify, request, send_file
@@ -9,13 +9,7 @@ import requests
 app = Flask(__name__)
 app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # 50 MB for large trade histories
 CORS(app)
-
-# Configure logging based on LOG_LEVEL env var
-LOG_LEVEL = os.environ.get('LOG_LEVEL', 'normal').lower()
-if LOG_LEVEL == 'debug':
-    logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
-else:
-    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 DATA_FILE = '/data/ea_data.json'
@@ -80,15 +74,11 @@ def get_accounts():
         gross_loss = abs(sum(t['profit'] for t in losing_trades)) if losing_trades else 0
         profit_factor = (gross_profit / gross_loss) if gross_loss > 0 else 0
         
-        # Total deposit = manual (user-set) + auto (MT-detected)
-        manual_dep = acc.get('manual_deposit', 0)
-        auto_dep = acc.get('auto_deposits', 0)
-        # Fallback for old accounts without new fields
-        if manual_dep == 0 and auto_dep == 0:
-            manual_dep = acc.get('deposit', 0) or acc.get('initial_balance', 0) or acc.get('total_deposits', 0)
-        deposit = manual_dep + auto_dep
+        deposit = acc.get('total_deposits', 0)
         if deposit == 0:
-            deposit = 1000  # prevent division by zero
+            deposit = acc.get('deposit', 0)
+        if deposit == 0:
+            deposit = acc.get('initial_balance', 1000)
         
         # CORRECT Drawdown: track lowest point from peak
         peak = deposit
@@ -171,9 +161,7 @@ def get_accounts():
             'category': acc.get('category', 'demo'),
             'type': acc.get('type', 'Live'),
             'currency': acc.get('currency', 'USD'),
-            'deposit': deposit,  # Calculated: manual + auto
-            'manual_deposit': acc.get('manual_deposit', 0),
-            'auto_deposits': acc.get('auto_deposits', 0),
+            'deposit': deposit,
             'current_balance': current_balance,
             'total_profit': round(total_profit_acc, 2),
             'total_trades': len(trades),
@@ -310,14 +298,15 @@ def update_account(account_id):
         return jsonify({'success': False}), 404
     
     updates = request.json
-    if 'manual_deposit' in updates:
-        account['manual_deposit'] = float(updates['manual_deposit'])
+    if 'deposit' in updates:
+        account['deposit'] = float(updates['deposit'])
+        account['initial_balance'] = float(updates['deposit'])
     if 'name' in updates:
         account['name'] = updates['name']
     if 'currency' in updates:
-        account['currency'] = updates['currency']
+        account['currency'] = updates['currency']  # manual override
     if 'online_timeout' in updates:
-        account['online_timeout'] = int(updates['online_timeout'])
+        account['online_timeout'] = int(updates['online_timeout'])  # timeout setting
     
     account['last_update'] = datetime.now().isoformat()
     save_data(data)
@@ -347,20 +336,21 @@ def settings():
 def webhook_batch():
     # Catch ALL errors including Flask's 400 Bad Request
     raw_data = None
-    if LOG_LEVEL == 'debug':
-        try:
-            raw_data = request.get_data(as_text=True)
-            logger.debug(f'=== WEBHOOK DEBUG START ===')
-            logger.debug(f'Content-Type: {request.content_type}')
-            logger.debug(f'Content-Length: {request.content_length}')
-            logger.debug(f'Raw data length: {len(raw_data)} chars')
-            logger.debug(f'Raw data (first 2000 chars):\n{raw_data[:2000]}')
-        except Exception as e:
-            logger.error(f'Failed to read raw data: {e}')
-            return jsonify({'success': False, 'error': 'Cannot read request'}), 400
+    try:
+        raw_data = request.get_data(as_text=True)
+        logger.info(f'=== WEBHOOK START ===')
+        logger.info(f'Content-Type: {request.content_type}')
+        logger.info(f'Content-Length: {request.content_length}')
+        logger.info(f'Raw data length: {len(raw_data)} chars')
+        logger.info(f'Raw data (first 2000 chars):\n{raw_data[:2000]}')
+    except Exception as e:
+        logger.error(f'Failed to read raw data: {e}')
+        return jsonify({'success': False, 'error': 'Cannot read request'}), 400
     
     try:
-        logger.info(f'Webhook received from {request.remote_addr}')
+        # Log raw request data
+        logger.info(f'Webhook received - Content-Type: {request.content_type}')
+        logger.info(f'Webhook raw data length: {len(request.data)} bytes')
         
         try:
             payload = request.json
@@ -374,15 +364,14 @@ def webhook_batch():
             logger.error(f'Webhook: Raw data: {request.data[:500]}')  # First 500 bytes
             return jsonify({'success': False, 'error': 'No JSON payload'}), 400
         
-        # Log complete payload (only in debug mode)
-        if LOG_LEVEL == 'debug':
-            logger.debug(f'Webhook: Payload keys: {list(payload.keys())}')
-            logger.debug(f'Webhook: account_number={payload.get("account_number")}')
-            logger.debug(f'Webhook: ea_name={payload.get("ea_name")}')
-            logger.debug(f'Webhook: broker={payload.get("broker")}')
-            logger.debug(f'Webhook: category={payload.get("category")}')
-            logger.debug(f'Webhook: trades_count={len(payload.get("trades", []))}')
-            logger.debug(f'Webhook: open_trades_count={len(payload.get("open_trades", []))}')
+        # Log complete payload (sanitized)
+        logger.info(f'Webhook: Payload keys: {list(payload.keys())}')
+        logger.info(f'Webhook: account_number={payload.get("account_number")}')
+        logger.info(f'Webhook: ea_name={payload.get("ea_name")}')
+        logger.info(f'Webhook: broker={payload.get("broker")}')
+        logger.info(f'Webhook: category={payload.get("category")}')
+        logger.info(f'Webhook: trades_count={len(payload.get("trades", []))}')
+        logger.info(f'Webhook: open_trades_count={len(payload.get("open_trades", []))}')
             
         account_number = payload.get('account_number')
         ea_name = payload.get('ea_name')
@@ -412,8 +401,9 @@ def webhook_batch():
                 'current_balance': payload.get('current_balance', 0),
                 'trades': [],
                 'open_trades': [],
-                'manual_deposit': 0,  # User-set, never overwritten by webhook
-                'auto_deposits': payload.get('total_deposits', 0),  # MT4/MT5 detected
+                'deposit': payload.get('initial_balance'),
+                'initial_balance': payload.get('initial_balance'),
+                'total_deposits': payload.get('total_deposits', 0),
                 'total_withdrawals': payload.get('total_withdrawals', 0),
                 'leverage': payload.get('leverage', 0),
                 'withdrawals': 0,
@@ -432,8 +422,9 @@ def webhook_batch():
             logger.info(f'Reactivated: {ea_name}')
         
         account['current_balance'] = payload.get('current_balance', account['current_balance'])
-        # Update auto_deposits from MT, but NEVER touch manual_deposit
-        account['auto_deposits'] = payload.get('total_deposits', account.get('auto_deposits', 0))
+        account['deposit'] = payload.get('initial_balance', account.get('deposit'))
+        account['initial_balance'] = payload.get('initial_balance', account.get('initial_balance'))
+        account['total_deposits'] = payload.get('total_deposits', account.get('total_deposits', 0))
         account['total_withdrawals'] = payload.get('total_withdrawals', account.get('total_withdrawals', 0))
         account['leverage'] = payload.get('leverage', account.get('leverage', 0))
         account['last_webhook'] = datetime.now().isoformat()  # Online status tracking
@@ -464,5 +455,5 @@ def webhook_batch():
         return jsonify({'success': False, 'error': str(e)}), 500
 
 if __name__ == '__main__':
-    logger.info('EA Dashboard v4.7.0 starting...')
+    logger.info('EA Dashboard v4.7.2 starting...')
     app.run(host='0.0.0.0', port=8099, debug=False)

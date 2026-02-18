@@ -1,5 +1,3 @@
 #!/usr/bin/with-contenv bashio
-LOG_LEVEL=$(bashio::config 'log_level')
-bashio::log.info "EA Dashboard v4.8.2 starting (log_level: ${LOG_LEVEL})..."
-export LOG_LEVEL
+bashio::log.info "EA Dashboard v4.7.2 starting..."
 cd /app && python3 /app/main.py

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=5">
-<title>EA Dashboard v4.8.2</title>
+<title>EA Dashboard v4.7</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Inter:wght@300;500;700;900&display=swap" rel="stylesheet">
 <style>
@@ -120,11 +120,11 @@ tr:hover td{background:var(--hover)}
     <div>
       <h1 class="dash">EA Trading Dashboard</h1>
       <div class="sub">
-        <span>v4.8.2 — Advanced Filters + Unified Settings + Pagination</span>
+        <span>v4.7 — Advanced Filters + Unified Settings + Pagination</span>
         <span class="fx-badge" id="fxRateBadge">Loading rates...</span>
       </div>
     </div>
-    <button class="set-btn set-btn-desktop" onclick="openSettings()" title="Settings">⚙</button>
+    <button class="set-btn" onclick="openSettings()" title="Settings">⚙</button>
   </div>
 
   <div class="lt-wrap g2">
@@ -247,11 +247,6 @@ function getEndOfYesterday() {
 }
 
 function getStartOfWeek() {
-
-function getStartOfMonth() {
-  const d = new Date();
-  return new Date(d.getFullYear(), d.getMonth(), 1);
-}
   const d = new Date();
   const day = d.getDay();
   const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Monday
@@ -291,7 +286,6 @@ function filterPeriod(trades, period) {
     case 'today': start = getStartOfToday(); break;
     case 'yesterday': start = getStartOfYesterday(); end = getEndOfYesterday(); break;
     case 'week': start = getStartOfWeek(); break;
-    case 'month': start = getStartOfMonth(); break;
     case 'lastmonth': start = getStartOfLastMonth(); end = getEndOfLastMonth(); break;
     case 'year': start = getStartOfYear(); break;
     case 'lastyear': start = getStartOfLastYear(); end = getEndOfLastYear(); break;
@@ -491,7 +485,6 @@ function renderTodayBox(tr) {
 
 // DETAIL
 async function openDetail(id) {
-  window.scrollTo(0, 0);  // Auto-scroll to top
   $('pgOverview').classList.remove('on');
   $('pgDetail').classList.add('on');
   currentPeriod = 'all';
@@ -549,7 +542,7 @@ function renderDetail() {
 
   const periods = [
     {id:'all',label:'All Time'},{id:'today',label:'Today'},{id:'yesterday',label:'Yesterday'},
-    {id:'week',label:'This Week'},{id:'month',label:'This Month'},{id:'lastmonth',label:'Last Month'},{id:'year',label:'This Year'},
+    {id:'week',label:'This Week'},{id:'lastmonth',label:'Last Month'},{id:'year',label:'This Year'},
     {id:'lastyear',label:'Last Year'},{id:'last7',label:'Last 7 Days'},{id:'last30',label:'Last 30 Days'},
     {id:'last365',label:'Last 365 Days'}
   ];

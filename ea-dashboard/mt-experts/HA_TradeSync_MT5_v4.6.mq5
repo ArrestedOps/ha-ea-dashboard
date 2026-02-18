@@ -1,7 +1,7 @@
 //+------------------------------------------------------------------+
-//|                                        HA_TradeSync_MT5_v4.8.mq5 |
+//|                                        HA_TradeSync_MT5_v4.6.mq5 |
 //+------------------------------------------------------------------+
-#property version "4.80"
+#property version "4.60"
 
 input string WebhookURL  = "http://api.dobko.it/api/webhook/batch";
 input string SecretKey   = "your_secret";
@@ -14,7 +14,7 @@ datetime lastSent = 0;
 double   gDeposits = 0;
 double   gWithdraw = 0;
 
-int OnInit() { Print("HA TradeSync MT5 v4.8.0"); ScanHistory(); SendData(); return INIT_SUCCEEDED; }
+int OnInit() { Print("HA TradeSync MT5 v4.6.0"); ScanHistory(); SendData(); return INIT_SUCCEEDED; }
 void OnDeinit(const int r) {}
 void OnTick() { if(TimeCurrent()-lastSent>=UpdateSec){ SendData(); lastSent=TimeCurrent(); } }
 

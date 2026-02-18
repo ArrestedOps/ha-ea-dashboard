@@ -1,9 +1,9 @@
 //+------------------------------------------------------------------+
-//|                                        HA_TradeSync_MT4_v4.8.mq4 |
-//|  v4.8.0 - Fixes: Demo deposits, Copy Trading DPST-IT-INVEST     |
+//|                                        HA_TradeSync_MT4_v4.6.mq4 |
+//|  v4.7.0 - Fixes: Demo deposits, Copy Trading DPST-IT-INVEST     |
 //+------------------------------------------------------------------+
-#property copyright "EA Trading Dashboard v4.8.0"
-#property version   "4.80"
+#property copyright "EA Trading Dashboard v4.7.0"
+#property version   "4.70"
 #property strict
 
 input string WebhookURL  = "http://YOUR_DOMAIN/api/webhook/batch";
@@ -21,7 +21,7 @@ string   gCurrency = "USD";
 int OnInit()
 {
    gCurrency = AccountCurrency();
-   Print("=== EA Dashboard MT4 v4.8.0 ===");
+   Print("=== EA Dashboard MT4 v4.7.0 ===");
    Print("Account: ", AccountNumber(), " | Broker: ", AccountCompany());
    Print("Currency: ", gCurrency, " | Leverage: 1:", AccountLeverage());
    Print("Category: ", Category);
@@ -149,10 +149,11 @@ void SendData()
    j += "\"currency\":\""        + gCurrency + "\",";
    j += "\"leverage\":"          + IntegerToString(AccountLeverage()) + ",";
 
-   // Closed trades
+   // Closed trades (limit to 500 most recent)
    j += "\"trades\":[";
    int n = OrdersHistoryTotal(), cnt = 0;
-   for(int i = 0; i < n; i++)
+   int maxTrades = 500;  // Limit to prevent huge payloads
+   for(int i = n - 1; i >= 0 && cnt < maxTrades; i--)  // Start from newest
    {
       if(!OrderSelect(i, SELECT_BY_POS, MODE_HISTORY)) continue;
       if(OrderCloseTime() < from) continue;
