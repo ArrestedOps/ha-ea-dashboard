@@ -58,7 +58,6 @@ tr:hover td{background:var(--hover)}
 .g{color:var(--green)}.r{color:var(--red)}.m{color:var(--muted)}
 
 /* SETTINGS BTN */
-.settings-area{text-align:center;padding:48px 0 24px}
 .set-btn{width:40px;height:40px;border-radius:50%;background:var(--hover);border:1px solid var(--border);color:var(--muted);font-size:16px;cursor:pointer;transition:.2s}
 .set-btn:hover{border-color:var(--blue);color:var(--text)}
 
@@ -120,7 +119,7 @@ tr:hover td{background:var(--hover)}
     <div>
       <h1 class="dash">EA Trading Dashboard</h1>
       <div class="sub">
-        <span>v4.6 — Online Status + Pagination + Filters</span>
+        <span>v4.6.1 — Online Status + Pagination + Filters</span>
         <span class="fx-badge" id="fxRateBadge">Loading rates...</span>
       </div>
     </div>
@@ -174,8 +173,6 @@ tr:hover td{background:var(--hover)}
   <div class="tbl-wrap" id="copyTbl"></div>
   <div class="section-hdr">🟠 Demo <span class="section-count" id="demoAccCnt">(0)</span></div>
   <div class="tbl-wrap" id="demoTbl"></div>
-
-  <div class="settings-area"><button class="set-btn" onclick="openSettings()" title="Settings">⚙</button></div>
 </div>
 </div>
 
@@ -774,9 +771,12 @@ async function delAcc(id) {
 // ═══════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════
-fetchRates().then(() => load());
+fetchRates().catch(e => {
+  console.warn('FX rates unavailable:', e);
+  $('fxRateBadge').textContent = 'FX rates unavailable';
+}).finally(() => load());
 setInterval(load, 10000);
-setInterval(fetchRates, 3600000); // refresh rates every hour
+setInterval(() => fetchRates().catch(e => console.warn('FX update failed:', e)), 3600000);
 </script>
 </body>
 </html>

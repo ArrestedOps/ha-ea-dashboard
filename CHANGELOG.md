@@ -64,3 +64,13 @@ Existing accounts will get:
 - All other data preserved
 
 No action required on upgrade.
+
+# v4.6.1 — Hotfix
+
+## 🐛 Critical Fixes
+- **Dashboard empty**: Fixed fetchRates() blocking load() when network unavailable
+- **Duplicate Settings button**: Removed bottom button, kept header button only
+- **Error handling**: Dashboard now loads even if FX rates fail
+
+## Notes
+FX rates are now optional - dashboard works without them, just shows "FX rates unavailable"
