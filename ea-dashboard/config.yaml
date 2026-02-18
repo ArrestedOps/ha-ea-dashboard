@@ -1,16 +1,10 @@
 name: "EA Trading Dashboard"
-description: "v4.8.4 - Full UI redesign: sortable tables, monthly gain, restructured dashboard, settings table"
-version: "4.8.4"
+description: "v4.10.0 - COMPLETE REDESIGN: Separate boxes, sortable columns, monthly gain, settings page
+version: "4.10.0"
 slug: ea-dashboard
 init: false
-arch:
-  - armhf
-  - armv7
-  - aarch64
-  - amd64
-  - i386
-ports:
-  8099/tcp: 8099
+arch: [armhf, armv7, aarch64, amd64, i386]
+ports: {8099/tcp: 8099}
 webui: "http://[HOST]:[PORT:8099]"
 ingress: true
 ingress_port: 8099
@@ -19,7 +13,5 @@ startup: application
 boot: auto
 options:
   webhook_secret: ""
-  log_level: "normal"
 schema:
   webhook_secret: password?
-  log_level: list(normal|debug)?

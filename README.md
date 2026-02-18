@@ -1,16 +1,25 @@
-# EA Trading Dashboard v4.8.4 — Syntax Fix
+# EA Trading Dashboard v4.10.0 — COMPLETE REDESIGN
 
-## 🐛 Fixed
-- JavaScript syntax error (escaped backticks in template strings)
-- Dashboard now loads correctly
+## ✨ ALL Features Included
 
-## Features (from v4.8.3)
-- Sortable columns (click headers)
-- Monthly gain column
-- Restructured dashboard (separate boxes per category)
-- Settings as table
-- This month filter
-- Auto-scroll to top
-- Mobile optimized
+### Dashboard
+- **Separate Live/Today boxes per category** (Live, Copy, Demo each have own boxes)
+- **Sortable columns** - Click any header to sort (↑↓)
+- **Monthly Gain column** - Projected monthly performance
+- **This Month filter** - View current month trades
+- **Auto-scroll to top** - Detail pages always open at top
+- **Footer** - Version + copyright
 
-All features working now!
+### Settings
+- **Full page settings** (no more popup!)
+- **Clean table layout** - All accounts visible at once
+- **Save all at once** - One button saves everything
+- **Mobile optimized** - Settings button at bottom on mobile
+
+### Technical
+- Manual deposits (never overwritten by MT4/MT5)
+- Multi-currency (USD/EUR/GBP)
+- Configurable log levels
+- Online status monitoring
+
+This is the complete, professional dashboard you've been waiting for!

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""EA Trading Dashboard v4.8.4.2 - Table settings, sortable columns, manual deposits"""
+"""EA Trading Dashboard v4.10.0.2 - Table settings, sortable columns, manual deposits"""
 import os, json, logging
 from datetime import datetime, timedelta
 from flask import Flask, jsonify, request, send_file
@@ -464,5 +464,5 @@ def webhook_batch():
         return jsonify({'success': False, 'error': str(e)}), 500
 
 if __name__ == '__main__':
-    logger.info('EA Dashboard v4.7.0 starting...')
+    logger.info('EA Dashboard v4.10.0 starting...')
     app.run(host='0.0.0.0', port=8099, debug=False)
