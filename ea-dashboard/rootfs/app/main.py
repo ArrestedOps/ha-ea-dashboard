@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""EA Trading Dashboard v4.5.0 - Complete with all MyFxBook-style stats"""
+"""EA Trading Dashboard v4.6.0 - Complete with all MyFxBook-style stats"""
 import os, json, logging
 from datetime import datetime, timedelta
 from flask import Flask, jsonify, request, send_file
@@ -138,6 +138,19 @@ def get_accounts():
         best_trade = max([t.get('profit', 0) for t in trades]) if trades else 0
         worst_trade = min([t.get('profit', 0) for t in trades]) if trades else 0
         
+        # Online status check
+        last_webhook_str = acc.get('last_webhook')
+        timeout = acc.get('online_timeout', 60)
+        is_online = False
+        seconds_since = None
+        if last_webhook_str:
+            try:
+                last_dt = datetime.fromisoformat(last_webhook_str.replace('Z', '+00:00'))
+                seconds_since = (datetime.now() - last_dt).total_seconds()
+                is_online = seconds_since <= timeout
+            except:
+                pass
+        
         accounts_summary.append({
             'id': acc['id'],
             'name': acc['name'],
@@ -170,7 +183,11 @@ def get_accounts():
             'best_trade': round(best_trade, 2),
             'worst_trade': round(worst_trade, 2),
             'status': acc.get('status', 'active'),
-            'last_update': acc.get('last_update', datetime.now().isoformat())
+            'last_update': acc.get('last_update', datetime.now().isoformat()),
+            'is_online': is_online,
+            'last_webhook': last_webhook_str,
+            'seconds_since_webhook': int(seconds_since) if seconds_since else None,
+            'online_timeout': timeout
         })
     
     return jsonify({
@@ -287,6 +304,8 @@ def update_account(account_id):
         account['name'] = updates['name']
     if 'currency' in updates:
         account['currency'] = updates['currency']  # manual override
+    if 'online_timeout' in updates:
+        account['online_timeout'] = int(updates['online_timeout'])  # timeout setting
     
     account['last_update'] = datetime.now().isoformat()
     save_data(data)
@@ -346,6 +365,8 @@ def webhook_batch():
                 'total_withdrawals': payload.get('total_withdrawals', 0),
                 'leverage': payload.get('leverage', 0),
                 'withdrawals': 0,
+                'online_timeout': 60,  # default timeout in seconds
+                'last_webhook': datetime.now().isoformat(),
                 'status': 'active',
                 'created_at': datetime.now().isoformat(),
                 'last_update': datetime.now().isoformat()
@@ -364,6 +385,7 @@ def webhook_batch():
         account['total_deposits'] = payload.get('total_deposits', account.get('total_deposits', 0))
         account['total_withdrawals'] = payload.get('total_withdrawals', account.get('total_withdrawals', 0))
         account['leverage'] = payload.get('leverage', account.get('leverage', 0))
+        account['last_webhook'] = datetime.now().isoformat()  # Online status tracking
         
         if 'trades' in payload:
             existing_ids = set(t.get('trade_id') for t in account['trades'])
@@ -385,5 +407,5 @@ def webhook_batch():
         return jsonify({'success': False}), 500
 
 if __name__ == '__main__':
-    logger.info('EA Dashboard v4.5.0 starting...')
+    logger.info('EA Dashboard v4.6.0 starting...')
     app.run(host='0.0.0.0', port=8099, debug=False)

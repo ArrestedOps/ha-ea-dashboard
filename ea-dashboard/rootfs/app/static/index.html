@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=5">
-<title>EA Dashboard v4.5</title>
+<title>EA Dashboard v4.6</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Inter:wght@300;500;700;900&display=swap" rel="stylesheet">
 <style>
@@ -85,8 +85,8 @@ tr:hover td{background:var(--hover)}
 .curr-btn.on{background:var(--green);color:#000;border-color:var(--green);font-weight:600}
 
 /* DETAIL */
-.back-btn{display:inline-flex;align-items:center;gap:8px;padding:9px 16px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--muted);cursor:pointer;font-family:'JetBrains Mono';font-size:12px;margin-bottom:24px;transition:.2s;border:none}
-.back-btn:hover{color:var(--text)}
+.back-btn{position:sticky;top:16px;z-index:100;display:inline-flex;align-items:center;gap:8px;padding:9px 16px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--muted);cursor:pointer;font-family:'JetBrains Mono';font-size:12px;margin-bottom:24px;transition:.2s;border:none}
+.back-btn:hover{color:var(--text);border-color:var(--blue)}
 .ptabs{display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap}
 .ptab{padding:7px 18px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:'JetBrains Mono';font-size:11px;cursor:pointer;transition:.15s}
 .ptab.on{background:var(--green);color:#000;border-color:var(--green);font-weight:600}
@@ -116,10 +116,24 @@ tr:hover td{background:var(--hover)}
 <!-- ═══ OVERVIEW ═══ -->
 <div id="pgOverview" class="page on">
 <div class="wrap">
-  <h1 class="dash">EA Trading Dashboard</h1>
-  <div class="sub">
-    <span>v4.5 — Per-Account Currency Detection</span>
-    <span class="fx-badge" id="fxRateBadge">Loading rates...</span>
+  <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap">
+    <div>
+      <h1 class="dash">EA Trading Dashboard</h1>
+      <div class="sub">
+        <span>v4.6 — Online Status + Pagination + Filters</span>
+        <span class="fx-badge" id="fxRateBadge">Loading rates...</span>
+      </div>
+    </div>
+    <button class="set-btn" onclick="openSettings()" title="Settings" style="margin-top:6px;flex-shrink:0">⚙</button>
+  </div>
+
+  <!-- Global Period Filter -->
+  <div class="ptabs" style="margin:24px 0">
+    <button class="ptab on" onclick="setOverviewPeriod('all')" id="ovAll">All Time</button>
+    <button class="ptab" onclick="setOverviewPeriod('today')" id="ovToday">Today</button>
+    <button class="ptab" onclick="setOverviewPeriod('week')" id="ovWeek">This Week</button>
+    <button class="ptab" onclick="setOverviewPeriod('month')" id="ovMonth">This Month</button>
+    <button class="ptab" onclick="setOverviewPeriod('year')" id="ovYear">This Year</button>
   </div>
 
   <div class="lt-wrap g2">
@@ -198,6 +212,8 @@ tr:hover td{background:var(--hover)}
 // STATE
 // ═══════════════════════════════════════════
 let accounts = [], charts = {}, currentPeriod = 'all', detailData = null;
+let overviewPeriod = 'all';  // global filter for overview tables
+let tradePage = 1, tradesPerPage = 25;  // pagination
 let currency = localStorage.getItem('ea_currency') || 'USD';
 let fxRates = { USD: 1, EUR: 1 }; // populated from API
 
@@ -334,6 +350,36 @@ function renderOverview(t) {
   buildTable('demoTbl', demo);
 }
 
+function setOverviewPeriod(p) {
+  overviewPeriod = p;
+  ['ovAll', 'ovToday', 'ovWeek', 'ovMonth', 'ovYear'].forEach(id => {
+    const el = $(id);
+    if (el) el.classList.remove('on');
+  });
+  const activeId = 'ov' + (p === 'all' ? 'All' : p.charAt(0).toUpperCase() + p.slice(1));
+  const activeEl = $(activeId);
+  if (activeEl) activeEl.classList.add('on');
+  
+  // Re-render with filter
+  const live = accounts.filter(a => a.category === 'live' && hasTradesInPeriod(a, p));
+  const copy = accounts.filter(a => a.category === 'copy' && hasTradesInPeriod(a, p));
+  const demo = accounts.filter(a => a.category === 'demo' && hasTradesInPeriod(a, p));
+  $('liveAccCnt').textContent = `(${live.length})`;
+  $('copyAccCnt').textContent = `(${copy.length})`;
+  $('demoAccCnt').textContent = `(${demo.length})`;
+  buildTable('liveTbl', live);
+  buildTable('copyTbl', copy);
+  buildTable('demoTbl', demo);
+}
+
+function hasTradesInPeriod(acc, period) {
+  if (period === 'all') return true;
+  const rawAcc = accounts.find(a => a.id === acc.id);
+  if (!rawAcc || !rawAcc.trades) return false;
+  const filtered = filterPeriod(rawAcc.trades || [], period);
+  return filtered.length > 0;
+}
+
 function buildTable(id, accs) {
   const el = $(id);
   if (!accs.length) { el.innerHTML = '<div class="empty" style="padding:28px">No accounts</div>'; return; }
@@ -353,8 +399,11 @@ function buildTable(id, accs) {
     ${accs.map(a => {
       const ac = a.currency || 'USD';
       const acBadge = ac !== 'USD' ? ` <span style="font-size:9px;color:var(--blue)">${ac}</span>` : '';
+      const onlineIcon = a.is_online 
+        ? '<span style="color:var(--green);margin-right:6px;font-size:8px">●</span>'
+        : '<span style="color:var(--red);margin-right:6px;font-size:8px">●</span>';
       return `<tr>
-        <td><span class="alink" onclick="openDetail(${a.id})">${a.name}</span>${acBadge}</td>
+        <td>${onlineIcon}<span class="alink" onclick="openDetail(${a.id})">${a.name}</span>${acBadge}</td>
         <td class="brkr m">${a.broker || '–'}</td>
         <td>${fmt(a.deposit || 0, ac)}<span class="td-sub">${fmtOther(a.deposit||0, ac)}</span></td>
         <td>${fmt(a.current_balance || 0, ac)}<span class="td-sub">${fmtOther(a.current_balance||0, ac)}</span></td>
@@ -422,17 +471,42 @@ async function openDetail(id) {
   $('pgOverview').classList.remove('on');
   $('pgDetail').classList.add('on');
   currentPeriod = 'all';
+  tradePage = 1;
   const res = await fetch(api(`/api/accounts/${id}`));
   const data = await res.json();
   detailData = { data, acc: accounts.find(a => a.id === id) };
   renderDetail();
 }
 
+// iOS-safe date parser: MT4 sends "2026.01.15 09:00" which Safari rejects
+function parseDate(mt4Date) {
+  if (!mt4Date) return null;
+  try {
+    const cleaned = mt4Date.replace(/\./g, '-').replace(' ', 'T');
+    return new Date(cleaned.length === 16 ? cleaned + ':00' : cleaned);
+  } catch {
+    return null;
+  }
+}
+
+function getStartOfToday() {
+  const now = new Date();
+  return new Date(now.getFullYear(), now.getMonth(), now.getDate());
+}
+
 function filterPeriod(trades, period) {
   if (period === 'all') return trades;
-  const days = { today: 1, week: 7, month: 30, year: 365 }[period];
-  const cut = Date.now() - days * 86400000;
-  return trades.filter(t => new Date(t.close_time || t.open_time || 0) >= cut);
+  let cutoff;
+  if (period === 'today') {
+    cutoff = getStartOfToday();  // 00:00 today, not 24h ago!
+  } else {
+    const days = { week: 7, month: 30, year: 365 }[period] || 1;
+    cutoff = new Date(Date.now() - days * 86400000);
+  }
+  return trades.filter(t => {
+    const d = parseDate(t.close_time || t.open_time);
+    return d && d >= cutoff;
+  });
 }
 
 // ─── CORRECT DD from filtered trades ───
@@ -486,7 +560,13 @@ function renderDetail() {
     <h1 style="font-size:clamp(22px,4vw,32px);font-weight:900;margin-bottom:6px">${acc.name}
       <span style="font-size:11px;font-family:'JetBrains Mono';background:var(--hover);border:1px solid var(--border);border-radius:20px;padding:3px 10px;margin-left:8px;vertical-align:middle;font-weight:400">${ac}</span>
     </h1>
-    <div style="font-family:'JetBrains Mono';font-size:11px;color:var(--muted);margin-bottom:24px">${acc.broker || ''} · ${acc.platform || 'MT4'} · 1:${acc.leverage || 0}</div>
+    <div style="font-family:'JetBrains Mono';font-size:11px;color:var(--muted);margin-bottom:8px">${acc.broker || ''} · ${acc.platform || 'MT4'} · 1:${acc.leverage || 0}</div>
+    <div style="font-family:'JetBrains Mono';font-size:11px;margin-bottom:24px">
+      ${acc.is_online 
+        ? `<span style="color:var(--green)">● Online</span>` 
+        : `<span style="color:var(--red)">● Offline</span> <span style="color:var(--muted)">(${acc.seconds_since_webhook ? Math.floor(acc.seconds_since_webhook/60) + 'm ago' : 'no data'})</span>`
+      }
+    </div>
 
     <div class="ptabs">
       ${['all','today','week','month','year'].map(p =>
@@ -536,7 +616,7 @@ function renderDetail() {
   }, 30);
 }
 
-function setPeriod(p) { currentPeriod = p; renderDetail(); }
+function setPeriod(p) { currentPeriod = p; tradePage = 1; renderDetail(); }
 
 // ═══════════════════════════════════════════
 // CHARTS
@@ -590,15 +670,48 @@ function drawMonthly(trades) {
 function buildTradesTable(trades, ac) {
   ac = ac || 'USD';
   if (!trades.length) return '<div class="empty" style="padding:28px">No trades in this period</div>';
-  const sorted=[...trades].sort((a,b)=>new Date(b.close_time)-new Date(a.close_time));
+  
+  // Sort: newest first
+  const sorted = [...trades].sort((a,b) => {
+    const da = parseDate(b.close_time), db = parseDate(a.close_time);
+    return (da||0) - (db||0);
+  });
+  
+  // Pagination
+  const totalPages = Math.ceil(sorted.length / tradesPerPage);
+  if (tradePage > totalPages) tradePage = 1;
+  const start = (tradePage - 1) * tradesPerPage;
+  const end = start + tradesPerPage;
+  const page = sorted.slice(start, end);
+  
+  const paginationHtml = totalPages > 1 ? `
+    <div style="display:flex;align-items:center;justify-content:center;gap:12px;padding:16px;border-top:1px solid var(--border);background:var(--hover)">
+      <button class="btn" style="padding:6px 12px;background:var(--card);color:var(--text)" onclick="changePage(${tradePage-1})" ${tradePage<=1?'disabled':''}>←</button>
+      <span style="font-family:'JetBrains Mono';font-size:11px;color:var(--muted)">Page ${tradePage} of ${totalPages} (${sorted.length} trades)</span>
+      <input type="number" value="${tradePage}" min="1" max="${totalPages}" 
+        onchange="changePage(parseInt(this.value)||1)" 
+        style="width:60px;padding:4px 8px;background:var(--card);border:1px solid var(--border);border-radius:6px;color:var(--text);text-align:center;font-family:'JetBrains Mono';font-size:11px">
+      <button class="btn" style="padding:6px 12px;background:var(--card);color:var(--text)" onclick="changePage(${tradePage+1})" ${tradePage>=totalPages?'disabled':''}>→</button>
+    </div>
+  ` : '';
+  
   return `<table><thead><tr><th>Date</th><th>Symbol</th><th>Type</th><th>Lots</th><th>Open</th><th>Close</th><th>Profit</th></tr></thead><tbody>
-    ${sorted.map(t=>`<tr>
-      <td class="m" style="font-size:10px">${new Date(t.close_time).toLocaleDateString('de-DE')}</td>
-      <td><b>${t.symbol}</b></td><td>${t.type}</td><td>${t.lots}</td>
-      <td class="m">${t.open_price}</td><td class="m">${t.close_price}</td>
-      <td class="${gc(t.profit||0)}">${fmt(t.profit||0, ac)}<span class="td-sub">${fmtOther(t.profit||0, ac)}</span></td>
-    </tr>`).join('')}
-  </tbody></table>`;
+    ${page.map(t => {
+      const d = parseDate(t.close_time);
+      const dateStr = d ? d.toLocaleDateString('de-DE') : 'Invalid';
+      return `<tr>
+        <td class="m" style="font-size:10px">${dateStr}</td>
+        <td><b>${t.symbol}</b></td><td>${t.type}</td><td>${t.lots}</td>
+        <td class="m">${t.open_price}</td><td class="m">${t.close_price}</td>
+        <td class="${gc(t.profit||0)}">${fmt(t.profit||0, ac)}<span class="td-sub">${fmtOther(t.profit||0, ac)}</span></td>
+      </tr>`;
+    }).join('')}
+  </tbody></table>${paginationHtml}`;
+}
+
+function changePage(p) {
+  tradePage = p;
+  renderDetail();
 }
 
 function goBack() { destroyCharts(); $('pgDetail').classList.remove('on'); $('pgOverview').classList.add('on'); }
@@ -610,20 +723,29 @@ function openSettings() {
   $('settingsModal').classList.add('on');
   $('btnUSD').classList.toggle('on', currency==='USD');
   $('btnEUR').classList.toggle('on', currency==='EUR');
-  $('accMgmt').innerHTML = '<h3 style="font-size:14px;font-weight:600;margin-bottom:12px">Accounts</h3>'
+  $('accMgmt').innerHTML = '<h3 style="font-size:14px;font-weight:600;margin-bottom:4px">Accounts</h3>'
+    + '<p style="font-size:11px;font-family:JetBrains Mono;color:var(--muted);margin-bottom:14px">Account currency is auto-detected from MT4/MT5. Override here if incorrect.</p>'
     + accounts.map(a => `<div class="acc-item">
-        <div style="font-weight:600;margin-bottom:10px">${a.name}
-          <span style="color:var(--muted);font-size:10px;font-family:JetBrains Mono"> ${a.category.toUpperCase()}</span>
+        <div style="font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:8px">
+          ${a.name}
+          <span style="color:var(--muted);font-size:10px;font-family:JetBrains Mono">${a.category.toUpperCase()}</span>
+          <span style="background:var(--card);border:1px solid var(--border);border-radius:20px;padding:2px 10px;font-size:11px;font-family:JetBrains Mono;color:var(--blue)">${a.currency || 'USD'}</span>
         </div>
-        <div class="frow"><label>Account Currency (auto-detected: ${a.currency || 'USD'})</label>
-          <select id="cur_${a.id}">
-            <option value="USD" ${(a.currency||'USD')==='USD'?'selected':''}>USD — US Dollar</option>
-            <option value="EUR" ${(a.currency||'USD')==='EUR'?'selected':''}>EUR — Euro</option>
-            <option value="GBP" ${(a.currency||'USD')==='GBP'?'selected':''}>GBP — British Pound</option>
+        <div class="frow">
+          <label>⚠️ Account Currency — override if wrong</label>
+          <select id="cur_${a.id}" style="border-color:${(a.currency||'USD')==='USD'?'var(--border)':'var(--blue)'}">
+            <option value="USD" ${(a.currency||'USD')==='USD'?'selected':''}>🇺🇸 USD — US Dollar</option>
+            <option value="EUR" ${(a.currency||'USD')==='EUR'?'selected':''}>🇪🇺 EUR — Euro</option>
+            <option value="GBP" ${(a.currency||'USD')==='GBP'?'selected':''}>🇬🇧 GBP — British Pound</option>
           </select>
         </div>
-        <div class="frow"><label>Deposits (in ${a.currency || 'USD'})</label>
+        <div class="frow">
+          <label>Deposits (in ${a.currency || 'USD'})</label>
           <input type="number" value="${a.deposit||0}" id="dep_${a.id}">
+        </div>
+        <div class="frow">
+          <label>🟢 Online Timeout (seconds) — MT shows offline after</label>
+          <input type="number" value="${a.online_timeout||60}" id="timeout_${a.id}" min="10" max="600">
         </div>
         <button class="btn bg" onclick="saveAcc(${a.id})">Save</button>
         <button class="btn br" onclick="delAcc(${a.id})">Delete</button>
@@ -633,9 +755,12 @@ function closeSettings() { $('settingsModal').classList.remove('on'); }
 async function saveAcc(id) {
   const dep = parseFloat($(`dep_${id}`).value);
   const cur = $(`cur_${id}`).value;
+  const timeout = parseInt($(`timeout_${id}`).value) || 60;
   await fetch(api(`/api/accounts/${id}`), {
     method: 'PUT',
     headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ deposit: dep, currency: cur, online_timeout: timeout })
+  });
     body: JSON.stringify({ deposit: dep, currency: cur })
   });
   closeSettings(); load();
