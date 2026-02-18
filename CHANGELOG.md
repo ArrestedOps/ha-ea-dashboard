@@ -1,9 +1,9 @@
-# v4.7.1 — Debug Logging
+# v4.7.2 — Maximum Debug Logging
 
-## 🐛 Fixes
-- **Webhook debugging**: Added comprehensive logging to diagnose Copy Trading 400 errors
-  - Logs Content-Type, payload size, all keys, field values
-  - Shows complete payload when fields are missing
-  - Logs data types to catch type mismatches
+## 🐛 Debugging
+- **Pre-parse logging**: Captures raw request BEFORE any JSON parsing
+- **Complete data dump**: First 2000 chars of raw webhook data
+- **Full traceback**: Complete error stack trace
+- **All headers**: Logs all HTTP headers
 
-Deploy this, then check logs when Copy Trading syncs. You'll see exactly what's wrong.
+This will show EXACTLY what MT4 is sending, even if it's malformed.

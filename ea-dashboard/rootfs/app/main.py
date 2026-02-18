@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""EA Trading Dashboard v4.7.1 - Complete with all MyFxBook-style stats"""
+"""EA Trading Dashboard v4.7.2 - Complete with all MyFxBook-style stats"""
 import os, json, logging
 from datetime import datetime, timedelta
 from flask import Flask, jsonify, request, send_file
@@ -7,6 +7,7 @@ from flask_cors import CORS
 import requests
 
 app = Flask(__name__)
+app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # 50 MB for large trade histories
 CORS(app)
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -333,12 +334,31 @@ def settings():
 
 @app.route('/api/webhook/batch', methods=['POST'])
 def webhook_batch():
+    # Catch ALL errors including Flask's 400 Bad Request
+    raw_data = None
+    try:
+        raw_data = request.get_data(as_text=True)
+        logger.info(f'=== WEBHOOK START ===')
+        logger.info(f'Content-Type: {request.content_type}')
+        logger.info(f'Content-Length: {request.content_length}')
+        logger.info(f'Raw data length: {len(raw_data)} chars')
+        logger.info(f'Raw data (first 2000 chars):\n{raw_data[:2000]}')
+    except Exception as e:
+        logger.error(f'Failed to read raw data: {e}')
+        return jsonify({'success': False, 'error': 'Cannot read request'}), 400
+    
     try:
         # Log raw request data
         logger.info(f'Webhook received - Content-Type: {request.content_type}')
         logger.info(f'Webhook raw data length: {len(request.data)} bytes')
         
-        payload = request.json
+        try:
+            payload = request.json
+        except Exception as e:
+            logger.error(f'Webhook: JSON parsing failed: {e}')
+            logger.error(f'Webhook: First 1000 chars of raw data: {request.data[:1000]}')
+            return jsonify({'success': False, 'error': f'JSON parse error: {str(e)}'}), 400
+        
         if not payload:
             logger.error('Webhook: No JSON payload')
             logger.error(f'Webhook: Raw data: {request.data[:500]}')  # First 500 bytes
@@ -426,8 +446,14 @@ def webhook_batch():
         return jsonify({'success': True, 'account_id': account['id']})
     except Exception as e:
         logger.error(f'Webhook error: {e}')
-        return jsonify({'success': False}), 500
+        logger.error(f'Webhook error type: {type(e).__name__}')
+        logger.error(f'Webhook error details: {str(e)}')
+        if raw_data:
+            logger.error(f'Webhook failed with data: {raw_data[:2000]}')
+        import traceback
+        logger.error(f'Traceback: {traceback.format_exc()}')
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 if __name__ == '__main__':
-    logger.info('EA Dashboard v4.7.1 starting...')
+    logger.info('EA Dashboard v4.7.2 starting...')
     app.run(host='0.0.0.0', port=8099, debug=False)
