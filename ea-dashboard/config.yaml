@@ -16,10 +16,4 @@ options:
   log_level: "normal"
 schema:
   webhook_secret: password?
-  log_level:
-    type: list
-    options:
-      - "normal"
-      - "debug"
-    default: "normal"
-    description: "Normal = essential logs only, Debug = detailed webhook logging"
+  log_level: list(normal|debug)?
