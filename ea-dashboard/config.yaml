@@ -1,6 +1,6 @@
 name: "EA Trading Dashboard"
-description: "v4.8.2 - Sortable columns, monthly gain, restructured dashboard, mobile-optimized"
-version: "4.8.2"
+description: "v4.8.3 - Full UI redesign: sortable tables, monthly gain, restructured dashboard, settings table"
+version: "4.8.3"
 slug: ea-dashboard
 init: false
 arch:

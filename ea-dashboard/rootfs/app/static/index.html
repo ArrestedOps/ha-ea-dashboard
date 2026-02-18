@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=5">
-<title>EA Dashboard v4.8.2</title>
+<title>EA Dashboard v4.8.3</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Inter:wght@300;500;700;900&display=swap" rel="stylesheet">
 <style>
@@ -120,7 +120,7 @@ tr:hover td{background:var(--hover)}
     <div>
       <h1 class="dash">EA Trading Dashboard</h1>
       <div class="sub">
-        <span>v4.8.2 — Advanced Filters + Unified Settings + Pagination</span>
+        <span>v4.8.3 — Advanced Filters + Unified Settings + Pagination</span>
         <span class="fx-badge" id="fxRateBadge">Loading rates...</span>
       </div>
     </div>
@@ -210,6 +210,7 @@ tr:hover td{background:var(--hover)}
 <script>
 // STATE
 let accounts = [], charts = {}, currentPeriod = 'all', detailData = null, tradePage = 1;
+let sortState = {};  // {tableId: {column: 'name', direction: 'asc'}}
 let currency = localStorage.getItem('ea_currency') || 'USD';
 let fxRates = { USD: 1, EUR: 1 };
 const tradesPerPage = 25;
@@ -372,15 +373,13 @@ async function load() {
       fetch(api('/api/live-trades')).then(r => r.json()),
       fetch(api('/api/today-trades')).then(r => r.json()),
     ]);
-    if (ar.success) { accounts = ar.accounts; renderOverview(ar.totals); }
-    renderLiveBox(lr);
-    renderTodayBox(tr);
+    if (ar.success) { accounts = ar.accounts; renderOverview(ar.totals, lr, tr); }
     $('btnUSD').classList.toggle('on', currency === 'USD');
     $('btnEUR').classList.toggle('on', currency === 'EUR');
   } catch(e) { console.error(e); }
 }
 
-function renderOverview(t) {
+function renderOverview(t, liveData, todayData) {
   const liveCopy = accounts.filter(a => a.category !== 'demo');
   const totalBal = liveCopy.reduce((s, a) => s + toDisplayAcc(a.current_balance||0, a.currency), 0);
   const totalPro = liveCopy.reduce((s, a) => s + toDisplayAcc(a.total_profit||0, a.currency), 0);
@@ -393,101 +392,167 @@ function renderOverview(t) {
   $('totPro').textContent = fmtD(totalPro);
   $('totPro').className = 'big ' + gc(totalPro);
   $('totProSub').textContent = '≈ ' + otherSym() + Math.abs(totalPro_other).toFixed(0);
-  $('totAcc').textContent = t.total_accounts;
-  $('totTrd').textContent = t.total_trades;
+  $('totAcc').textContent = liveCopy.length;
+  $('totTrd').textContent = liveCopy.reduce((s, a) => s + (a.total_trades || 0), 0);
 
   const live = accounts.filter(a => a.category === 'live');
   const copy = accounts.filter(a => a.category === 'copy');
   const demo = accounts.filter(a => a.category === 'demo');
+  
   $('liveAccCnt').textContent = `(${live.length})`;
   $('copyAccCnt').textContent = `(${copy.length})`;
   $('demoAccCnt').textContent = `(${demo.length})`;
+  
+  renderBoxes(liveData, todayData);
   buildTable('liveTbl', live);
   buildTable('copyTbl', copy);
   buildTable('demoTbl', demo);
 }
 
-function buildTable(id, accs) {
+function sortTable(tableId, column) {
+  const state = sortState[tableId] || {};
+  if (state.column === column) {
+    state.direction = state.direction === 'asc' ? 'desc' : 'asc';
+  } else {
+    state.column = column;
+    state.direction = 'asc';
+  }
+  sortState[tableId] = state;
+  
+  const cat = tableId === 'liveTbl' ? 'live' : tableId === 'copyTbl' ? 'copy' : 'demo';
+  let accs = accounts.filter(a => a.category === cat);
+  
+  accs.sort((a, b) => {
+    let valA = a[column] || 0;
+    let valB = b[column] || 0;
+    if (column === 'name') {
+      valA = (valA || '').toLowerCase();
+      valB = (valB || '').toLowerCase();
+      return state.direction === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
+    }
+    if (column === 'monthly_gain') {
+      const daysA = a.days_running || 1;
+      const daysB = b.days_running || 1;
+      valA = daysA > 0 ? ((a.total_profit || 0) / daysA * 30) / (a.deposit || 1) * 100 : 0;
+      valB = daysB > 0 ? ((b.total_profit || 0) / daysB * 30) / (b.deposit || 1) * 100 : 0;
+    }
+    return state.direction === 'asc' ? valA - valB : valB - valA;
+  });
+  
+  buildTable(tableId, accs, state);
+}
+
+function buildTable(id, accs, sortState) {
   const el = $(id);
   if (!accs.length) { el.innerHTML = '<div class="empty" style="padding:28px">No accounts</div>'; return; }
+  
+  const state = sortState || {};
+  const makeSortClass = col => {
+    if (state.column !== col) return 'sortable';
+    return state.direction === 'asc' ? 'sorted-asc' : 'sorted-desc';
+  };
+  
   const sD = accs.reduce((s, a) => s + toDisplayAcc(a.deposit || 0, a.currency), 0);
   const sB = accs.reduce((s, a) => s + toDisplayAcc(a.current_balance || 0, a.currency), 0);
   const sP = accs.reduce((s, a) => s + toDisplayAcc(a.total_profit || 0, a.currency), 0);
   const sT = accs.reduce((s, a) => s + (a.total_trades || 0), 0);
   const fmtTotal = v => (v >= 0 ? '' : '- ') + sym() + Math.abs(v).toFixed(2);
+  
   el.innerHTML = `<table>
     <thead><tr>
-      <th>Name</th><th class="brkr">Broker</th>
-      <th>Deposits</th><th>Balance</th><th>Profit</th>
-      <th>Gain</th><th>Trades</th><th>Win%</th><th>PF</th><th>DD</th><th>Days</th>
+      <th class="${makeSortClass('name')}" onclick="sortTable('${id}', 'name')">Name</th>
+      <th class="${makeSortClass('deposit')}" onclick="sortTable('${id}', 'deposit')">Deposits</th>
+      <th class="${makeSortClass('current_balance')}" onclick="sortTable('${id}', 'current_balance')">Balance</th>
+      <th class="${makeSortClass('total_profit')}" onclick="sortTable('${id}', 'total_profit')">Profit</th>
+      <th class="${makeSortClass('gain_percent')}" onclick="sortTable('${id}', 'gain_percent')">Gain</th>
+      <th class="${makeSortClass('monthly_gain')}" onclick="sortTable('${id}', 'monthly_gain')">Monthly</th>
+      <th class="${makeSortClass('total_trades')}" onclick="sortTable('${id}', 'total_trades')">Trades</th>
+      <th class="${makeSortClass('win_rate')}" onclick="sortTable('${id}', 'win_rate')">Win%</th>
+      <th class="${makeSortClass('profit_factor')}" onclick="sortTable('${id}', 'profit_factor')">PF</th>
+      <th class="${makeSortClass('max_drawdown')}" onclick="sortTable('${id}', 'max_drawdown')">DD</th>
+      <th class="${makeSortClass('days_running')}" onclick="sortTable('${id}', 'days_running')">Days</th>
     </tr></thead>
     <tbody>
     ${accs.map(a => {
       const ac = a.currency || 'USD';
-      const acBadge = ac !== 'USD' ? ` <span style="font-size:9px;color:var(--blue)">${ac}</span>` : '';
+      const acBadge = ac !== 'USD' ? \` <span style="font-size:9px;color:var(--blue)">${ac}</span>\` : '';
       const onlineIcon = a.is_online 
         ? '<span style="color:var(--green);margin-right:6px;font-size:8px">●</span>'
         : '<span style="color:var(--red);margin-right:6px;font-size:8px">●</span>';
-      return `<tr>
+      
+      const days = a.days_running || 1;
+      const monthlyGain = days > 0 ? ((a.total_profit || 0) / days * 30) / (a.deposit || 1) * 100 : 0;
+      
+      return \`<tr>
         <td>${onlineIcon}<span class="alink" onclick="openDetail(${a.id})">${a.name}</span>${acBadge}</td>
-        <td class="brkr m">${a.broker || '–'}</td>
         <td>${fmt(a.deposit || 0, ac)}<span class="td-sub">${fmtOther(a.deposit||0, ac)}</span></td>
         <td>${fmt(a.current_balance || 0, ac)}<span class="td-sub">${fmtOther(a.current_balance||0, ac)}</span></td>
         <td class="${gc(a.total_profit)}">${fmt(a.total_profit, ac)}<span class="td-sub">${fmtOther(a.total_profit, ac)}</span></td>
         <td class="${gc(a.gain_percent)}">${pct(a.gain_percent)}</td>
+        <td class="${gc(monthlyGain)}">${pct(monthlyGain)}</td>
         <td>${a.total_trades}</td>
         <td>${a.win_rate}%</td>
         <td>${a.profit_factor}</td>
         <td class="r">${a.max_drawdown}%</td>
         <td>${a.days_running}</td>
-      </tr>`;
+      </tr>\`;
     }).join('')}
     <tr class="total-row">
-      <td>TOTAL</td><td class="brkr"></td>
+      <td>TOTAL</td>
       <td>${fmtTotal(sD)}</td><td>${fmtTotal(sB)}</td>
       <td class="${gc(sP)}">${fmtTotal(sP)}</td>
-      <td></td><td>${sT}</td><td></td><td></td><td></td><td></td>
+      <td></td><td></td><td>${sT}</td><td></td><td></td><td></td><td></td>
     </tr>
-    </tbody></table>`;
+    </tbody></table>\`;
 }
 
-function renderLiveBox(lr) {
-  const ts = lr.live_trades || [];
-  $('liveCnt').textContent = lr.total || 0;
-  const pl = ts.reduce((s, t) => {
+function renderBoxes(liveData, todayData) {
+  const liveTrades = liveData.live_trades || [];
+  const todayTrades = todayData.today_trades || [];
+  
+  // Live accounts
+  const liveAccIds = accounts.filter(a => a.category === 'live').map(a => a.id);
+  const liveLive = liveTrades.filter(t => liveAccIds.includes(t.account_id));
+  const liveToday = todayTrades.filter(t => liveAccIds.includes(t.account_id));
+  
+  renderBox(liveLive, 'liveCnt', 'liveContent', 'livePL', 'livePLSub');
+  renderBox(liveToday, 'todayLiveCnt', 'todayLiveContent', 'todayLivePL', 'todayLivePLSub');
+  
+  // Copy accounts
+  const copyAccIds = accounts.filter(a => a.category === 'copy').map(a => a.id);
+  const copyLive = liveTrades.filter(t => copyAccIds.includes(t.account_id));
+  const copyToday = todayTrades.filter(t => copyAccIds.includes(t.account_id));
+  
+  renderBox(copyLive, 'copyCnt', 'copyContent', 'copyPL', 'copyPLSub');
+  renderBox(copyToday, 'todayCopyCnt', 'todayCopyContent', 'todayCopyPL', 'todayCopyPLSub');
+  
+  // Demo accounts
+  const demoAccIds = accounts.filter(a => a.category === 'demo').map(a => a.id);
+  const demoLive = liveTrades.filter(t => demoAccIds.includes(t.account_id));
+  const demoToday = todayTrades.filter(t => demoAccIds.includes(t.account_id));
+  
+  renderBox(demoLive, 'demoCnt', 'demoContent', 'demoPL', 'demoPLSub');
+  renderBox(demoToday, 'todayDemoCnt', 'todayDemoContent', 'todayDemoPL', 'todayDemoPLSub');
+}
+
+function renderBox(trades, cntId, contentId, plId, plSubId) {
+  $(cntId).textContent = trades.length;
+  const pl = trades.reduce((s, t) => {
     const acc = accounts.find(a => a.id === t.account_id);
     return s + toDisplayAcc(t.profit || 0, acc?.currency || 'USD');
   }, 0);
-  $('livePL').textContent = (pl>=0?'':'-') + sym() + Math.abs(pl).toFixed(2);
-  $('livePL').className = gc(pl);
-  $('livePLSub').textContent = '≈ ' + otherSym() + Math.abs(toOther(pl, 'USD')).toFixed(0);
-  $('liveContent').innerHTML = ts.length
-    ? ts.map(t => {
+  $(plId).textContent = (pl>=0?'':'-') + sym() + Math.abs(pl).toFixed(2);
+  $(plId).className = gc(pl);
+  $(plSubId).textContent = '≈ ' + otherSym() + Math.abs(toOther(pl, 'USD')).toFixed(0);
+  $(contentId).innerHTML = trades.length
+    ? trades.map(t => {
         const acc = accounts.find(a => a.id === t.account_id);
         const ac = acc?.currency || 'USD';
-        return `<div class="lt-row"><span>${t.account_name} · <b>${t.symbol}</b> ${t.type}</span><span class="${gc(t.profit)}">${fmt(t.profit, ac)}</span></div>`;
+        return `<div class="lt-row"><span>${t.account_name} · <b>${t.symbol}</b> ${t.type || ''}</span><span class="${gc(t.profit)}">${fmt(t.profit, ac)}</span></div>`;
       }).join('')
-    : '<div class="empty">No open positions</div>';
+    : '<div class="empty">No trades</div>';
 }
 
-function renderTodayBox(tr) {
-  const ts = tr.today_trades || [];
-  $('todayCnt').textContent = tr.total || 0;
-  const pl = ts.reduce((s, t) => {
-    const acc = accounts.find(a => a.id === t.account_id);
-    return s + toDisplayAcc(t.profit || 0, acc?.currency || 'USD');
-  }, 0);
-  $('todayPL').textContent = (pl>=0?'':'-') + sym() + Math.abs(pl).toFixed(2);
-  $('todayPL').className = gc(pl);
-  $('todayPLSub').textContent = '≈ ' + otherSym() + Math.abs(toOther(pl, 'USD')).toFixed(0);
-  $('todayContent').innerHTML = ts.length
-    ? ts.map(t => {
-        const acc = accounts.find(a => a.id === t.account_id);
-        const ac = acc?.currency || 'USD';
-        return `<div class="lt-row"><span>${t.account_name} · <b>${t.symbol}</b></span><span class="${gc(t.profit)}">${fmt(t.profit, ac)}</span></div>`;
-      }).join('')
-    : '<div class="empty">No trades today</div>';
-}
 
 // DETAIL
 async function openDetail(id) {
@@ -721,45 +786,57 @@ function openSettings() {
   $('settingsModal').classList.add('on');
   $('btnUSD').classList.toggle('on', currency==='USD');
   $('btnEUR').classList.toggle('on', currency==='EUR');
-  $('accMgmt').innerHTML = '<div class="acc-grid">' + accounts.map(a => `
-    <div class="acc-card">
-      <div class="acc-name">
-        ${a.name}
-        <span class="acc-badge">${a.category.toUpperCase()}</span>
-        <span class="acc-badge" style="color:var(--blue)">${a.currency || 'USD'}</span>
-      </div>
-      <div class="frow">
-        <label>Currency</label>
-        <select id="cur_${a.id}">
-          <option value="USD" ${(a.currency||'USD')==='USD'?'selected':''}>🇺🇸 USD</option>
-          <option value="EUR" ${(a.currency||'USD')==='EUR'?'selected':''}>🇪🇺 EUR</option>
-          <option value="GBP" ${(a.currency||'USD')==='GBP'?'selected':''}>🇬🇧 GBP</option>
-        </select>
-      </div>
-      <div class="frow">
-        <label>Deposits (${a.currency || 'USD'})</label>
-        <input type="number" value="${a.deposit||0}" id="dep_${a.id}">
-      </div>
-      <div class="frow">
-        <label>Online Timeout (sec)</label>
-        <input type="number" value="${a.online_timeout||60}" id="timeout_${a.id}" min="10" max="600">
-      </div>
-      <button class="btn br" onclick="delAcc(${a.id})" style="width:100%;margin-top:8px">🗑 Delete</button>
+  $('accMgmt').innerHTML = `
+    <div style="overflow-x:auto">
+      <table class="settings-table">
+        <thead>
+          <tr>
+            <th>Account</th>
+            <th>Category</th>
+            <th>Currency</th>
+            <th>Manual Deposit</th>
+            <th>Online Timeout (sec)</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          ${accounts.map(a => `<tr>
+            <td><b>${a.name}</b><br><span style="color:var(--muted);font-size:9px">#${a.account_number}</span></td>
+            <td><span style="font-size:9px;background:var(--hover);padding:2px 8px;border-radius:12px">${a.category.toUpperCase()}</span></td>
+            <td>
+              <select id="cur_${a.id}">
+                <option value="USD" ${(a.currency||'USD')==='USD'?'selected':''}>🇺🇸 USD</option>
+                <option value="EUR" ${(a.currency||'USD')==='EUR'?'selected':''}>🇪🇺 EUR</option>
+                <option value="GBP" ${(a.currency||'USD')==='GBP'?'selected':''}>🇬🇧 GBP</option>
+              </select>
+            </td>
+            <td>
+              <input type="number" value="${a.manual_deposit||0}" id="dep_${a.id}" step="0.01">
+            </td>
+            <td>
+              <input type="number" value="${a.online_timeout||60}" id="timeout_${a.id}" min="10" max="600">
+            </td>
+            <td>
+              <button class="del-btn" onclick="delAcc(${a.id})">🗑</button>
+            </td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
     </div>
-  `).join('') + '</div>';
+  `;
 }
 
 function closeSettings() { $('settingsModal').classList.remove('on'); }
 
 async function saveAllSettings() {
   for (const a of accounts) {
-    const dep = parseFloat($(`dep_${a.id}`).value);
+    const dep = parseFloat($(`dep_${a.id}`).value) || 0;
     const cur = $(`cur_${a.id}`).value;
     const timeout = parseInt($(`timeout_${a.id}`).value) || 60;
     await fetch(api(`/api/accounts/${a.id}`), {
       method: 'PUT',
       headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ deposit: dep, currency: cur, online_timeout: timeout })
+      body: JSON.stringify({ manual_deposit: dep, currency: cur, online_timeout: timeout })
     });
   }
   closeSettings();
