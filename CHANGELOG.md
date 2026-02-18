@@ -1,9 +1,24 @@
-# v4.7.2 — Maximum Debug Logging
+# v4.8.0 — Backend: Manual Deposits + Log Levels
 
-## 🐛 Debugging
-- **Pre-parse logging**: Captures raw request BEFORE any JSON parsing
-- **Complete data dump**: First 2000 chars of raw webhook data
-- **Full traceback**: Complete error stack trace
-- **All headers**: Logs all HTTP headers
+## ✨ Backend Features
 
-This will show EXACTLY what MT4 is sending, even if it's malformed.
+### Manual Deposit Protection
+- **manual_deposit**: User-set initial deposit, NEVER overwritten by webhooks
+- **auto_deposits**: MT4/MT5 detected deposits (auto-updated)
+- **Total = manual + auto**: Dashboard shows combined value
+- Settings allow editing manual_deposit only
+
+### Log Level Control
+- **Add-on config**: Choose "normal" or "debug"
+- **Normal**: Essential logs only (clean)
+- **Debug**: Full webhook payload, headers, raw data (troubleshooting)
+- Set via Add-on Settings page
+
+### Fixes
+- Webhook no longer overwrites user-set deposits
+- Better error logging for Copy Trading issues
+- Encoding issues (Phönix → Phoenix) handled
+
+## 📝 Notes
+Frontend UI improvements coming in v4.8.1 (table settings, sortable columns, restructured dashboard).
+This release focuses on data integrity and debugging tools.
