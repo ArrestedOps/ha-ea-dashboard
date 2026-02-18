@@ -109,21 +109,86 @@ tr:hover td{background:var(--hover)}
 .pagination button:disabled{opacity:.3;cursor:not-allowed}
 .pagination input{width:70px;padding:6px;background:var(--card);border:1px solid var(--border);border-radius:6px;color:var(--text);text-align:center;font-family:'JetBrains Mono';font-size:11px}
 .pagination span{font-family:'JetBrains Mono';font-size:11px;color:var(--muted)}
+
+.footer{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--border);padding:12px 20px;text-align:center;font-family:'JetBrains Mono';font-size:10px;color:var(--muted);z-index:50}
+.footer a{color:var(--blue);text-decoration:none}.footer a:hover{color:var(--green)}
 </style>
 </head>
 <body>
 
+
 <!-- OVERVIEW -->
 <div id="pgOverview" class="page on">
 <div class="wrap">
-  <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap">
-    <div>
-      <h1 class="dash">EA Trading Dashboard</h1>
-      <div class="sub">
-        <span>v4.8 — Advanced Filters + Unified Settings + Pagination</span>
-        <span class="fx-badge" id="fxRateBadge">Loading rates...</span>
-      </div>
+  <button class="set-btn" onclick="openSettings()" title="Settings">⚙</button>
+
+  <!-- KPIs -->
+  <div class="g4" style="margin-bottom:28px">
+    <div class="card"><div class="lbl">💰 Balance (Live+Copy)</div><div class="big" id="totBal">–</div><div class="sub-val" id="totBalSub"></div></div>
+    <div class="card"><div class="lbl">📈 Profit (Live+Copy)</div><div class="big g" id="totPro">–</div><div class="sub-val" id="totProSub"></div></div>
+    <div class="card"><div class="lbl">🎯 Accounts (Live+Copy)</div><div class="big" id="totAcc">–</div></div>
+    <div class="card"><div class="lbl">📊 Trades (Live+Copy)</div><div class="big" id="totTrd">–</div></div>
+  </div>
+
+  <!-- LIVE SECTION -->
+  <div class="section-hdr">🟢 Live <span class="section-count" id="liveAccCnt">(0)</span></div>
+  <div class="lt-wrap g2">
+    <div class="card lt-box">
+      <div class="lt-head"><div class="lt-title"><span style="color:var(--red);font-size:8px">●</span> LIVE <span class="badge" id="liveCnt">0</span></div></div>
+      <div id="liveContent"><div class="empty">No open positions</div></div>
+      <div class="lt-footer"><div class="lt-footer-row"><span>Total P&L</span><span id="livePL">–</span></div><div class="lt-footer-sub" id="livePLSub"></div></div>
+
+    <div class="custom-date ${currentPeriod==='custom'?'on':''}" id="customDateBox">
+      <label>From:</label>
+      <input type="date" id="customStart">
+      <label>To:</label>
+      <input type="date" id="customEnd">
+      <button onclick="applyCustom()">Apply</button>
     </div>
+
+    </div>
+    <div class="card lt-box">
+      <div class="lt-head"><div class="lt-title"><span style="color:var(--blue);font-size:10px">■</span> TODAY <span class="badge" id="todayLiveCnt">0</span></div></div>
+      <div id="todayLiveContent"><div class="empty">No trades today</div></div>
+      <div class="lt-footer"><div class="lt-footer-row"><span>Total P&L</span><span id="todayLivePL">–</span></div><div class="lt-footer-sub" id="todayLivePLSub"></div></div>
+    </div>
+  </div>
+  <div class="tbl-wrap" id="liveTbl"></div>
+
+  <!-- COPY SECTION -->
+  <div class="section-hdr">🔵 Copy <span class="section-count" id="copyAccCnt">(0)</span></div>
+  <div class="lt-wrap g2">
+    <div class="card lt-box">
+      <div class="lt-head"><div class="lt-title"><span style="color:var(--red);font-size:8px">●</span> LIVE <span class="badge" id="copyCnt">0</span></div></div>
+      <div id="copyContent"><div class="empty">No open positions</div></div>
+      <div class="lt-footer"><div class="lt-footer-row"><span>Total P&L</span><span id="copyPL">–</span></div><div class="lt-footer-sub" id="copyPLSub"></div></div>
+    </div>
+    <div class="card lt-box">
+      <div class="lt-head"><div class="lt-title"><span style="color:var(--blue);font-size:10px">■</span> TODAY <span class="badge" id="todayCopyCnt">0</span></div></div>
+      <div id="todayCopyContent"><div class="empty">No trades today</div></div>
+      <div class="lt-footer"><div class="lt-footer-row"><span>Total P&L</span><span id="todayCopyPL">–</span></div><div class="lt-footer-sub" id="todayCopyPLSub"></div></div>
+    </div>
+  </div>
+  <div class="tbl-wrap" id="copyTbl"></div>
+
+  <!-- DEMO SECTION -->
+  <div class="section-hdr">🟠 Demo <span class="section-count" id="demoAccCnt">(0)</span></div>
+  <div class="lt-wrap g2">
+    <div class="card lt-box">
+      <div class="lt-head"><div class="lt-title"><span style="color:var(--red);font-size:8px">●</span> LIVE <span class="badge" id="demoCnt">0</span></div></div>
+      <div id="demoContent"><div class="empty">No open positions</div></div>
+      <div class="lt-footer"><div class="lt-footer-row"><span>Total P&L</span><span id="demoPL">–</span></div><div class="lt-footer-sub" id="demoPLSub"></div></div>
+    </div>
+    <div class="card lt-box">
+      <div class="lt-head"><div class="lt-title"><span style="color:var(--blue);font-size:10px">■</span> TODAY <span class="badge" id="todayDemoCnt">0</span></div></div>
+      <div id="todayDemoContent"><div class="empty">No trades today</div></div>
+      <div class="lt-footer"><div class="lt-footer-row"><span>Total P&L</span><span id="todayDemoPL">–</span></div><div class="lt-footer-sub" id="todayDemoPLSub"></div></div>
+    </div>
+  </div>
+  <div class="tbl-wrap" id="demoTbl"></div>
+</div>
+</div>
+
     <button class="set-btn" onclick="openSettings()" title="Settings">⚙</button>
   </div>
 
@@ -198,7 +263,7 @@ tr:hover td{background:var(--hover)}
     </div>
 
     <div class="tab-content" id="tabAccounts">
-      <div id="accMgmt"></div>
+      <div style="overflow-x:auto"><table class="settings-table" id="settingsTable"></table></div>
     </div>
 
     <div class="save-all">
@@ -207,7 +272,9 @@ tr:hover td{background:var(--hover)}
   </div>
 </div>
 
+
 <script>
+
 // STATE
 let accounts = [], charts = {}, currentPeriod = 'all', detailData = null, tradePage = 1;
 let currency = localStorage.getItem('ea_currency') || 'USD';
@@ -253,6 +320,12 @@ function getStartOfWeek() {
   return new Date(d.getFullYear(), d.getMonth(), diff);
 }
 
+
+function getStartOfThisMonth() {
+  const d = new Date();
+  return new Date(d.getFullYear(), d.getMonth(), 1);
+}
+
 function getStartOfLastMonth() {
   const d = new Date();
   return new Date(d.getFullYear(), d.getMonth() - 1, 1);
@@ -278,14 +351,20 @@ function getEndOfLastYear() {
   return new Date(d.getFullYear() - 1, 11, 31, 23, 59, 59);
 }
 
-function filterPeriod(trades, period) {
+function filterPeriod(trades, period, customStart, customEnd) {
   if (period === 'all') return trades;
   let start, end;
   
-  switch(period) {
+    if (period === 'custom' && customStart && customEnd) {
+    start = new Date(customStart);
+    end = new Date(customEnd);
+    end.setHours(23, 59, 59);
+  } else {
+    switch(period) {
     case 'today': start = getStartOfToday(); break;
     case 'yesterday': start = getStartOfYesterday(); end = getEndOfYesterday(); break;
     case 'week': start = getStartOfWeek(); break;
+      case 'thismonth': start = getStartOfThisMonth(); break;
     case 'lastmonth': start = getStartOfLastMonth(); end = getEndOfLastMonth(); break;
     case 'year': start = getStartOfYear(); break;
     case 'lastyear': start = getStartOfLastYear(); end = getEndOfLastYear(); break;
@@ -413,7 +492,9 @@ function buildTable(id, accs) {
     <thead><tr>
       <th>Name</th><th class="brkr">Broker</th>
       <th>Deposits</th><th>Balance</th><th>Profit</th>
-      <th>Gain</th><th>Trades</th><th>Win%</th><th>PF</th><th>DD</th><th>Days</th>
+      <th class="${makeSortClass('gain_percent')}" onclick="sortTable('${id}', 'gain_percent')">Gain</th>
+      <th class="${makeSortClass('monthly_gain')}" onclick="sortTable('${id}', 'monthly_gain')">Monthly</th>
+      <th class="${makeSortClass('total_trades')}" onclick="sortTable('${id}', 'total_trades')">Trades</th><th>Win%</th><th>PF</th><th>DD</th><th>Days</th>
     </tr></thead>
     <tbody>
     ${accs.map(a => {
@@ -422,13 +503,18 @@ function buildTable(id, accs) {
       const onlineIcon = a.is_online 
         ? '<span style="color:var(--green);margin-right:6px;font-size:8px">●</span>'
         : '<span style="color:var(--red);margin-right:6px;font-size:8px">●</span>';
+      const days = a.days_running || 1;
+      const monthlyProfit = days > 0 ? R((a.total_profit || 0) / days * 30) : 0;
+      const monthlyPct = (a.deposit || 1) > 0 ? R(monthlyProfit / (a.deposit || 1) * 100) : 0;
+      
       return `<tr>
         <td>${onlineIcon}<span class="alink" onclick="openDetail(${a.id})">${a.name}</span>${acBadge}</td>
-        <td class="brkr m">${a.broker || '–'}</td>
+        
         <td>${fmt(a.deposit || 0, ac)}<span class="td-sub">${fmtOther(a.deposit||0, ac)}</span></td>
         <td>${fmt(a.current_balance || 0, ac)}<span class="td-sub">${fmtOther(a.current_balance||0, ac)}</span></td>
         <td class="${gc(a.total_profit)}">${fmt(a.total_profit, ac)}<span class="td-sub">${fmtOther(a.total_profit, ac)}</span></td>
         <td class="${gc(a.gain_percent)}">${pct(a.gain_percent)}</td>
+        <td class="${gc(monthlyPct)}">${pct(monthlyPct)}</td>
         <td>${a.total_trades}</td>
         <td>${a.win_rate}%</td>
         <td>${a.profit_factor}</td>
@@ -437,40 +523,59 @@ function buildTable(id, accs) {
       </tr>`;
     }).join('')}
     <tr class="total-row">
-      <td>TOTAL</td><td class="brkr"></td>
+      <td>TOTAL</td>
       <td>${fmtTotal(sD)}</td><td>${fmtTotal(sB)}</td>
       <td class="${gc(sP)}">${fmtTotal(sP)}</td>
-      <td></td><td>${sT}</td><td></td><td></td><td></td><td></td>
+      <td></td><td></td><td>${sT}</td><td></td><td></td><td></td><td></td>
     </tr>
     </tbody></table>`;
 }
 
-function renderLiveBox(lr) {
-  const ts = lr.live_trades || [];
-  $('liveCnt').textContent = lr.total || 0;
-  const pl = ts.reduce((s, t) => {
+function renderBoxes(liveData, todayData) {
+  const liveTrades = liveData.live_trades || [];
+  const todayTrades = todayData.today_trades || [];
+  
+  // Split by category
+  const liveAccIds = accounts.filter(a => a.category === 'live').map(a => a.id);
+  const copyAccIds = accounts.filter(a => a.category === 'copy').map(a => a.id);
+  const demoAccIds = accounts.filter(a => a.category === 'demo').map(a => a.id);
+  
+  // Live boxes
+  const liveLive = liveTrades.filter(t => liveAccIds.includes(t.account_id));
+  const liveToday = todayTrades.filter(t => liveAccIds.includes(t.account_id));
+  renderBox(liveLive, 'liveCnt', 'liveContent', 'livePL', 'livePLSub');
+  renderBox(liveToday, 'todayLiveCnt', 'todayLiveContent', 'todayLivePL', 'todayLivePLSub');
+  
+  // Copy boxes
+  const copyLive = liveTrades.filter(t => copyAccIds.includes(t.account_id));
+  const copyToday = todayTrades.filter(t => copyAccIds.includes(t.account_id));
+  renderBox(copyLive, 'copyCnt', 'copyContent', 'copyPL', 'copyPLSub');
+  renderBox(copyToday, 'todayCopyCnt', 'todayCopyContent', 'todayCopyPL', 'todayCopyPLSub');
+  
+  // Demo boxes
+  const demoLive = liveTrades.filter(t => demoAccIds.includes(t.account_id));
+  const demoToday = todayTrades.filter(t => demoAccIds.includes(t.account_id));
+  renderBox(demoLive, 'demoCnt', 'demoContent', 'demoPL', 'demoPLSub');
+  renderBox(demoToday, 'todayDemoCnt', 'todayDemoContent', 'todayDemoPL', 'todayDemoPLSub');
+}
+
+function renderBox(trades, cntId, contentId, plId, plSubId) {
+  $(cntId).textContent = trades.length;
+  const pl = trades.reduce((s, t) => {
     const acc = accounts.find(a => a.id === t.account_id);
     return s + toDisplayAcc(t.profit || 0, acc?.currency || 'USD');
   }, 0);
-  $('livePL').textContent = (pl>=0?'':'-') + sym() + Math.abs(pl).toFixed(2);
-  $('livePL').className = gc(pl);
-  $('livePLSub').textContent = '≈ ' + otherSym() + Math.abs(toOther(pl, 'USD')).toFixed(0);
-  $('liveContent').innerHTML = ts.length
-    ? ts.map(t => {
+  $(plId).textContent = (pl>=0?'':'-') + sym() + Math.abs(pl).toFixed(2);
+  $(plId).className = gc(pl);
+  $(plSubId).textContent = '≈ ' + otherSym() + Math.abs(toOther(pl, 'USD')).toFixed(0);
+  $(contentId).innerHTML = trades.length
+    ? trades.map(t => {
         const acc = accounts.find(a => a.id === t.account_id);
         const ac = acc?.currency || 'USD';
         return `<div class="lt-row"><span>${t.account_name} · <b>${t.symbol}</b> ${t.type}</span><span class="${gc(t.profit)}">${fmt(t.profit, ac)}</span></div>`;
       }).join('')
-    : '<div class="empty">No open positions</div>';
-}
-
-function renderTodayBox(tr) {
-  const ts = tr.today_trades || [];
-  $('todayCnt').textContent = tr.total || 0;
-  const pl = ts.reduce((s, t) => {
-    const acc = accounts.find(a => a.id === t.account_id);
-    return s + toDisplayAcc(t.profit || 0, acc?.currency || 'USD');
-  }, 0);
+    : '<div class="empty">No trades</div>';
+}, 0);
   $('todayPL').textContent = (pl>=0?'':'-') + sym() + Math.abs(pl).toFixed(2);
   $('todayPL').className = gc(pl);
   $('todayPLSub').textContent = '≈ ' + otherSym() + Math.abs(toOther(pl, 'USD')).toFixed(0);
@@ -485,6 +590,7 @@ function renderTodayBox(tr) {
 
 // DETAIL
 async function openDetail(id) {
+  window.scrollTo({top:0,behavior:"instant"});
   $('pgOverview').classList.remove('on');
   $('pgDetail').classList.add('on');
   currentPeriod = 'all';
@@ -524,7 +630,9 @@ function renderDetail() {
   const { data, acc } = detailData;
   const ac = acc.currency || 'USD';
   const allTrades = data.account.trades || [];
-  const trades = filterPeriod(allTrades, currentPeriod);
+  const customStart = $('customStart')?.value;
+  const customEnd = $('customEnd')?.value;
+  const trades = filterPeriod(allTrades, currentPeriod, customStart, customEnd);
   const dep = acc.deposit || 1;
 
   const profit = R(trades.reduce((s, t) => s + (t.profit || 0), 0));
@@ -542,7 +650,7 @@ function renderDetail() {
 
   const periods = [
     {id:'all',label:'All Time'},{id:'today',label:'Today'},{id:'yesterday',label:'Yesterday'},
-    {id:'week',label:'This Week'},{id:'lastmonth',label:'Last Month'},{id:'year',label:'This Year'},
+    {id:'week',label:'This Week'},{id:'thismonth',label:'This Month'},{id:'lastmonth',label:'Last Month'},{id:'year',label:'This Year'},
     {id:'lastyear',label:'Last Year'},{id:'last7',label:'Last 7 Days'},{id:'last30',label:'Last 30 Days'},
     {id:'last365',label:'Last 365 Days'}
   ];
@@ -597,10 +705,15 @@ function renderDetail() {
 
   setTimeout(() => {
     destroyCharts();
-    drawEquity(allTrades, dep, currentPeriod);
+    drawEquity(allTrades, dep, currentPeriod, customStart, customEnd);
     drawWL(wins.length, losses.length);
     drawMonthly(allTrades);
   }, 30);
+}
+
+
+function applyCustom() {
+  renderDetail();
 }
 
 function setPeriod(p) { currentPeriod = p; tradePage = 1; renderDetail(); }
@@ -612,11 +725,11 @@ const scaleY = { ticks:TICK, grid:{color:'#252a35'} };
 
 function destroyCharts() { Object.values(charts).forEach(c=>{try{c.destroy()}catch(e){}}); charts={}; }
 
-function drawEquity(trades, dep, period) {
-  const src = filterPeriod([...trades].sort((a,b)=> {
+function drawEquity(trades, dep, period, customStart, customEnd) {
+  const src = filterPeriod([...trades], period, customStart, customEnd.sort((a,b)=> {
     const da = parseDate(a.close_time), db = parseDate(b.close_time);
     return (da||0) - (db||0);
-  }), period);
+  }),
   let bal = dep;
   const pts = [{ y: toDisplayAcc(dep, detailData.acc.currency) }];
   src.forEach(t => { bal = R(bal+(t.profit||0)); pts.push({ x: t.close_time, y: R(toDisplayAcc(bal, detailData.acc.currency)) }); });
@@ -679,6 +792,10 @@ function buildTradesTable(trades, ac) {
     ${page.map(t => {
       const d = parseDate(t.close_time);
       const dateStr = d ? d.toLocaleDateString('de-DE') : 'Invalid';
+      const days = a.days_running || 1;
+      const monthlyProfit = days > 0 ? R((a.total_profit || 0) / days * 30) : 0;
+      const monthlyPct = (a.deposit || 1) > 0 ? R(monthlyProfit / (a.deposit || 1) * 100) : 0;
+      
       return `<tr>
         <td class="m" style="font-size:10px">${dateStr}</td>
         <td><b>${t.symbol}</b></td><td>${t.type}</td><td>${t.lots}</td>
@@ -773,6 +890,13 @@ fetchRates().catch(e => {
 }).finally(() => load());
 setInterval(load, 10000);
 setInterval(() => fetchRates().catch(e => console.warn('FX update failed:', e)), 3600000);
+
+
+
+
 </script>
+<div class="footer">
+  EA Trading Dashboard v4.8.1 · Made with ❤️ by <a href="https://github.com/ArrestedOps" target="_blank">ArrestedOps</a> · © 2026
+</div>
 </body>
 </html>

@@ -1,23 +1,19 @@
-# EA Trading Dashboard - Home Assistant Add-on Repository
+# EA Trading Dashboard v4.8.1
 
-MetaTrader 4/5 Expert Advisor tracking dashboard for Home Assistant.
+Complete UI overhaul with all requested features.
+
+## What's New
+
+1. ✅ **Settings as Table** - Clean tabular layout instead of cards
+2. ✅ **Sortable Columns** - Click headers to sort (↑↓)
+3. ✅ **Restructured Dashboard** - KPIs → Live+Boxes → Live Table → Copy+Boxes → Copy Table → Demo+Boxes → Demo Table
+4. ✅ **Monthly Gain Column** - Replaces Broker column
+5. ✅ **This Month Filter** - New period option
+6. ✅ **Custom Date Range** - Pick any date range
+7. ✅ **Auto-scroll to Top** - Smooth scroll when opening details
+8. ✅ **Footer** - Copyright & credits at bottom
+9. ✅ **Fixed Settings Button** - Top-right, always visible
 
 ## Installation
 
-1. Click button below to add this repository:
-   [![Add Repository](https://my.home-assistant.io/badges/supervisor_add_addon_repository.svg)](https://my.home-assistant.io/redirect/supervisor_add_addon_repository/?repository_url=YOUR_GITHUB_URL)
-
-2. Or manually: Settings → Add-ons → Add-on Store → ⋮ → Repositories → Add this URL
-
-3. Install "EA Trading Dashboard" from the store
-
-## What's New in v4.8.0
-
-- **Manual Deposit Management**: Set initial deposit, never overwritten by MT4/MT5
-- **Log Level Control**: Choose normal or debug mode in add-on config
-- **Better Error Handling**: Improved webhook debugging
-
-## Support
-
-- Issues: [GitHub Issues](https://github.com/arrestedops/ha-ea-dashboard/issues)
-- Documentation: See ea-dashboard/README.md
+Add repository → Install "EA Trading Dashboard" → Configure → Start
