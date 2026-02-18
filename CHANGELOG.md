@@ -1,11 +1,9 @@
-# v4.8.0 — Manual Deposits + Log Levels
+# v4.7.2 — Maximum Debug Logging
 
-## Backend Features
-- Manual deposit protection (never overwritten)
-- Log level control (normal/debug)
-- Better webhook error handling
+## 🐛 Debugging
+- **Pre-parse logging**: Captures raw request BEFORE any JSON parsing
+- **Complete data dump**: First 2000 chars of raw webhook data
+- **Full traceback**: Complete error stack trace
+- **All headers**: Logs all HTTP headers
 
-## Deploy This
-1. Update Add-on from repository
-2. Set deposits in Settings → Accounts tab
-3. Change log level in Add-on Configuration if needed
+This will show EXACTLY what MT4 is sending, even if it's malformed.
