@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""EA Trading Dashboard v4.6.2 - Complete with all MyFxBook-style stats"""
+"""EA Trading Dashboard v4.7.0 - Complete with all MyFxBook-style stats"""
 import os, json, logging
 from datetime import datetime, timedelta
 from flask import Flask, jsonify, request, send_file
@@ -335,11 +335,17 @@ def settings():
 def webhook_batch():
     try:
         payload = request.json
+        if not payload:
+            logger.error('Webhook: No JSON payload')
+            return jsonify({'success': False, 'error': 'No JSON payload'}), 400
+            
         account_number = payload.get('account_number')
         ea_name = payload.get('ea_name')
         
         if not account_number or not ea_name:
-            return jsonify({'success': False}), 400
+            logger.error(f'Webhook: Missing required fields - account_number={account_number}, ea_name={ea_name}')
+            logger.error(f'Webhook: Full payload keys: {list(payload.keys())}')
+            return jsonify({'success': False, 'error': 'Missing account_number or ea_name'}), 400
         
         data = load_data()
         account = next((a for a in data['accounts'] 
@@ -407,5 +413,5 @@ def webhook_batch():
         return jsonify({'success': False}), 500
 
 if __name__ == '__main__':
-    logger.info('EA Dashboard v4.6.2 starting...')
+    logger.info('EA Dashboard v4.7.0 starting...')
     app.run(host='0.0.0.0', port=8099, debug=False)

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=5">
-<title>EA Dashboard v4.5</title>
+<title>EA Dashboard v4.7</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Inter:wght@300;500;700;900&display=swap" rel="stylesheet">
 <style>
@@ -15,20 +15,14 @@ body{font-family:Inter,sans-serif;background:var(--bg);color:var(--text);-webkit
 h1.dash{font-size:clamp(26px,5vw,42px);font-weight:900;letter-spacing:-1.5px;background:linear-gradient(130deg,var(--green),var(--blue));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:4px}
 .sub{color:var(--muted);font-size:12px;margin-bottom:28px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
 .fx-badge{background:var(--hover);border:1px solid var(--border);border-radius:20px;padding:3px 12px;font-family:'JetBrains Mono';font-size:11px;color:var(--muted)}
-
-/* GRID */
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 .g4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
 @media(max-width:900px){.g4{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:560px){.g4{grid-template-columns:1fr 1fr}.g2{grid-template-columns:1fr}}
-
-/* CARDS */
 .card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:clamp(16px,2.5vw,22px)}
 .lbl{font-size:10px;font-family:'JetBrains Mono';color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px}
 .big{font-size:clamp(22px,4vw,30px);font-weight:700}
 .sub-val{font-size:11px;font-family:'JetBrains Mono';color:var(--muted);margin-top:4px}
-
-/* LIVE/TODAY */
 .lt-wrap{margin-bottom:20px}
 .lt-box{padding:clamp(16px,2.5vw,22px)}
 .lt-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
@@ -40,8 +34,6 @@ h1.dash{font-size:clamp(26px,5vw,42px);font-weight:900;letter-spacing:-1.5px;bac
 .lt-footer-row{display:flex;justify-content:space-between;font-family:'JetBrains Mono';font-weight:700;font-size:13px}
 .lt-footer-sub{text-align:right;font-family:'JetBrains Mono';font-size:10px;color:var(--muted);margin-top:3px}
 .empty{text-align:center;padding:24px 0;color:var(--muted);font-size:12px}
-
-/* TABLE */
 .section-hdr{display:flex;align-items:center;gap:10px;margin:28px 0 14px;font-size:17px;font-weight:700}
 .section-count{color:var(--muted);font-weight:400;font-size:14px}
 .tbl-wrap{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow-x:auto;-webkit-overflow-scrolling:touch}
@@ -53,42 +45,44 @@ tr:hover td{background:var(--hover)}
 .total-row td{color:var(--green);font-weight:700;background:rgba(0,255,135,.04);border-top:1px solid var(--green)!important}
 .td-sub{font-size:9px;color:var(--muted);display:block;margin-top:2px}
 @media(max-width:760px){.brkr{display:none}}
-
-/* COLORS */
 .g{color:var(--green)}.r{color:var(--red)}.m{color:var(--muted)}
-
-/* SETTINGS BTN */
-.settings-area{text-align:center;padding:48px 0 24px}
 .set-btn{width:40px;height:40px;border-radius:50%;background:var(--hover);border:1px solid var(--border);color:var(--muted);font-size:16px;cursor:pointer;transition:.2s}
 .set-btn:hover{border-color:var(--blue);color:var(--text)}
-
-/* MODAL */
-.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:500;align-items:center;justify-content:center;padding:16px}
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:500;align-items:center;justify-content:center;padding:16px}
 .modal.on{display:flex}
-.mbox{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:28px;max-width:560px;width:100%;max-height:90vh;overflow-y:auto}
-.mhdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px}
-.mclose{background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer}
-.frow{margin-bottom:16px}
-.frow label{display:block;font-size:10px;font-family:'JetBrains Mono';color:var(--muted);text-transform:uppercase;margin-bottom:6px}
-.frow input,.frow select{width:100%;padding:11px 14px;background:var(--hover);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'JetBrains Mono';font-size:13px}
+.mbox{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:32px;max-width:900px;width:100%;max-height:90vh;overflow-y:auto}
+.mhdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}
+.mclose{background:none;border:none;color:var(--muted);font-size:24px;cursor:pointer;transition:.2s}
+.mclose:hover{color:var(--text)}
+.tabs{display:flex;gap:8px;border-bottom:1px solid var(--border);margin-bottom:24px}
+.tab{padding:12px 20px;background:transparent;border:none;color:var(--muted);cursor:pointer;font-family:'JetBrains Mono';font-size:12px;border-bottom:2px solid transparent;transition:.2s}
+.tab.on{color:var(--green);border-bottom-color:var(--green)}
+.tab:hover:not(.on){color:var(--text)}
+.tab-content{display:none}.tab-content.on{display:block}
+.frow{margin-bottom:18px}
+.frow label{display:block;font-size:11px;font-family:'JetBrains Mono';color:var(--muted);text-transform:uppercase;margin-bottom:8px;letter-spacing:.5px}
+.frow input,.frow select{width:100%;padding:12px 14px;background:var(--hover);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'JetBrains Mono';font-size:13px;transition:.2s}
+.frow input:focus,.frow select:focus{outline:none;border-color:var(--blue)}
 .frow select option{background:var(--card)}
-.btn{padding:10px 20px;border-radius:8px;font-family:'JetBrains Mono';font-size:12px;cursor:pointer;border:none;margin:0 6px 6px 0}
-.bg{background:var(--green);color:#000}.br{background:var(--red);color:#fff}
-.acc-item{background:var(--hover);border-radius:10px;padding:16px;margin:12px 0}
-.mdivider{border:none;border-top:1px solid var(--border);margin:20px 0}
-
-/* CURRENCY SECTION IN SETTINGS */
-.curr-box{background:var(--hover);border-radius:12px;padding:16px;margin-bottom:16px}
-.curr-title{font-size:11px;font-family:'JetBrains Mono';color:var(--muted);text-transform:uppercase;margin-bottom:12px}
+.btn{padding:12px 24px;border-radius:8px;font-family:'JetBrains Mono';font-size:13px;cursor:pointer;border:none;transition:.2s;font-weight:600}
+.bg{background:var(--green);color:#000}.bg:hover{opacity:.9}
+.br{background:var(--red);color:#fff}.br:hover{opacity:.9}
+.acc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+.acc-card{background:var(--hover);border:1px solid var(--border);border-radius:12px;padding:18px}
+.acc-name{font-weight:700;font-size:14px;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.acc-badge{font-size:9px;background:var(--card);border:1px solid var(--border);padding:2px 8px;border-radius:12px;font-weight:400}
+.mdivider{border:none;border-top:1px solid var(--border);margin:24px 0}
+.curr-box{background:var(--hover);border-radius:12px;padding:18px;margin-bottom:20px}
+.curr-title{font-size:11px;font-family:'JetBrains Mono';color:var(--muted);text-transform:uppercase;margin-bottom:12px;letter-spacing:.5px}
 .curr-opts{display:flex;gap:8px}
-.curr-btn{flex:1;padding:10px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:'JetBrains Mono';font-size:12px;cursor:pointer;transition:.15s;text-align:center}
-.curr-btn.on{background:var(--green);color:#000;border-color:var(--green);font-weight:600}
-
-/* DETAIL */
-.back-btn{display:inline-flex;align-items:center;gap:8px;padding:9px 16px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--muted);cursor:pointer;font-family:'JetBrains Mono';font-size:12px;margin-bottom:24px;transition:.2s;border:none}
-.back-btn:hover{color:var(--text)}
-.ptabs{display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap}
-.ptab{padding:7px 18px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:'JetBrains Mono';font-size:11px;cursor:pointer;transition:.15s}
+.curr-btn{flex:1;padding:12px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:'JetBrains Mono';font-size:12px;cursor:pointer;transition:.2s;text-align:center;font-weight:500}
+.curr-btn.on{background:var(--green);color:#000;border-color:var(--green);font-weight:700}
+.curr-btn:hover:not(.on){border-color:var(--blue);color:var(--text)}
+.save-all{position:sticky;bottom:0;background:var(--card);border-top:1px solid var(--border);padding:20px 0;margin:0 -32px -32px;text-align:center}
+.back-btn{position:sticky;top:16px;z-index:100;display:inline-flex;align-items:center;gap:8px;padding:10px 18px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--muted);cursor:pointer;font-family:'JetBrains Mono';font-size:12px;margin-bottom:24px;transition:.2s}
+.back-btn:hover{color:var(--text);border-color:var(--blue)}
+.ptabs{display:flex;gap:6px;margin-bottom:20px;flex-wrap:wrap}
+.ptab{padding:8px 16px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:'JetBrains Mono';font-size:11px;cursor:pointer;transition:.15s;white-space:nowrap}
 .ptab.on{background:var(--green);color:#000;border-color:var(--green);font-weight:600}
 .ptab:hover:not(.on){color:var(--text);border-color:var(--muted)}
 .period-box{background:var(--hover);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:24px;display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:16px}
@@ -108,45 +102,51 @@ tr:hover td{background:var(--hover)}
 .trades-box{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:20px}
 .trades-head{padding:14px 18px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border)}
 .trades-head h4{font-family:'JetBrains Mono';font-size:12px;font-weight:600}
-.trades-scroll{max-height:400px;overflow-y:auto;overflow-x:auto}
+.trades-scroll{max-height:500px;overflow-y:auto;overflow-x:auto}
+.pagination{display:flex;align-items:center;justify-content:center;gap:12px;padding:16px;border-top:1px solid var(--border);background:var(--hover)}
+.pagination button{padding:8px 16px;background:var(--card);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:'JetBrains Mono';font-size:11px;cursor:pointer;transition:.2s}
+.pagination button:hover:not(:disabled){border-color:var(--blue)}
+.pagination button:disabled{opacity:.3;cursor:not-allowed}
+.pagination input{width:70px;padding:6px;background:var(--card);border:1px solid var(--border);border-radius:6px;color:var(--text);text-align:center;font-family:'JetBrains Mono';font-size:11px}
+.pagination span{font-family:'JetBrains Mono';font-size:11px;color:var(--muted)}
 </style>
 </head>
 <body>
 
-<!-- ═══ OVERVIEW ═══ -->
+<!-- OVERVIEW -->
 <div id="pgOverview" class="page on">
 <div class="wrap">
   <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap">
     <div>
       <h1 class="dash">EA Trading Dashboard</h1>
       <div class="sub">
-        <span>v4.5 — Per-Account Currency Detection</span>
+        <span>v4.7 — Advanced Filters + Unified Settings + Pagination</span>
         <span class="fx-badge" id="fxRateBadge">Loading rates...</span>
       </div>
     </div>
-    <button class="set-btn" onclick="openSettings()" title="Settings" style="margin-top:6px;flex-shrink:0">⚙</button>
+    <button class="set-btn" onclick="openSettings()" title="Settings">⚙</button>
   </div>
 
   <div class="lt-wrap g2">
     <div class="card lt-box">
       <div class="lt-head">
         <div class="lt-title"><span style="color:var(--red);font-size:8px">●</span> LIVE <span class="badge" id="liveCnt">0</span></div>
-        <span class="lt-note">Live &amp; Copy only</span>
+        <span class="lt-note">Live & Copy only</span>
       </div>
       <div id="liveContent"><div class="empty">No open positions</div></div>
       <div class="lt-footer">
-        <div class="lt-footer-row"><span>Total P&amp;L</span><span id="livePL">–</span></div>
+        <div class="lt-footer-row"><span>Total P&L</span><span id="livePL">–</span></div>
         <div class="lt-footer-sub" id="livePLSub"></div>
       </div>
     </div>
     <div class="card lt-box">
       <div class="lt-head">
         <div class="lt-title"><span style="color:var(--blue);font-size:10px">■</span> TODAY <span class="badge" id="todayCnt">0</span></div>
-        <span class="lt-note">Live &amp; Copy only</span>
+        <span class="lt-note">Live & Copy only</span>
       </div>
       <div id="todayContent"><div class="empty">No trades today</div></div>
       <div class="lt-footer">
-        <div class="lt-footer-row"><span>Total P&amp;L</span><span id="todayPL">–</span></div>
+        <div class="lt-footer-row"><span>Total P&L</span><span id="todayPL">–</span></div>
         <div class="lt-footer-sub" id="todayPLSub"></div>
       </div>
     </div>
@@ -168,7 +168,7 @@ tr:hover td{background:var(--hover)}
 </div>
 </div>
 
-<!-- ═══ DETAIL ═══ -->
+<!-- DETAIL -->
 <div id="pgDetail" class="page">
 <div class="wrap">
   <button class="back-btn" onclick="goBack()">← Back</button>
@@ -176,33 +176,43 @@ tr:hover td{background:var(--hover)}
 </div>
 </div>
 
-<!-- ═══ SETTINGS MODAL ═══ -->
+<!-- SETTINGS MODAL -->
 <div class="modal" id="settingsModal">
   <div class="mbox">
-    <div class="mhdr"><h2 style="font-size:18px;font-weight:700">Settings</h2><button class="mclose" onclick="closeSettings()">×</button></div>
-
-    <!-- Currency -->
-    <div class="curr-box">
-      <div class="curr-title">Display Currency</div>
-      <div class="curr-opts">
-        <button class="curr-btn" id="btnUSD" onclick="setCurrency('USD')">🇺🇸 USD</button>
-        <button class="curr-btn" id="btnEUR" onclick="setCurrency('EUR')">🇪🇺 EUR</button>
-      </div>
-      <div style="margin-top:12px;font-family:'JetBrains Mono';font-size:11px;color:var(--muted)" id="rateInfo">–</div>
+    <div class="mhdr"><h2 style="font-size:20px;font-weight:700">Settings</h2><button class="mclose" onclick="closeSettings()">×</button></div>
+    
+    <div class="tabs">
+      <button class="tab on" onclick="switchTab('currency')">💱 Currency</button>
+      <button class="tab" onclick="switchTab('accounts')">📊 Accounts</button>
     </div>
 
-    <hr class="mdivider">
-    <div id="accMgmt"></div>
+    <div class="tab-content on" id="tabCurrency">
+      <div class="curr-box">
+        <div class="curr-title">Display Currency</div>
+        <div class="curr-opts">
+          <button class="curr-btn" id="btnUSD" onclick="setCurrency('USD')">🇺🇸 USD</button>
+          <button class="curr-btn" id="btnEUR" onclick="setCurrency('EUR')">🇪🇺 EUR</button>
+        </div>
+        <div style="margin-top:14px;font-family:'JetBrains Mono';font-size:11px;color:var(--muted)" id="rateInfo">–</div>
+      </div>
+    </div>
+
+    <div class="tab-content" id="tabAccounts">
+      <div id="accMgmt"></div>
+    </div>
+
+    <div class="save-all">
+      <button class="btn bg" onclick="saveAllSettings()" style="padding:14px 40px;font-size:14px">💾 Save All Changes</button>
+    </div>
   </div>
 </div>
 
 <script>
-// ═══════════════════════════════════════════
 // STATE
-// ═══════════════════════════════════════════
-let accounts = [], charts = {}, currentPeriod = 'all', detailData = null;
+let accounts = [], charts = {}, currentPeriod = 'all', detailData = null, tradePage = 1;
 let currency = localStorage.getItem('ea_currency') || 'USD';
-let fxRates = { USD: 1, EUR: 1 }; // populated from API
+let fxRates = { USD: 1, EUR: 1 };
+const tradesPerPage = 25;
 
 const $ = id => document.getElementById(id);
 const api = p => '.' + p;
@@ -210,72 +220,133 @@ const R = (v, d = 2) => Math.round(v * 10 ** d) / 10 ** d;
 const gc = v => v >= 0 ? 'g' : 'r';
 const pct = v => (v >= 0 ? '+' : '') + v.toFixed(2) + '%';
 
-// ═══════════════════════════════════════════
+// iOS-safe date parser
+function parseDate(mt4Date) {
+  if (!mt4Date) return null;
+  try {
+    const cleaned = mt4Date.replace(/\./g, '-').replace(' ', 'T');
+    return new Date(cleaned.length === 16 ? cleaned + ':00' : cleaned);
+  } catch { return null; }
+}
+
+function getStartOfToday() {
+  const now = new Date();
+  return new Date(now.getFullYear(), now.getMonth(), now.getDate());
+}
+
+function getStartOfYesterday() {
+  const d = new Date();
+  d.setDate(d.getDate() - 1);
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+}
+
+function getEndOfYesterday() {
+  const d = new Date();
+  d.setDate(d.getDate() - 1);
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59);
+}
+
+function getStartOfWeek() {
+  const d = new Date();
+  const day = d.getDay();
+  const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Monday
+  return new Date(d.getFullYear(), d.getMonth(), diff);
+}
+
+function getStartOfLastMonth() {
+  const d = new Date();
+  return new Date(d.getFullYear(), d.getMonth() - 1, 1);
+}
+
+function getEndOfLastMonth() {
+  const d = new Date();
+  return new Date(d.getFullYear(), d.getMonth(), 0, 23, 59, 59);
+}
+
+function getStartOfYear() {
+  const d = new Date();
+  return new Date(d.getFullYear(), 0, 1);
+}
+
+function getStartOfLastYear() {
+  const d = new Date();
+  return new Date(d.getFullYear() - 1, 0, 1);
+}
+
+function getEndOfLastYear() {
+  const d = new Date();
+  return new Date(d.getFullYear() - 1, 11, 31, 23, 59, 59);
+}
+
+function filterPeriod(trades, period) {
+  if (period === 'all') return trades;
+  let start, end;
+  
+  switch(period) {
+    case 'today': start = getStartOfToday(); break;
+    case 'yesterday': start = getStartOfYesterday(); end = getEndOfYesterday(); break;
+    case 'week': start = getStartOfWeek(); break;
+    case 'lastmonth': start = getStartOfLastMonth(); end = getEndOfLastMonth(); break;
+    case 'year': start = getStartOfYear(); break;
+    case 'lastyear': start = getStartOfLastYear(); end = getEndOfLastYear(); break;
+    case 'last7': start = new Date(Date.now() - 7 * 86400000); break;
+    case 'last30': start = new Date(Date.now() - 30 * 86400000); break;
+    case 'last365': start = new Date(Date.now() - 365 * 86400000); break;
+    default: start = getStartOfToday();
+  }
+  
+  return trades.filter(t => {
+    const d = parseDate(t.close_time || t.open_time);
+    if (!d) return false;
+    if (end) return d >= start && d <= end;
+    return d >= start;
+  });
+}
+
 // CURRENCY
-// ═══════════════════════════════════════════
 async function fetchRates() {
   try {
-    // Free API, no key needed
     const res = await fetch('https://api.frankfurter.app/latest?from=USD&to=EUR');
     const data = await res.json();
     fxRates.EUR = data.rates.EUR;
     fxRates.USD = 1;
-    const rate = currency === 'EUR' ? fxRates.EUR : (1 / fxRates.EUR);
     $('fxRateBadge').textContent = `1 USD = ${fxRates.EUR.toFixed(4)} EUR`;
-    $('rateInfo').textContent = `Live rate: 1 USD = ${fxRates.EUR.toFixed(4)} EUR · 1 EUR = ${(1/fxRates.EUR).toFixed(4)} USD`;
+    $('rateInfo').textContent = `Live: 1 USD = ${fxRates.EUR.toFixed(4)} EUR · 1 EUR = ${(1/fxRates.EUR).toFixed(4)} USD`;
   } catch(e) {
-    $('fxRateBadge').textContent = 'Rate unavailable';
+    $('fxRateBadge').textContent = 'FX unavailable';
   }
 }
 
-function toDisplay(usdValue) {
-  // Legacy: assumes USD input → display currency
-  if (currency === 'EUR') return usdValue * fxRates.EUR;
-  return usdValue;
+function toDisplayAcc(val, acctCurrency) {
+  const aC = acctCurrency || 'USD';
+  if (currency === aC) return val;
+  if (currency === 'EUR' && aC === 'USD') return val * fxRates.EUR;
+  if (currency === 'USD' && aC === 'EUR') return val / fxRates.EUR;
+  return val;
 }
 
-function toOther(nativeValue, acctCurrency) {
-  // nativeValue is in the ACCOUNT's own currency (USD or EUR)
-  // We want to show the equivalent in the OTHER display currency
+function toOther(val, acctCurrency) {
   const aC = acctCurrency || 'USD';
   if (currency === 'USD') {
-    // Displaying USD: if account is EUR, convert EUR→USD for "other"
-    if (aC === 'EUR') return nativeValue / fxRates.EUR;  // EUR→USD
-    return nativeValue * fxRates.EUR;  // USD→EUR (to show EUR as "other")
+    if (aC === 'EUR') return val / fxRates.EUR;
+    return val * fxRates.EUR;
   } else {
-    // Displaying EUR: if account is USD, show raw USD as "other"
-    if (aC === 'USD') return nativeValue;  // raw USD
-    return nativeValue / fxRates.EUR;  // EUR→USD for "other"
+    if (aC === 'USD') return val;
+    return val / fxRates.EUR;
   }
-}
-
-// Convert a value FROM its account currency TO the display currency
-function toDisplayAcc(nativeValue, acctCurrency) {
-  const aC = acctCurrency || 'USD';
-  if (currency === aC) return nativeValue;  // same currency, no conversion
-  if (currency === 'EUR' && aC === 'USD') return nativeValue * fxRates.EUR;
-  if (currency === 'USD' && aC === 'EUR') return nativeValue / fxRates.EUR;
-  return nativeValue;
 }
 
 function sym() { return currency === 'EUR' ? '€' : '$'; }
 function otherSym() { return currency === 'EUR' ? '$' : '€'; }
 
-// fmt: converts from account currency to display currency
-function fmt(val, acctCurrency) {
-  const v = toDisplayAcc(val, acctCurrency || 'USD');
+function fmt(val, ac) {
+  const v = toDisplayAcc(val, ac || 'USD');
   return (v >= 0 ? '' : '- ') + sym() + Math.abs(v).toFixed(2);
 }
 
-// fmtOther: shows value in the OTHER currency
-function fmtOther(val, acctCurrency) {
-  const v = toOther(val, acctCurrency || 'USD');
+function fmtOther(val, ac) {
+  const v = toOther(val, ac || 'USD');
   return '≈ ' + otherSym() + Math.abs(v).toFixed(0);
-}
-
-// For aggregate totals (already converted to display currency by backend)
-function fmtDisplay(displayVal) {
-  return (displayVal >= 0 ? '' : '- ') + sym() + Math.abs(displayVal).toFixed(2);
 }
 
 function setCurrency(c) {
@@ -283,13 +354,11 @@ function setCurrency(c) {
   localStorage.setItem('ea_currency', c);
   $('btnUSD').classList.toggle('on', c === 'USD');
   $('btnEUR').classList.toggle('on', c === 'EUR');
-  load(); // re-render everything
+  load();
   if (detailData) renderDetail();
 }
 
-// ═══════════════════════════════════════════
 // DATA LOAD
-// ═══════════════════════════════════════════
 async function load() {
   try {
     const [ar, lr, tr] = await Promise.all([
@@ -300,17 +369,12 @@ async function load() {
     if (ar.success) { accounts = ar.accounts; renderOverview(ar.totals); }
     renderLiveBox(lr);
     renderTodayBox(tr);
-    // Update currency buttons
     $('btnUSD').classList.toggle('on', currency === 'USD');
     $('btnEUR').classList.toggle('on', currency === 'EUR');
   } catch(e) { console.error(e); }
 }
 
-// ═══════════════════════════════════════════
-// OVERVIEW
-// ═══════════════════════════════════════════
 function renderOverview(t) {
-  // Totals come pre-summed in mixed currencies → recalculate from accounts
   const liveCopy = accounts.filter(a => a.category !== 'demo');
   const totalBal = liveCopy.reduce((s, a) => s + toDisplayAcc(a.current_balance||0, a.currency), 0);
   const totalPro = liveCopy.reduce((s, a) => s + toDisplayAcc(a.total_profit||0, a.currency), 0);
@@ -340,7 +404,6 @@ function renderOverview(t) {
 function buildTable(id, accs) {
   const el = $(id);
   if (!accs.length) { el.innerHTML = '<div class="empty" style="padding:28px">No accounts</div>'; return; }
-  // Totals: sum everything converted to display currency
   const sD = accs.reduce((s, a) => s + toDisplayAcc(a.deposit || 0, a.currency), 0);
   const sB = accs.reduce((s, a) => s + toDisplayAcc(a.current_balance || 0, a.currency), 0);
   const sP = accs.reduce((s, a) => s + toDisplayAcc(a.total_profit || 0, a.currency), 0);
@@ -385,7 +448,6 @@ function buildTable(id, accs) {
 function renderLiveBox(lr) {
   const ts = lr.live_trades || [];
   $('liveCnt').textContent = lr.total || 0;
-  // Recalculate total P&L with proper currency conversion
   const pl = ts.reduce((s, t) => {
     const acc = accounts.find(a => a.id === t.account_id);
     return s + toDisplayAcc(t.profit || 0, acc?.currency || 'USD');
@@ -421,49 +483,18 @@ function renderTodayBox(tr) {
     : '<div class="empty">No trades today</div>';
 }
 
-// ═══════════════════════════════════════════
 // DETAIL
-// ═══════════════════════════════════════════
 async function openDetail(id) {
   $('pgOverview').classList.remove('on');
   $('pgDetail').classList.add('on');
   currentPeriod = 'all';
+  tradePage = 1;
   const res = await fetch(api(`/api/accounts/${id}`));
   const data = await res.json();
   detailData = { data, acc: accounts.find(a => a.id === id) };
   renderDetail();
 }
 
-// iOS-safe date parser: MT4 sends "2026.01.15 09:00" which Safari rejects
-function parseDate(mt4Date) {
-  if (!mt4Date) return null;
-  try {
-    const cleaned = mt4Date.replace(/\./g, '-').replace(' ', 'T');
-    return new Date(cleaned.length === 16 ? cleaned + ':00' : cleaned);
-  } catch { return null; }
-}
-
-function getStartOfToday() {
-  const now = new Date();
-  return new Date(now.getFullYear(), now.getMonth(), now.getDate());
-}
-
-function filterPeriod(trades, period) {
-  if (period === 'all') return trades;
-  let cutoff;
-  if (period === 'today') {
-    cutoff = getStartOfToday();  // 00:00 today, not 24h ago
-  } else {
-    const days = { week: 7, month: 30, year: 365 }[period] || 1;
-    cutoff = new Date(Date.now() - days * 86400000);
-  }
-  return trades.filter(t => {
-    const d = parseDate(t.close_time || t.open_time);
-    return d && d >= cutoff;
-  });
-}
-
-// ─── CORRECT DD from filtered trades ───
 function calcDD(trades, deposit) {
   if (!trades.length) return 0;
   const sorted = [...trades].sort((a, b) => new Date(a.close_time) - new Date(b.close_time));
@@ -480,11 +511,10 @@ function calcDD(trades, deposit) {
   return R(maxDD);
 }
 
-// ─── CORRECT Avg Duration from filtered trades ───
 function calcAvgDuration(trades) {
   const durs = trades.map(t => {
-    const o = new Date(t.open_time || ''), c = new Date(t.close_time || '');
-    if (isNaN(o) || isNaN(c)) return null;
+    const o = parseDate(t.open_time), c = parseDate(t.close_time);
+    if (!o || !c) return null;
     return (c - o) / 3600000;
   }).filter(d => d !== null && d >= 0);
   return durs.length ? R(durs.reduce((s, d) => s + d, 0) / durs.length) : 0;
@@ -492,7 +522,7 @@ function calcAvgDuration(trades) {
 
 function renderDetail() {
   const { data, acc } = detailData;
-  const ac = acc.currency || 'USD';  // account's own currency
+  const ac = acc.currency || 'USD';
   const allTrades = data.account.trades || [];
   const trades = filterPeriod(allTrades, currentPeriod);
   const dep = acc.deposit || 1;
@@ -505,24 +535,34 @@ function renderDetail() {
   const wr = trades.length ? R(wins.length / trades.length * 100) : 0;
   const pf = gL > 0 ? R(gP / gL) : (gP > 0 ? '∞' : '0');
   const gain = R(profit / dep * 100);
-  const maxDD = calcDD(trades, dep);           // ← FIXED: per period
-  const avgDur = calcAvgDuration(trades);      // ← FIXED: per period
+  const maxDD = calcDD(trades, dep);
+  const avgDur = calcAvgDuration(trades);
   const best = trades.length ? Math.max(...trades.map(t => t.profit || 0)) : 0;
   const worst = trades.length ? Math.min(...trades.map(t => t.profit || 0)) : 0;
+
+  const periods = [
+    {id:'all',label:'All Time'},{id:'today',label:'Today'},{id:'yesterday',label:'Yesterday'},
+    {id:'week',label:'This Week'},{id:'lastmonth',label:'Last Month'},{id:'year',label:'This Year'},
+    {id:'lastyear',label:'Last Year'},{id:'last7',label:'Last 7 Days'},{id:'last30',label:'Last 30 Days'},
+    {id:'last365',label:'Last 365 Days'}
+  ];
 
   $('detailBody').innerHTML = `
     <h1 style="font-size:clamp(22px,4vw,32px);font-weight:900;margin-bottom:6px">${acc.name}
       <span style="font-size:11px;font-family:'JetBrains Mono';background:var(--hover);border:1px solid var(--border);border-radius:20px;padding:3px 10px;margin-left:8px;vertical-align:middle;font-weight:400">${ac}</span>
     </h1>
-    <div style="font-family:'JetBrains Mono';font-size:11px;color:var(--muted);margin-bottom:24px">${acc.broker || ''} · ${acc.platform || 'MT4'} · 1:${acc.leverage || 0}</div>
-
-    <div class="ptabs">
-      ${['all','today','week','month','year'].map(p =>
-        `<button class="ptab ${p===currentPeriod?'on':''}" onclick="setPeriod('${p}')">${{all:'All Time',today:'Today',week:'This Week',month:'This Month',year:'This Year'}[p]}</button>`
-      ).join('')}
+    <div style="font-family:'JetBrains Mono';font-size:11px;color:var(--muted);margin-bottom:8px">${acc.broker || ''} · ${acc.platform || 'MT4'} · 1:${acc.leverage || 0}</div>
+    <div style="font-family:'JetBrains Mono';font-size:11px;margin-bottom:24px">
+      ${acc.is_online 
+        ? `<span style="color:var(--green)">● Online</span>` 
+        : `<span style="color:var(--red)">● Offline</span> <span style="color:var(--muted)">(${acc.seconds_since_webhook ? Math.floor(acc.seconds_since_webhook/60) + 'm ago' : 'no data'})</span>`
+      }
     </div>
 
-    <!-- Period snapshot -->
+    <div class="ptabs">
+      ${periods.map(p => `<button class="ptab ${p.id===currentPeriod?'on':''}" onclick="setPeriod('${p.id}')">${p.label}</button>`).join('')}
+    </div>
+
     <div class="period-box">
       <div class="period-stat"><div class="lbl">Profit</div><div class="val ${gc(profit)}">${fmt(profit, ac)}</div><div class="sval">${fmtOther(profit, ac)}</div></div>
       <div class="period-stat"><div class="lbl">Return</div><div class="val ${gc(gain)}">${pct(gain)}</div></div>
@@ -532,7 +572,6 @@ function renderDetail() {
       <div class="period-stat"><div class="lbl">Max Drawdown</div><div class="val r">${maxDD}%</div></div>
     </div>
 
-    <!-- KPIs all-time context -->
     <div class="kpi-row">
       <div class="kpi"><div class="lbl">Balance</div><div class="val">${fmt(acc.current_balance, ac)}</div><div class="sval">${fmtOther(acc.current_balance, ac)}</div></div>
       <div class="kpi"><div class="lbl">Total Deposits</div><div class="val g">${fmt(acc.total_deposits||0, ac)}</div><div class="sval">${fmtOther(acc.total_deposits||0, ac)}</div></div>
@@ -564,11 +603,9 @@ function renderDetail() {
   }, 30);
 }
 
-function setPeriod(p) { currentPeriod = p; renderDetail(); }
+function setPeriod(p) { currentPeriod = p; tradePage = 1; renderDetail(); }
 
-// ═══════════════════════════════════════════
 // CHARTS
-// ═══════════════════════════════════════════
 const TICK = { color:'#8b92a0', font:{ family:'JetBrains Mono', size:10 } };
 const scaleX = { ticks:{...TICK,maxRotation:45}, grid:{display:false} };
 const scaleY = { ticks:TICK, grid:{color:'#252a35'} };
@@ -576,14 +613,21 @@ const scaleY = { ticks:TICK, grid:{color:'#252a35'} };
 function destroyCharts() { Object.values(charts).forEach(c=>{try{c.destroy()}catch(e){}}); charts={}; }
 
 function drawEquity(trades, dep, period) {
-  const src = filterPeriod([...trades].sort((a,b)=>new Date(a.close_time)-new Date(b.close_time)), period);
+  const src = filterPeriod([...trades].sort((a,b)=> {
+    const da = parseDate(a.close_time), db = parseDate(b.close_time);
+    return (da||0) - (db||0);
+  }), period);
   let bal = dep;
-  const pts = [{ y: toDisplay(dep) }];
-  src.forEach(t => { bal = R(bal+(t.profit||0)); pts.push({ x: t.close_time, y: R(toDisplay(bal)) }); });
+  const pts = [{ y: toDisplayAcc(dep, detailData.acc.currency) }];
+  src.forEach(t => { bal = R(bal+(t.profit||0)); pts.push({ x: t.close_time, y: R(toDisplayAcc(bal, detailData.acc.currency)) }); });
   const ctx = $('cEq'); if (!ctx) return;
   charts.eq = new Chart(ctx, {
     type:'line', data:{
-      labels: pts.map((p,i) => i===0?'Start':new Date(p.x).toLocaleDateString('de-DE')),
+      labels: pts.map((p,i) => {
+        if (i===0) return 'Start';
+        const d = parseDate(p.x);
+        return d ? d.toLocaleDateString('de-DE') : '?';
+      }),
       datasets:[{data:pts.map(p=>p.y),borderColor:'#00ff87',backgroundColor:'rgba(0,255,135,.07)',fill:true,tension:0.3,pointRadius:pts.length>60?0:2}]
     },
     options:{responsive:true,plugins:{legend:{display:false}},scales:{y:scaleY,x:scaleX}}
@@ -603,14 +647,15 @@ function drawMonthly(trades) {
   const ctx=$('cMonth'); if(!ctx) return;
   const map={};
   trades.forEach(t=>{
-    const d=new Date(t.close_time||''); if(isNaN(d)) return;
+    const d = parseDate(t.close_time);
+    if(!d) return;
     const k=d.toLocaleDateString('de-DE',{year:'2-digit',month:'short'});
     map[k]=R((map[k]||0)+(t.profit||0));
   });
   const entries=Object.entries(map);
   charts.month = new Chart(ctx, {
     type:'bar',
-    data:{labels:entries.map(e=>e[0]),datasets:[{data:entries.map(e=>R(toDisplay(e[1]))),backgroundColor:entries.map(e=>e[1]>=0?'rgba(0,255,135,.75)':'rgba(255,51,102,.75)'),borderRadius:4}]},
+    data:{labels:entries.map(e=>e[0]),datasets:[{data:entries.map(e=>R(toDisplayAcc(e[1], detailData.acc.currency))),backgroundColor:entries.map(e=>e[1]>=0?'rgba(0,255,135,.75)':'rgba(255,51,102,.75)'),borderRadius:4}]},
     options:{responsive:true,plugins:{legend:{display:false}},scales:{y:scaleY,x:scaleX}}
   });
 }
@@ -618,12 +663,20 @@ function drawMonthly(trades) {
 function buildTradesTable(trades, ac) {
   ac = ac || 'USD';
   if (!trades.length) return '<div class="empty" style="padding:28px">No trades in this period</div>';
+  
   const sorted = [...trades].sort((a,b) => {
     const da = parseDate(b.close_time), db = parseDate(a.close_time);
     return (da||0) - (db||0);
   });
-  return `<table><thead><tr><th>Date</th><th>Symbol</th><th>Type</th><th>Lots</th><th>Open</th><th>Close</th><th>Profit</th></tr></thead><tbody>
-    ${sorted.map(t => {
+  
+  const totalPages = Math.ceil(sorted.length / tradesPerPage);
+  if (tradePage > totalPages) tradePage = 1;
+  const start = (tradePage - 1) * tradesPerPage;
+  const end = start + tradesPerPage;
+  const page = sorted.slice(start, end);
+  
+  const table = `<table><thead><tr><th>Date</th><th>Symbol</th><th>Type</th><th>Lots</th><th>Open</th><th>Close</th><th>Profit</th></tr></thead><tbody>
+    ${page.map(t => {
       const d = parseDate(t.close_time);
       const dateStr = d ? d.toLocaleDateString('de-DE') : 'Invalid';
       return `<tr>
@@ -634,69 +687,92 @@ function buildTradesTable(trades, ac) {
       </tr>`;
     }).join('')}
   </tbody></table>`;
+  
+  if (totalPages > 1) {
+    return table + `<div class="pagination">
+      <button onclick="changePage(${tradePage-1})" ${tradePage<=1?'disabled':''}>← Prev</button>
+      <span>Page ${tradePage} of ${totalPages} (${sorted.length} trades)</span>
+      <input type="number" value="${tradePage}" min="1" max="${totalPages}" onchange="changePage(parseInt(this.value)||1)">
+      <button onclick="changePage(${tradePage+1})" ${tradePage>=totalPages?'disabled':''}>Next →</button>
+    </div>`;
+  }
+  return table;
 }
 
+function changePage(p) { tradePage = p; renderDetail(); }
 function goBack() { destroyCharts(); $('pgDetail').classList.remove('on'); $('pgOverview').classList.add('on'); }
 
-// ═══════════════════════════════════════════
 // SETTINGS
-// ═══════════════════════════════════════════
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('on'));
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('on'));
+  event.target.classList.add('on');
+  $('tab' + name.charAt(0).toUpperCase() + name.slice(1)).classList.add('on');
+}
+
 function openSettings() {
   $('settingsModal').classList.add('on');
   $('btnUSD').classList.toggle('on', currency==='USD');
   $('btnEUR').classList.toggle('on', currency==='EUR');
-  $('accMgmt').innerHTML = '<h3 style="font-size:14px;font-weight:600;margin-bottom:4px">Accounts</h3>'
-    + '<p style="font-size:11px;font-family:JetBrains Mono;color:var(--muted);margin-bottom:14px">Account currency is auto-detected from MT4/MT5. Override here if incorrect.</p>'
-    + accounts.map(a => `<div class="acc-item">
-        <div style="font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:8px">
-          ${a.name}
-          <span style="color:var(--muted);font-size:10px;font-family:JetBrains Mono">${a.category.toUpperCase()}</span>
-          <span style="background:var(--card);border:1px solid var(--border);border-radius:20px;padding:2px 10px;font-size:11px;font-family:JetBrains Mono;color:var(--blue)">${a.currency || 'USD'}</span>
-        </div>
-        <div class="frow">
-          <label>⚠️ Account Currency — override if wrong</label>
-          <select id="cur_${a.id}" style="border-color:${(a.currency||'USD')==='USD'?'var(--border)':'var(--blue)'}">
-            <option value="USD" ${(a.currency||'USD')==='USD'?'selected':''}>🇺🇸 USD — US Dollar</option>
-            <option value="EUR" ${(a.currency||'USD')==='EUR'?'selected':''}>🇪🇺 EUR — Euro</option>
-            <option value="GBP" ${(a.currency||'USD')==='GBP'?'selected':''}>🇬🇧 GBP — British Pound</option>
-          </select>
-        </div>
-        <div class="frow">
-          <label>Deposits (in ${a.currency || 'USD'})</label>
-          <input type="number" value="${a.deposit||0}" id="dep_${a.id}">
-        </div>
-        <div class="frow">
-          <label>🟢 Online Timeout (seconds)</label>
-          <input type="number" value="${a.online_timeout||60}" id="timeout_${a.id}" min="10" max="600">
-        </div>
-        <button class="btn bg" onclick="saveAcc(${a.id})">Save</button>
-        <button class="btn br" onclick="delAcc(${a.id})">Delete</button>
-      </div>`).join('');
-}
-function closeSettings() { $('settingsModal').classList.remove('on'); }
-async function saveAcc(id) {
-  const dep = parseFloat($(`dep_${id}`).value);
-  const cur = $(`cur_${id}`).value;
-  const timeout = parseInt($(`timeout_${id}`).value) || 60;
-  await fetch(api(`/api/accounts/${id}`), {
-    method: 'PUT',
-    headers: {'Content-Type':'application/json'},
-    body: JSON.stringify({ deposit: dep, currency: cur, online_timeout: timeout })
-  });
-  closeSettings(); load();
-}
-async function delAcc(id) {
-  if(!confirm('Delete account?')) return;
-  await fetch(api(`/api/accounts/${id}`),{method:'DELETE'});
-  closeSettings(); load();
+  $('accMgmt').innerHTML = '<div class="acc-grid">' + accounts.map(a => `
+    <div class="acc-card">
+      <div class="acc-name">
+        ${a.name}
+        <span class="acc-badge">${a.category.toUpperCase()}</span>
+        <span class="acc-badge" style="color:var(--blue)">${a.currency || 'USD'}</span>
+      </div>
+      <div class="frow">
+        <label>Currency</label>
+        <select id="cur_${a.id}">
+          <option value="USD" ${(a.currency||'USD')==='USD'?'selected':''}>🇺🇸 USD</option>
+          <option value="EUR" ${(a.currency||'USD')==='EUR'?'selected':''}>🇪🇺 EUR</option>
+          <option value="GBP" ${(a.currency||'USD')==='GBP'?'selected':''}>🇬🇧 GBP</option>
+        </select>
+      </div>
+      <div class="frow">
+        <label>Deposits (${a.currency || 'USD'})</label>
+        <input type="number" value="${a.deposit||0}" id="dep_${a.id}">
+      </div>
+      <div class="frow">
+        <label>Online Timeout (sec)</label>
+        <input type="number" value="${a.online_timeout||60}" id="timeout_${a.id}" min="10" max="600">
+      </div>
+      <button class="btn br" onclick="delAcc(${a.id})" style="width:100%;margin-top:8px">🗑 Delete</button>
+    </div>
+  `).join('') + '</div>';
 }
 
-// ═══════════════════════════════════════════
+function closeSettings() { $('settingsModal').classList.remove('on'); }
+
+async function saveAllSettings() {
+  for (const a of accounts) {
+    const dep = parseFloat($(`dep_${a.id}`).value);
+    const cur = $(`cur_${a.id}`).value;
+    const timeout = parseInt($(`timeout_${a.id}`).value) || 60;
+    await fetch(api(`/api/accounts/${a.id}`), {
+      method: 'PUT',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ deposit: dep, currency: cur, online_timeout: timeout })
+    });
+  }
+  closeSettings();
+  load();
+}
+
+async function delAcc(id) {
+  if(!confirm('Delete this account?')) return;
+  await fetch(api(`/api/accounts/${id}`),{method:'DELETE'});
+  load();
+  openSettings(); // refresh
+}
+
 // INIT
-// ═══════════════════════════════════════════
-fetchRates().then(() => load());
+fetchRates().catch(e => {
+  console.warn('FX rates unavailable:', e);
+  $('fxRateBadge').textContent = 'FX unavailable';
+}).finally(() => load());
 setInterval(load, 10000);
-setInterval(fetchRates, 3600000); // refresh rates every hour
+setInterval(() => fetchRates().catch(e => console.warn('FX update failed:', e)), 3600000);
 </script>
 </body>
 </html>
