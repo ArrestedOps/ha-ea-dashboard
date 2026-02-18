@@ -3,8 +3,14 @@ description: "v4.8.0 - Table settings, sortable columns, manual deposits, restru
 version: "4.8.0"
 slug: ea-dashboard
 init: false
-arch: [armhf, armv7, aarch64, amd64, i386]
-ports: {8099/tcp: 8099}
+arch:
+  - armhf
+  - armv7
+  - aarch64
+  - amd64
+  - i386
+ports:
+  8099/tcp: 8099
 webui: "http://[HOST]:[PORT:8099]"
 ingress: true
 ingress_port: 8099
