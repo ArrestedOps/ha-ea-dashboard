@@ -1,11 +1,10 @@
-# EA Trading Dashboard v4.10.0
+# EA Trading Dashboard v4.12.0
 
 Complete redesign with all requested features.
 
 ## Features
+- Sortable columns with monthly gain
 - Separate Live/Today boxes per category
-- Sortable columns
-- Monthly gain column
 - Settings as full page
 - Mobile optimized
 

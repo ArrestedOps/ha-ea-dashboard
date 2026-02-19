@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""EA Trading Dashboard v4.10.0.2 - Table settings, sortable columns, manual deposits"""
+"""EA Trading Dashboard v4.12.0.2 - Table settings, sortable columns, manual deposits"""
 import os, json, logging
 from datetime import datetime, timedelta
 from flask import Flask, jsonify, request, send_file
