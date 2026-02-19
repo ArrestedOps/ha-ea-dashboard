@@ -395,8 +395,9 @@ def webhook_batch():
             return jsonify({'success': False, 'error': 'Missing account_number or ea_name'}), 400
         
         data = load_data()
+        # Match ONLY by account_number (more robust than name matching)
         account = next((a for a in data['accounts'] 
-                       if a['account_number'] == account_number and a['name'] == ea_name), None)
+                       if a['account_number'] == account_number), None)
         
         if not account:
             new_id = max([a['id'] for a in data['accounts']], default=0) + 1
@@ -431,12 +432,21 @@ def webhook_batch():
             account['open_trades'] = []
             logger.info(f'Reactivated: {ea_name}')
         
+        # Update account fields from webhook
+        # CRITICAL: Preserve user-set fields (manual_deposit, online_timeout)
+        account['name'] = ea_name  # Allow name updates
         account['current_balance'] = payload.get('current_balance', account['current_balance'])
-        # Update auto_deposits from MT, but NEVER touch manual_deposit
+        # Update auto_deposits from MT, but NEVER touch manual_deposit or online_timeout
         account['auto_deposits'] = payload.get('total_deposits', account.get('auto_deposits', 0))
         account['total_withdrawals'] = payload.get('total_withdrawals', account.get('total_withdrawals', 0))
         account['leverage'] = payload.get('leverage', account.get('leverage', 0))
         account['last_webhook'] = datetime.now().isoformat()  # Online status tracking
+        
+        # Initialize missing fields with defaults (for old accounts)
+        if 'manual_deposit' not in account:
+            account['manual_deposit'] = 0
+        if 'online_timeout' not in account:
+            account['online_timeout'] = 60
         
         if 'trades' in payload:
             existing_ids = set(t.get('trade_id') for t in account['trades'])
