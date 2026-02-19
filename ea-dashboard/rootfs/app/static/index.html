@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=5">
-<title>EA Dashboard v4.12.3</title>
+<title>EA Dashboard v4.12.4</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Inter:wght@300;500;700;900&display=swap" rel="stylesheet">
 <style>
@@ -148,7 +148,7 @@ tr:hover td{background:var(--hover)}
     <div>
       <h1 class="dash">EA Trading Dashboard</h1>
       <div class="sub">
-        <span>v4.12.3 — Advanced Filters + Unified Settings + Pagination</span>
+        <span>v4.12.4 — Advanced Filters + Unified Settings + Pagination</span>
         <span class="fx-badge" id="fxRateBadge">Loading rates...</span>
       </div>
     </div>
@@ -601,7 +601,12 @@ function renderBox(trades, cntId, contentId, plId, plSubId) {
     ? trades.map(t => {
         const acc = accounts.find(a => a.id === t.account_id);
         const ac = acc?.currency || 'USD';
-        return `<div class="lt-row"><span>${t.account_name} · <b>${t.symbol}</b> ${t.type || ''}</span><span class="${gc(t.profit)}">${fmt(t.profit, ac)}</span></div>`;
+        const lots = t.volume || t.lots || 0;
+        return `<div class="lt-row">
+          <span>${t.account_name} · <b>${t.symbol}</b> ${t.type || ''}</span>
+          <span style="color:var(--muted);font-size:10px">${lots.toFixed(2)}</span>
+          <span class="${gc(t.profit)}">${fmt(t.profit, ac)}</span>
+        </div>`;
       }).join('')
     : '<div class="empty">No trades</div>';
 }
