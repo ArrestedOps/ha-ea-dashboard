@@ -265,7 +265,7 @@ def get_live_trades():
     data = load_data()
     live_trades = []
     for acc in data['accounts']:
-        if acc.get('status') != 'deleted' and acc.get('category', 'live') != 'demo':
+        if acc.get('status') != 'deleted':
             for trade in acc.get('open_trades', []):
                 live_trades.append({**trade, 'account_name': acc['name'], 'account_id': acc['id']})
     
@@ -286,7 +286,7 @@ def get_today_trades():
     today_trades = []
     
     for acc in data['accounts']:
-        if acc.get('status') != 'deleted' and acc.get('category', 'live') != 'demo':
+        if acc.get('status') != 'deleted':
             for trade in acc.get('trades', []):
                 close_date = parse_date(trade.get('close_time', ''))
                 if close_date and close_date.date() == today:
