@@ -1,6 +1,6 @@
 name: "EA Trading Dashboard"
-description: "v4.12.1 - Sortable tables, monthly gain, separate boxes per category, settings page"
-version: "4.12.1"
+description: "v4.12.2 - Sortable tables, monthly gain, separate boxes per category, settings page"
+version: "4.12.2"
 slug: ea-dashboard
 init: false
 arch:

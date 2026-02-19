@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=5">
-<title>EA Dashboard v4.12.1</title>
+<title>EA Dashboard v4.12.2</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Inter:wght@300;500;700;900&display=swap" rel="stylesheet">
 <style>
@@ -39,6 +39,11 @@ h1.dash{font-size:clamp(26px,5vw,42px);font-weight:900;letter-spacing:-1.5px;bac
 .tbl-wrap{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow-x:auto;-webkit-overflow-scrolling:touch}
 table{width:100%;border-collapse:collapse;min-width:560px}
 th{background:var(--hover);padding:12px 14px;text-align:left;font-family:'JetBrains Mono';font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;white-space:nowrap}
+th.sortable{cursor:pointer;user-select:none}
+th.sortable:hover{color:var(--text);background:var(--border)}
+th.sortable::after{content:'⇅';margin-left:6px;font-size:10px;opacity:0.3}
+th.sorted-asc::after{content:'↑';opacity:1;color:var(--green)}
+th.sorted-desc::after{content:'↓';opacity:1;color:var(--green)}
 td{padding:13px 14px;border-top:1px solid var(--border);font-family:'JetBrains Mono';font-size:12px;white-space:nowrap}
 tr:hover td{background:var(--hover)}
 .alink{color:var(--blue);cursor:pointer}.alink:hover{color:var(--green)}
@@ -122,7 +127,7 @@ tr:hover td{background:var(--hover)}
     <div>
       <h1 class="dash">EA Trading Dashboard</h1>
       <div class="sub">
-        <span>v4.12.1 — Advanced Filters + Unified Settings + Pagination</span>
+        <span>v4.12.2 — Advanced Filters + Unified Settings + Pagination</span>
         <span class="fx-badge" id="fxRateBadge">Loading rates...</span>
       </div>
     </div>
@@ -190,28 +195,6 @@ tr:hover td{background:var(--hover)}
 
   <!-- DEMO SECTION -->
   <div class="section-hdr">🟠 Demo <span class="section-count" id="demoAccCnt">(0)</span></div>
-  <div class="lt-wrap g2">
-    <div class="card lt-box">
-      <div class="lt-head">
-        <div class="lt-title"><span style="color:var(--red);font-size:8px">●</span> LIVE <span class="badge" id="demoCnt">0</span></div>
-      </div>
-      <div id="demoContent"><div class="empty">No open positions</div></div>
-      <div class="lt-footer">
-        <div class="lt-footer-row"><span>Total P&L</span><span id="demoPL">–</span></div>
-        <div class="lt-footer-sub" id="demoPLSub"></div>
-      </div>
-    </div>
-    <div class="card lt-box">
-      <div class="lt-head">
-        <div class="lt-title"><span style="color:var(--blue);font-size:10px">■</span> TODAY <span class="badge" id="todayDemoCnt">0</span></div>
-      </div>
-      <div id="todayDemoContent"><div class="empty">No trades today</div></div>
-      <div class="lt-footer">
-        <div class="lt-footer-row"><span>Total P&L</span><span id="todayDemoPL">–</span></div>
-        <div class="lt-footer-sub" id="todayDemoPLSub"></div>
-      </div>
-    </div>
-  </div>
   <div class="tbl-wrap" id="demoTbl"></div>
 </div>
 </div>
@@ -528,10 +511,10 @@ function buildTable(id, accs, sortState) {
       </tr>`;
     }).join('')}
     <tr class="total-row">
-      <td>TOTAL</td><td class="brkr"></td>
+      <td>TOTAL</td>
       <td>${fmtTotal(sD)}</td><td>${fmtTotal(sB)}</td>
       <td class="${gc(sP)}">${fmtTotal(sP)}</td>
-      <td></td><td>${sT}</td><td></td><td></td><td></td><td></td>
+      <td></td><td></td><td>${sT}</td><td></td><td></td><td></td><td></td>
     </tr>
     </tbody></table>`;
 }
@@ -553,13 +536,6 @@ function renderBoxes(liveData, todayData) {
   const copyToday = todayTrades.filter(t => copyAccIds.includes(t.account_id));
   renderBox(copyLive, 'copyCnt', 'copyContent', 'copyPL', 'copyPLSub');
   renderBox(copyToday, 'todayCopyCnt', 'todayCopyContent', 'todayCopyPL', 'todayCopyPLSub');
-  
-  // Demo accounts
-  const demoAccIds = accounts.filter(a => a.category === 'demo').map(a => a.id);
-  const demoLive = liveTrades.filter(t => demoAccIds.includes(t.account_id));
-  const demoToday = todayTrades.filter(t => demoAccIds.includes(t.account_id));
-  renderBox(demoLive, 'demoCnt', 'demoContent', 'demoPL', 'demoPLSub');
-  renderBox(demoToday, 'todayDemoCnt', 'todayDemoContent', 'todayDemoPL', 'todayDemoPLSub');
 }
 
 function renderBox(trades, cntId, contentId, plId, plSubId) {
