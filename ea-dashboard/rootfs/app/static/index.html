@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=5">
-<title>EA Dashboard v4.12.0</title>
+<title>EA Dashboard v4.12.1</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Inter:wght@300;500;700;900&display=swap" rel="stylesheet">
 <style>
@@ -82,9 +82,11 @@ tr:hover td{background:var(--hover)}
 .back-btn{position:sticky;top:16px;z-index:100;display:inline-flex;align-items:center;gap:8px;padding:10px 18px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--muted);cursor:pointer;font-family:'JetBrains Mono';font-size:12px;margin-bottom:24px;transition:.2s}
 .back-btn:hover{color:var(--text);border-color:var(--blue)}
 .ptabs{display:flex;gap:6px;margin-bottom:20px;flex-wrap:wrap}
+@media(max-width:560px){.ptabs{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch}}
 .ptab{padding:8px 16px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:'JetBrains Mono';font-size:11px;cursor:pointer;transition:.15s;white-space:nowrap}
 .ptab.on{background:var(--green);color:#000;border-color:var(--green);font-weight:600}
 .ptab:hover:not(.on){color:var(--text);border-color:var(--muted)}
+@media(max-width:560px){.ptab{padding:12px 18px;font-size:12px;min-height:44px}}
 .period-box{background:var(--hover);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:24px;display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:16px}
 .period-stat .lbl{font-size:10px;font-family:'JetBrains Mono';color:var(--muted);margin-bottom:4px}
 .period-stat .val{font-size:18px;font-weight:700}
@@ -120,7 +122,7 @@ tr:hover td{background:var(--hover)}
     <div>
       <h1 class="dash">EA Trading Dashboard</h1>
       <div class="sub">
-        <span>v4.12.0 — Advanced Filters + Unified Settings + Pagination</span>
+        <span>v4.12.1 — Advanced Filters + Unified Settings + Pagination</span>
         <span class="fx-badge" id="fxRateBadge">Loading rates...</span>
       </div>
     </div>
@@ -289,15 +291,22 @@ function getEndOfYesterday() {
 }
 
 function getStartOfWeek() {
-
-function getStartOfMonth() {
-  const d = new Date();
-  return new Date(d.getFullYear(), d.getMonth(), 1);
-}
   const d = new Date();
   const day = d.getDay();
   const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Monday
   return new Date(d.getFullYear(), d.getMonth(), diff);
+}
+
+function getStartOfLastWeek() {
+  const d = new Date();
+  const day = d.getDay();
+  const diff = d.getDate() - day + (day === 0 ? -6 : 1) - 7; // Last Monday
+  return new Date(d.getFullYear(), d.getMonth(), diff);
+}
+
+function getStartOfMonth() {
+  const d = new Date();
+  return new Date(d.getFullYear(), d.getMonth(), 1);
 }
 
 function getStartOfLastMonth() {
@@ -333,6 +342,7 @@ function filterPeriod(trades, period) {
     case 'today': start = getStartOfToday(); break;
     case 'yesterday': start = getStartOfYesterday(); end = getEndOfYesterday(); break;
     case 'week': start = getStartOfWeek(); break;
+    case 'lastweek': start = getStartOfLastWeek(); end = getStartOfWeek(); break;
     case 'month': start = getStartOfMonth(); break;
     case 'lastmonth': start = getStartOfLastMonth(); end = getEndOfLastMonth(); break;
     case 'year': start = getStartOfYear(); break;
@@ -414,15 +424,13 @@ async function load() {
       fetch(api('/api/live-trades')).then(r => r.json()),
       fetch(api('/api/today-trades')).then(r => r.json()),
     ]);
-    if (ar.success) { accounts = ar.accounts; renderOverview(ar.totals); }
-    renderLiveBox(lr);
-    renderTodayBox(tr);
+    if (ar.success) { accounts = ar.accounts; renderOverview(ar.totals, lr, tr); }
     $('btnUSD').classList.toggle('on', currency === 'USD');
     $('btnEUR').classList.toggle('on', currency === 'EUR');
   } catch(e) { console.error(e); }
 }
 
-function renderOverview(t) {
+function renderOverview(t, liveData, todayData) {
   const liveCopy = accounts.filter(a => a.category !== 'demo');
   const totalBal = liveCopy.reduce((s, a) => s + toDisplayAcc(a.current_balance||0, a.currency), 0);
   const totalPro = liveCopy.reduce((s, a) => s + toDisplayAcc(a.total_profit||0, a.currency), 0);
@@ -435,8 +443,8 @@ function renderOverview(t) {
   $('totPro').textContent = fmtD(totalPro);
   $('totPro').className = 'big ' + gc(totalPro);
   $('totProSub').textContent = '≈ ' + otherSym() + Math.abs(totalPro_other).toFixed(0);
-  $('totAcc').textContent = t.total_accounts;
-  $('totTrd').textContent = t.total_trades;
+  $('totAcc').textContent = liveCopy.length;
+  $('totTrd').textContent = liveCopy.reduce((s, a) => s + (a.total_trades || 0), 0);
 
   const live = accounts.filter(a => a.category === 'live');
   const copy = accounts.filter(a => a.category === 'copy');
@@ -444,6 +452,8 @@ function renderOverview(t) {
   $('liveAccCnt').textContent = `(${live.length})`;
   $('copyAccCnt').textContent = `(${copy.length})`;
   $('demoAccCnt').textContent = `(${demo.length})`;
+  
+  renderBoxes(liveData, todayData);
   buildTable('liveTbl', live);
   buildTable('copyTbl', copy);
   buildTable('demoTbl', demo);
@@ -631,7 +641,7 @@ function renderDetail() {
 
   const periods = [
     {id:'all',label:'All Time'},{id:'today',label:'Today'},{id:'yesterday',label:'Yesterday'},
-    {id:'week',label:'This Week'},{id:'month',label:'This Month'},{id:'lastmonth',label:'Last Month'},{id:'year',label:'This Year'},
+    {id:'week',label:'This Week'},{id:'lastweek',label:'Last Week'},{id:'month',label:'This Month'},{id:'lastmonth',label:'Last Month'},{id:'year',label:'This Year'},
     {id:'lastyear',label:'Last Year'},{id:'last7',label:'Last 7 Days'},{id:'last30',label:'Last 30 Days'},
     {id:'last365',label:'Last 365 Days'}
   ];
