@@ -2,7 +2,9 @@ name: "EA Trading Dashboard"
 version: "5.0.0"
 slug: "ea-trading-dashboard"
 description: "MetaTrader Expert Advisor Performance Tracking mit FastAPI + SQLite"
-url: "https://github.com/yourusername/ea-dashboard"
+url: "https://github.com/ArrestedOps/ha-ea-dashboard"
+startup: application
+boot: auto
 arch:
   - aarch64
   - amd64
