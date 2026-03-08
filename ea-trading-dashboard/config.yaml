@@ -1,10 +1,7 @@
-name: "EA Trading Dashboard"
+name: EA Trading Dashboard
 version: "5.0.0"
-slug: "ea-trading-dashboard"
-description: "MetaTrader Expert Advisor Performance Tracking mit FastAPI + SQLite"
-url: "https://github.com/ArrestedOps/ha-ea-dashboard"
-startup: application
-boot: auto
+slug: ea-trading-dashboard
+description: MetaTrader Expert Advisor Performance Tracking
 arch:
   - aarch64
   - amd64
@@ -14,13 +11,7 @@ arch:
 init: false
 ports:
   8099/tcp: 8099
-ports_description:
-  8099/tcp: "Web Interface & API"
 options:
   log_level: info
-  database_path: /data/dashboard.db
-  retention_days: 730
 schema:
   log_level: list(debug|info|warning|error)?
-  database_path: str?
-  retention_days: int(30,3650)?
