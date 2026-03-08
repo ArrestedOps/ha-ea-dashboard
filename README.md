@@ -1,248 +1,79 @@
-# EA Trading Dashboard v5.0
+# EA Trading Dashboard - Home Assistant Add-on Repository
 
-**MetaTrader Expert Advisor Performance Tracking für Home Assistant**
+Home Assistant Add-on for monitoring MetaTrader 4/MT5 Expert Advisors.
 
-## 🚀 Was ist neu in v5.0?
+## Installation
 
-### Backend: Komplett neu aufgebaut
-- ✅ **FastAPI** statt Flask (modern, schnell, async)
-- ✅ **SQLite** statt JSON (echte Datenbank!)
-- ✅ **Pydantic** Validierung (Type Safety)
-- ✅ **Unbegrenzte Historie** (alle Trades gespeichert)
-- ✅ **Auto-Dokumentation** unter `/docs` (Swagger UI)
+### Method 1: Add Repository URL to Home Assistant
 
-### Datenbank-Features
-- ✅ Accounts, Trades, Snapshots getrennt gespeichert
-- ✅ Performance-Indexes für schnelle Queries
-- ✅ Automatische Backups möglich
-- ✅ Migration-Script von v4.x inklusive
+1. In Home Assistant: **Supervisor** → **Add-on Store** → **⋮** (three dots) → **Repositories**
+2. Add this URL: `https://github.com/ArrestedOps/ha-ea-dashboard`
+3. Click **Add** → **Close**
+4. Refresh the Add-on Store page
+5. Find **EA Trading Dashboard** in the list
+6. Click **Install**
 
-### API-Verbesserungen
-- ✅ RESTful API (standardkonform)
-- ✅ Fehler-Validierung (keine korrupten Daten mehr)
-- ✅ Webhook-Logging (Debugging)
-- ✅ Besseres Account-Matching (nur account_number)
+### Method 2: Upload to GitHub
 
-### Fixes für v4.x Probleme
-- ✅ **Manual Deposit** wird NIE überschrieben
-- ✅ **Online Timeout** wird NIE überschrieben
-- ✅ **Accounts verschwinden nicht** mehr
-- ✅ **Name-Updates** erlaubt ohne Account-Duplikate
-
----
-
-## 📦 Installation
-
-### Neu-Installation
-
-1. Füge dieses Repository in Home Assistant hinzu
-2. Installiere "EA Trading Dashboard"
-3. Starte das Add-on
-4. Öffne Web UI unter Port 8099
-
-### Migration von v4.x
-
-1. **BACKUP ERSTELLEN!**
-   ```bash
-   cp /data/data.json /data/data.json.backup
+1. Create a new GitHub repository: `ha-ea-dashboard`
+2. Upload these files:
    ```
-
-2. Add-on v5.0 installieren (NICHT starten!)
-
-3. Migration ausführen:
-   ```bash
-   python3 migrations/migrate_v4_to_v5.py
+   repository.yaml
+   ea-dashboard/
    ```
+3. Go to repository settings → Enable GitHub Pages (optional)
+4. Use your repository URL in Home Assistant
 
-4. Add-on v5.0 starten
+## Repository Structure
 
----
-
-## 🔧 Konfiguration
-
-```yaml
-log_level: info           # debug, info, warning, error
-database_path: /data/dashboard.db
-retention_days: 730       # Trades älter als X Tage löschen
+```
+ha-ea-dashboard/
+├── repository.yaml              # Repository metadata
+└── ea-dashboard/                # The add-on
+    ├── config.yaml              # Add-on configuration
+    ├── Dockerfile               # Container build
+    ├── build.yaml               # Build config
+    ├── run.sh                   # Startup script
+    ├── README.md                # Add-on description
+    ├── DOCS.md                  # Full documentation
+    ├── CHANGELOG.md             # Version history
+    ├── requirements.txt         # Python dependencies
+    ├── rootfs/                  # Application files
+    │   └── app/
+    │       ├── main.py          # FastAPI backend
+    │       ├── database.py      # SQLite
+    │       ├── models.py        # Pydantic models
+    │       ├── webhook.py       # Webhook handler
+    │       ├── schema.sql       # Database schema
+    │       ├── crud/            # CRUD operations
+    │       └── static/          # Frontend (Alpine.js + Tailwind)
+    ├── migrations/              # v4→v5 migration
+    └── mt-experts/              # MT4/MT5 Expert Advisors
+        ├── HA_TradeSync_MT4_v5.0.mq4
+        ├── HA_TradeSync_MT5_v5.0.mq5
+        └── README.md
 ```
 
----
+## Features
 
-## 📊 API Endpoints
+- **Real-time Monitoring**: Track MT4/MT5 Expert Advisors live
+- **Performance Analytics**: Profit, Gain%, Win Rate, Profit Factor
+- **Category Filtering**: Live, Copy, Demo accounts
+- **Custom Start Dates**: Set individual start dates per account
+- **Modern UI**: Dark theme, responsive design
+- **FastAPI Backend**: RESTful API with auto-documentation
+- **SQLite Database**: Persistent storage with migrations
 
-### Accounts
-- `GET /api/accounts` - Liste aller Accounts
-- `GET /api/accounts/{id}` - Account Details
-- `PUT /api/accounts/{id}` - Settings updaten
-- `DELETE /api/accounts/{id}` - Account löschen
+## Version
 
-### Trades
-- `GET /api/accounts/{id}/trades` - Trades eines Accounts
-- `GET /api/live-trades` - Alle offenen Trades
-- `GET /api/today-trades` - Trades von heute
+Current: **v5.0.0**
 
-### Webhook
-- `POST /api/webhook` - MT4/MT5 Webhook
+## Support
 
-### Analytics
-- `GET /api/analytics/summary` - Gesamt-Statistik
+- **Documentation**: See ea-dashboard/DOCS.md
+- **API Docs**: Available at `http://YOUR_HA_IP:8099/docs`
+- **Issues**: GitHub Issues
 
-### Dokumentation
-- `GET /docs` - Swagger UI (interaktiv!)
-- `GET /health` - Health Check
+## License
 
----
-
-## 🔌 MT4/MT5 Webhook Format
-
-```json
-{
-  "account_number": 827903,
-  "ea_name": "Perceptrader AI",
-  "broker": "ICMarkets",
-  "platform": "MT5",
-  "category": "live",
-  "currency": "USD",
-  "current_balance": 5234.50,
-  "total_deposits": 5000,
-  "trades": [
-    {
-      "trade_id": 12345,
-      "symbol": "EURUSD",
-      "type": "BUY",
-      "volume": 0.1,
-      "open_price": 1.08543,
-      "close_price": 1.08650,
-      "profit": 10.70,
-      "open_time": "2025-03-08T10:00:00",
-      "close_time": "2025-03-08T11:30:00"
-    }
-  ],
-  "open_trades": [
-    {
-      "trade_id": 12346,
-      "symbol": "GBPUSD",
-      "type": "SELL",
-      "volume": 0.5,
-      "open_price": 1.26450,
-      "profit": -5.30,
-      "open_time": "2025-03-08T14:00:00"
-    }
-  ]
-}
-```
-
----
-
-## 🗄️ Datenbank-Schema
-
-### accounts
-- Haupt-Account-Informationen
-- User-Settings (manual_deposit, online_timeout)
-- Online-Status Tracking
-
-### trades
-- Historische + Offene Trades
-- Vollständige Trade-Details
-- is_open Flag für schnelle Queries
-
-### snapshots
-- Täglich um 00:00 erstellt
-- Performance-Historie
-- Für Charts und Analysen
-
-### webhook_logs
-- Audit Trail
-- Fehler-Debugging
-- Performance-Monitoring
-
----
-
-## 🔒 Datensicherheit
-
-### Automatische Backups
-```bash
-# Datenbank kopieren
-cp /data/dashboard.db /backup/dashboard_$(date +%Y%m%d).db
-```
-
-### Manuelle Backups
-- Database-Datei: `/data/dashboard.db`
-- Einfach kopieren = Backup!
-
----
-
-## 🐛 Debugging
-
-### Logs anschauen
-```bash
-docker logs addon_ea_trading_dashboard
-```
-
-### Webhook-Fehler prüfen
-```sql
-SELECT * FROM webhook_logs WHERE status = 'error' ORDER BY received_at DESC LIMIT 10;
-```
-
-### Datenbank direkt öffnen
-```bash
-sqlite3 /data/dashboard.db
-```
-
----
-
-## 📈 Performance
-
-### Benchmarks (vs v4.x)
-
-| Operation | v4.x (JSON) | v5.0 (SQLite) |
-|-----------|-------------|---------------|
-| Webhook verarbeiten | ~100ms | ~10ms |
-| Accounts laden | ~200ms | ~20ms |
-| 1000 Trades laden | ~500ms | ~50ms |
-| Max Trades | ~10.000 | Millionen |
-
-### Optimierungen
-- WAL Mode (bessere Concurrency)
-- Indexes auf allen wichtigen Feldern
-- Async I/O (non-blocking)
-- Prepared Statements
-
----
-
-## 🎯 Roadmap
-
-### v5.1 (nächster Release)
-- [ ] Daily Snapshots automatisch erstellen
-- [ ] Performance-Charts (Balance über Zeit)
-- [ ] Export zu CSV/Excel
-- [ ] Email-Notifications bei Drawdown
-
-### v5.2 (später)
-- [ ] Modernes Frontend (TailwindCSS + Alpine.js)
-- [ ] WebSocket für Live-Updates
-- [ ] Multi-User Support
-- [ ] Risk Analytics (Sharpe Ratio, etc.)
-
----
-
-## 🤝 Support
-
-- **Bugs:** GitHub Issues
-- **Fragen:** GitHub Discussions
-- **Dokumentation:** `/docs` im Dashboard
-
----
-
-## 📄 Lizenz
-
-MIT License
-
----
-
-## 🙏 Credits
-
-Entwickelt für Forex/Gold Trader mit mehreren MT4/MT5 Expert Advisors parallel.
-
-**v5.0 Backend:** FastAPI + SQLite + Pydantic  
-**Migration:** Vollständig kompatibel mit v4.x Daten
+MIT
