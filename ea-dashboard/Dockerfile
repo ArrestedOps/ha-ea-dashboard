@@ -1,24 +1,33 @@
-FROM python:3.11-slim
+ARG BUILD_FROM
+FROM $BUILD_FROM
 
-# Set working directory
-WORKDIR /app
+# Set shell
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
-# Install dependencies
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Install requirements
+RUN apk add --no-cache \
+    python3 \
+    py3-pip \
+    python3-dev \
+    gcc \
+    musl-dev
+
+# Copy requirements and install Python packages
+COPY requirements.txt /tmp/
+RUN pip3 install --no-cache-dir --break-system-packages -r /tmp/requirements.txt
 
 # Copy application
-COPY rootfs/app /app
+COPY rootfs /
 
-# Create data directory
-RUN mkdir -p /data
+# Make run.sh executable
+RUN chmod a+x /run.sh
 
-# Expose port
-EXPOSE 8099
+# Labels
+LABEL \
+    io.hass.name="EA Trading Dashboard" \
+    io.hass.description="MetaTrader Expert Advisor Performance Tracking" \
+    io.hass.version="5.0.0" \
+    io.hass.type="addon" \
+    io.hass.arch="armhf|aarch64|i386|amd64|armv7"
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8099/health')"
-
-# Run FastAPI with Uvicorn
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8099", "--log-level", "info"]
+CMD ["/run.sh"]
