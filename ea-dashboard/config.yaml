@@ -1,25 +1,24 @@
 name: "EA Trading Dashboard"
-description: "v4.12.5 - Sortable tables, monthly gain, separate boxes per category, settings page"
-version: "4.12.5"
-slug: ea-dashboard
-init: false
+version: "5.0.0"
+slug: "ea-trading-dashboard"
+description: "MetaTrader Expert Advisor Performance Tracking mit FastAPI + SQLite"
+url: "https://github.com/yourusername/ea-dashboard"
 arch:
-  - armhf
-  - armv7
   - aarch64
   - amd64
+  - armhf
+  - armv7
   - i386
+init: false
 ports:
   8099/tcp: 8099
-webui: "http://[HOST]:[PORT:8099]"
-ingress: true
-ingress_port: 8099
-panel_icon: mdi:chart-line
-startup: application
-boot: auto
+ports_description:
+  8099/tcp: "Web Interface & API"
 options:
-  webhook_secret: ""
-  log_level: "normal"
+  log_level: info
+  database_path: /data/dashboard.db
+  retention_days: 730
 schema:
-  webhook_secret: password?
-  log_level: list(normal|debug)?
+  log_level: list(debug|info|warning|error)?
+  database_path: str?
+  retention_days: int(30,3650)?

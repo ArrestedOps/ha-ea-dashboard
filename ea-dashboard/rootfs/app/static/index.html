@@ -1,915 +1,185 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="de" class="dark">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=5">
-<title>EA Dashboard v4.12.5</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Inter:wght@300;500;700;900&display=swap" rel="stylesheet">
-<style>
-:root{--bg:#0a0e14;--card:#13171f;--hover:#1a1f2b;--border:#252a35;--text:#e6e8eb;--muted:#8b92a0;--green:#00ff87;--red:#ff3366;--blue:#00d4ff}
-*{margin:0;padding:0;box-sizing:border-box}
-body{font-family:Inter,sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;min-height:100vh}
-.page{display:none}.page.on{display:block}
-.wrap{max-width:1800px;margin:0 auto;padding:clamp(16px,3vw,32px)}
-h1.dash{font-size:clamp(26px,5vw,42px);font-weight:900;letter-spacing:-1.5px;background:linear-gradient(130deg,var(--green),var(--blue));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:4px}
-.sub{color:var(--muted);font-size:12px;margin-bottom:28px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
-.fx-badge{background:var(--hover);border:1px solid var(--border);border-radius:20px;padding:3px 12px;font-family:'JetBrains Mono';font-size:11px;color:var(--muted)}
-.g2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
-@media(max-width:900px){.g4{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:560px){.g4{grid-template-columns:1fr 1fr}.g2{grid-template-columns:1fr}}
-.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:clamp(16px,2.5vw,22px)}
-.lbl{font-size:10px;font-family:'JetBrains Mono';color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px}
-.big{font-size:clamp(22px,4vw,30px);font-weight:700}
-.sub-val{font-size:11px;font-family:'JetBrains Mono';color:var(--muted);margin-top:4px}
-.lt-wrap{margin-bottom:20px}
-.lt-box{padding:clamp(16px,2.5vw,22px)}
-.lt-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
-.lt-title{font-weight:700;font-size:13px;font-family:'JetBrains Mono';display:flex;align-items:center;gap:8px}
-.badge{background:var(--hover);color:var(--muted);font-size:10px;padding:2px 8px;border-radius:20px;font-family:'JetBrains Mono'}
-.lt-note{font-size:10px;color:var(--muted);font-family:'JetBrains Mono'}
-.lt-row{display:flex;justify-content:space-between;align-items:center;padding:9px 12px;background:var(--hover);border-radius:8px;margin-bottom:6px;font-family:'JetBrains Mono';font-size:12px}
-.lt-footer{border-top:1px solid var(--border);padding-top:12px;margin-top:10px}
-.lt-footer-row{display:flex;justify-content:space-between;font-family:'JetBrains Mono';font-weight:700;font-size:13px}
-.lt-footer-sub{text-align:right;font-family:'JetBrains Mono';font-size:10px;color:var(--muted);margin-top:3px}
-.empty{text-align:center;padding:24px 0;color:var(--muted);font-size:12px}
-.section-hdr{display:flex;align-items:center;gap:10px;margin:28px 0 14px;font-size:17px;font-weight:700}
-.section-count{color:var(--muted);font-weight:400;font-size:14px}
-.tbl-wrap{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow-x:auto;-webkit-overflow-scrolling:touch}
-table{width:100%;border-collapse:collapse;min-width:560px}
-th{background:var(--hover);padding:12px 14px;text-align:left;font-family:'JetBrains Mono';font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;white-space:nowrap}
-th.sortable{cursor:pointer;user-select:none}
-th.sortable:hover{color:var(--text);background:var(--border)}
-th.sortable::after{content:'⇅';margin-left:6px;font-size:10px;opacity:0.3}
-th.sorted-asc::after{content:'↑';opacity:1;color:var(--green)}
-th.sorted-desc::after{content:'↓';opacity:1;color:var(--green)}
-td{padding:13px 14px;border-top:1px solid var(--border);font-family:'JetBrains Mono';font-size:12px;white-space:nowrap}
-tr:hover td{background:var(--hover)}
-.alink{color:var(--blue);cursor:pointer}.alink:hover{color:var(--green)}
-.total-row td{color:var(--green);font-weight:700;background:rgba(0,255,135,.04);border-top:1px solid var(--green)!important}
-.td-sub{font-size:9px;color:var(--muted);display:block;margin-top:2px}
-@media(max-width:760px){.brkr{display:none}}
-.g{color:var(--green)}.r{color:var(--red)}.m{color:var(--muted)}
-.set-btn{width:40px;height:40px;border-radius:50%;background:var(--hover);border:1px solid var(--border);color:var(--muted);font-size:16px;cursor:pointer;transition:.2s}
-.set-btn:hover{border-color:var(--blue);color:var(--text)}
-.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:500;align-items:center;justify-content:center;padding:16px}
-.modal.on{display:flex}
-.mbox{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:32px;max-width:900px;width:100%;max-height:90vh;overflow-y:auto}
-.mhdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}
-.mclose{background:none;border:none;color:var(--muted);font-size:24px;cursor:pointer;transition:.2s}
-.mclose:hover{color:var(--text)}
-.tabs{display:flex;gap:8px;border-bottom:1px solid var(--border);margin-bottom:24px}
-.tab{padding:12px 20px;background:transparent;border:none;color:var(--muted);cursor:pointer;font-family:'JetBrains Mono';font-size:12px;border-bottom:2px solid transparent;transition:.2s}
-.tab.on{color:var(--green);border-bottom-color:var(--green)}
-.tab:hover:not(.on){color:var(--text)}
-.tab-content{display:none}.tab-content.on{display:block}
-.frow{margin-bottom:18px}
-.frow label{display:block;font-size:11px;font-family:'JetBrains Mono';color:var(--muted);text-transform:uppercase;margin-bottom:8px;letter-spacing:.5px}
-.frow input,.frow select{width:100%;padding:12px 14px;background:var(--hover);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'JetBrains Mono';font-size:13px;transition:.2s}
-.frow input:focus,.frow select:focus{outline:none;border-color:var(--blue)}
-.frow select option{background:var(--card)}
-.btn{padding:12px 24px;border-radius:8px;font-family:'JetBrains Mono';font-size:13px;cursor:pointer;border:none;transition:.2s;font-weight:600}
-.bg{background:var(--green);color:#000}.bg:hover{opacity:.9}
-.br{background:var(--red);color:#fff}.br:hover{opacity:.9}
-.acc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
-.acc-card{background:var(--hover);border:1px solid var(--border);border-radius:12px;padding:18px}
-.acc-name{font-weight:700;font-size:14px;margin-bottom:12px;display:flex;align-items:center;gap:8px}
-.acc-badge{font-size:9px;background:var(--card);border:1px solid var(--border);padding:2px 8px;border-radius:12px;font-weight:400}
-.mdivider{border:none;border-top:1px solid var(--border);margin:24px 0}
-.curr-box{background:var(--hover);border-radius:12px;padding:18px;margin-bottom:20px}
-.curr-title{font-size:11px;font-family:'JetBrains Mono';color:var(--muted);text-transform:uppercase;margin-bottom:12px;letter-spacing:.5px}
-.curr-opts{display:flex;gap:8px}
-.curr-btn{flex:1;padding:12px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:'JetBrains Mono';font-size:12px;cursor:pointer;transition:.2s;text-align:center;font-weight:500}
-.curr-btn.on{background:var(--green);color:#000;border-color:var(--green);font-weight:700}
-.curr-btn:hover:not(.on){border-color:var(--blue);color:var(--text)}
-.save-all{position:sticky;bottom:0;background:var(--card);border-top:1px solid var(--border);padding:20px 0;margin:0 -32px -32px;text-align:center}
-.back-btn{position:sticky;top:16px;z-index:100;display:inline-flex;align-items:center;gap:8px;padding:10px 18px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--muted);cursor:pointer;font-family:'JetBrains Mono';font-size:12px;margin-bottom:24px;transition:.2s}
-.back-btn:hover{color:var(--text);border-color:var(--blue)}
-.ptabs{display:flex;gap:6px;margin-bottom:20px;flex-wrap:wrap}
-@media(max-width:560px){
-  .ptabs{
-    flex-wrap:nowrap;
-    overflow-x:auto;
-    -webkit-overflow-scrolling:touch;
-    scrollbar-width:none;
-    -ms-overflow-style:none;
-    padding:0 0 8px 0;
-    position:relative
-  }
-  .ptabs::-webkit-scrollbar{display:none}
-  .ptabs::after{
-    content:'';
-    position:absolute;
-    top:0;
-    right:0;
-    width:40px;
-    height:100%;
-    background:linear-gradient(to right, transparent, var(--bg));
-    pointer-events:none
-  }
-}
-.ptab{padding:8px 16px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:'JetBrains Mono';font-size:11px;cursor:pointer;transition:.15s;white-space:nowrap}
-.ptab.on{background:var(--green);color:#000;border-color:var(--green);font-weight:600}
-.ptab:hover:not(.on){color:var(--text);border-color:var(--muted)}
-@media(max-width:560px){.ptab{padding:12px 18px;font-size:12px;min-height:44px}}
-.period-box{background:var(--hover);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:24px;display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:16px}
-.period-stat .lbl{font-size:10px;font-family:'JetBrains Mono';color:var(--muted);margin-bottom:4px}
-.period-stat .val{font-size:18px;font-weight:700}
-.period-stat .sval{font-size:10px;font-family:'JetBrains Mono';color:var(--muted);margin-top:3px}
-.kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,150px),1fr));gap:12px;margin-bottom:24px}
-.kpi{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px 18px}
-.kpi .lbl{font-size:10px;font-family:'JetBrains Mono';color:var(--muted);text-transform:uppercase;margin-bottom:6px}
-.kpi .val{font-size:clamp(16px,2.5vw,20px);font-weight:700}
-.kpi .sval{font-size:10px;font-family:'JetBrains Mono';color:var(--muted);margin-top:3px}
-.chart-row{display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:20px}
-@media(max-width:800px){.chart-row{grid-template-columns:1fr}}
-.chart-box{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px}
-.chart-box h4,.chart-full h4{font-family:'JetBrains Mono';font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:16px}
-.chart-full{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:20px}
-.trades-box{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:20px}
-.trades-head{padding:14px 18px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border)}
-.trades-head h4{font-family:'JetBrains Mono';font-size:12px;font-weight:600}
-.trades-scroll{max-height:500px;overflow-y:auto;overflow-x:auto}
-.pagination{display:flex;align-items:center;justify-content:center;gap:12px;padding:16px;border-top:1px solid var(--border);background:var(--hover)}
-.pagination button{padding:8px 16px;background:var(--card);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:'JetBrains Mono';font-size:11px;cursor:pointer;transition:.2s}
-.pagination button:hover:not(:disabled){border-color:var(--blue)}
-.pagination button:disabled{opacity:.3;cursor:not-allowed}
-.pagination input{width:70px;padding:6px;background:var(--card);border:1px solid var(--border);border-radius:6px;color:var(--text);text-align:center;font-family:'JetBrains Mono';font-size:11px}
-.pagination span{font-family:'JetBrains Mono';font-size:11px;color:var(--muted)}
-</style>
-</head>
-<body>
-
-<!-- OVERVIEW -->
-<div id="pgOverview" class="page on">
-<div class="wrap">
-  <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap">
-    <div>
-      <h1 class="dash">EA Trading Dashboard</h1>
-      <div class="sub">
-        <span>v4.12.5 — Advanced Filters + Unified Settings + Pagination</span>
-        <span class="fx-badge" id="fxRateBadge">Loading rates...</span>
-      </div>
-    </div>
-    <button class="set-btn set-btn-desktop" onclick="openSettings()" title="Settings">⚙</button>
-  </div>
-
-  <div class="g4" style="margin-bottom:28px">
-    <div class="card"><div class="lbl">💰 Balance (Live+Copy)</div><div class="big" id="totBal">–</div><div class="sub-val" id="totBalSub"></div></div>
-    <div class="card"><div class="lbl">📈 Profit (Live+Copy)</div><div class="big g" id="totPro">–</div><div class="sub-val" id="totProSub"></div></div>
-    <div class="card"><div class="lbl">🎯 Accounts</div><div class="big" id="totAcc">–</div></div>
-    <div class="card"><div class="lbl">📊 Trades (Live+Copy)</div><div class="big" id="totTrd">–</div></div>
-  </div>
-
-  <!-- LIVE SECTION -->
-  <div class="section-hdr">🟢 Live <span class="section-count" id="liveAccCnt">(0)</span></div>
-  <div class="lt-wrap g2">
-    <div class="card lt-box">
-      <div class="lt-head">
-        <div class="lt-title"><span style="color:var(--red);font-size:8px">●</span> LIVE <span class="badge" id="liveCnt">0</span></div>
-      </div>
-      <div id="liveContent"><div class="empty">No open positions</div></div>
-      <div class="lt-footer">
-        <div class="lt-footer-row"><span>Total P&L</span><span id="livePL">–</span></div>
-        <div class="lt-footer-sub" id="livePLSub"></div>
-      </div>
-    </div>
-    <div class="card lt-box">
-      <div class="lt-head">
-        <div class="lt-title"><span style="color:var(--blue);font-size:10px">■</span> TODAY <span class="badge" id="todayLiveCnt">0</span></div>
-      </div>
-      <div id="todayLiveContent"><div class="empty">No trades today</div></div>
-      <div class="lt-footer">
-        <div class="lt-footer-row"><span>Total P&L</span><span id="todayLivePL">–</span></div>
-        <div class="lt-footer-sub" id="todayLivePLSub"></div>
-      </div>
-    </div>
-  </div>
-  <div class="tbl-wrap" id="liveTbl"></div>
-
-  <!-- COPY SECTION -->
-  <div class="section-hdr">🔵 Copy <span class="section-count" id="copyAccCnt">(0)</span></div>
-  <div class="lt-wrap g2">
-    <div class="card lt-box">
-      <div class="lt-head">
-        <div class="lt-title"><span style="color:var(--red);font-size:8px">●</span> LIVE <span class="badge" id="copyCnt">0</span></div>
-      </div>
-      <div id="copyContent"><div class="empty">No open positions</div></div>
-      <div class="lt-footer">
-        <div class="lt-footer-row"><span>Total P&L</span><span id="copyPL">–</span></div>
-        <div class="lt-footer-sub" id="copyPLSub"></div>
-      </div>
-    </div>
-    <div class="card lt-box">
-      <div class="lt-head">
-        <div class="lt-title"><span style="color:var(--blue);font-size:10px">■</span> TODAY <span class="badge" id="todayCopyCnt">0</span></div>
-      </div>
-      <div id="todayCopyContent"><div class="empty">No trades today</div></div>
-      <div class="lt-footer">
-        <div class="lt-footer-row"><span>Total P&L</span><span id="todayCopyPL">–</span></div>
-        <div class="lt-footer-sub" id="todayCopyPLSub"></div>
-      </div>
-    </div>
-  </div>
-  <div class="tbl-wrap" id="copyTbl"></div>
-
-  <!-- DEMO SECTION -->
-  <div class="section-hdr">🟠 Demo <span class="section-count" id="demoAccCnt">(0)</span></div>
-  <div class="lt-wrap g2">
-    <div class="card lt-box">
-      <div class="lt-head">
-        <div class="lt-title"><span style="color:var(--red);font-size:8px">●</span> LIVE <span class="badge" id="demoCnt">0</span></div>
-      </div>
-      <div id="demoContent"><div class="empty">No open positions</div></div>
-      <div class="lt-footer">
-        <div class="lt-footer-row"><span>Total P&L</span><span id="demoPL">–</span></div>
-        <div class="lt-footer-sub" id="demoPLSub"></div>
-      </div>
-    </div>
-    <div class="card lt-box">
-      <div class="lt-head">
-        <div class="lt-title"><span style="color:var(--blue);font-size:10px">■</span> TODAY <span class="badge" id="todayDemoCnt">0</span></div>
-      </div>
-      <div id="todayDemoContent"><div class="empty">No trades today</div></div>
-      <div class="lt-footer">
-        <div class="lt-footer-row"><span>Total P&L</span><span id="todayDemoPL">–</span></div>
-        <div class="lt-footer-sub" id="todayDemoPLSub"></div>
-      </div>
-    </div>
-  </div>
-  <div class="tbl-wrap" id="demoTbl"></div>
-</div>
-</div>
-
-<!-- DETAIL -->
-<div id="pgDetail" class="page">
-<div class="wrap">
-  <button class="back-btn" onclick="goBack()">← Back</button>
-  <div id="detailBody"></div>
-</div>
-</div>
-
-<!-- SETTINGS MODAL -->
-<div id="pgSettings" class="page">
-<div class="wrap">
-  <button class="back-btn" onclick="closeSettings()">← Back to Dashboard</button>
-  <h1 style="font-size:clamp(26px,5vw,36px);font-weight:900;margin-bottom:28px">Settings</h1>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EA Trading Dashboard v5.0</title>
   
-  <div class="curr-box">
-    <div class="curr-title">Display Currency</div>
-    <div class="curr-opts">
-      <button class="curr-btn" id="btnUSD" onclick="setCurrency('USD')">🇺🇸 USD</button>
-      <button class="curr-btn" id="btnEUR" onclick="setCurrency('EUR')">🇪🇺 EUR</button>
-    </div>
-    <div style="margin-top:14px;font-family:'JetBrains Mono';font-size:11px;color:var(--muted)" id="rateInfo">–</div>
-  </div>
-
-  <h2 style="font-size:20px;font-weight:700;margin:32px 0 16px">Accounts</h2>
-  <div style="overflow-x:auto">
-    <table class="settings-table" id="settingsTable"></table>
-  </div>
-
-  <div style="position:sticky;bottom:0;background:var(--bg);padding:24px 0;text-align:center;border-top:1px solid var(--border);margin-top:32px">
-    <button class="btn bg" onclick="saveAllSettings()" style="padding:14px 40px;font-size:14px">💾 Save All Changes</button>
-  </div>
-</div>
-</div>
-
-<script>
-// STATE
-let accounts = [], charts = {}, currentPeriod = 'all', detailData = null, tradePage = 1;
-let sortState = {};  // {tableId: {column, direction}}
-let currency = localStorage.getItem('ea_currency') || 'USD';
-let fxRates = { USD: 1, EUR: 1 };
-const tradesPerPage = 25;
-
-const $ = id => document.getElementById(id);
-const api = p => '.' + p;
-const R = (v, d = 2) => Math.round(v * 10 ** d) / 10 ** d;
-const gc = v => v >= 0 ? 'g' : 'r';
-const pct = v => (v >= 0 ? '+' : '') + v.toFixed(2) + '%';
-
-// iOS-safe date parser
-function parseDate(mt4Date) {
-  if (!mt4Date) return null;
-  try {
-    const cleaned = mt4Date.replace(/\./g, '-').replace(' ', 'T');
-    return new Date(cleaned.length === 16 ? cleaned + ':00' : cleaned);
-  } catch { return null; }
-}
-
-function getStartOfToday() {
-  const now = new Date();
-  return new Date(now.getFullYear(), now.getMonth(), now.getDate());
-}
-
-function getStartOfYesterday() {
-  const d = new Date();
-  d.setDate(d.getDate() - 1);
-  return new Date(d.getFullYear(), d.getMonth(), d.getDate());
-}
-
-function getEndOfYesterday() {
-  const d = new Date();
-  d.setDate(d.getDate() - 1);
-  return new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59);
-}
-
-function getStartOfWeek() {
-  const d = new Date();
-  const day = d.getDay();
-  const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Monday
-  return new Date(d.getFullYear(), d.getMonth(), diff);
-}
-
-function getStartOfLastWeek() {
-  const d = new Date();
-  const day = d.getDay();
-  const diff = d.getDate() - day + (day === 0 ? -6 : 1) - 7; // Last Monday
-  return new Date(d.getFullYear(), d.getMonth(), diff);
-}
-
-function getStartOfMonth() {
-  const d = new Date();
-  return new Date(d.getFullYear(), d.getMonth(), 1);
-}
-
-function getStartOfLastMonth() {
-  const d = new Date();
-  return new Date(d.getFullYear(), d.getMonth() - 1, 1);
-}
-
-function getEndOfLastMonth() {
-  const d = new Date();
-  return new Date(d.getFullYear(), d.getMonth(), 0, 23, 59, 59);
-}
-
-function getStartOfYear() {
-  const d = new Date();
-  return new Date(d.getFullYear(), 0, 1);
-}
-
-function getStartOfLastYear() {
-  const d = new Date();
-  return new Date(d.getFullYear() - 1, 0, 1);
-}
-
-function getEndOfLastYear() {
-  const d = new Date();
-  return new Date(d.getFullYear() - 1, 11, 31, 23, 59, 59);
-}
-
-function filterPeriod(trades, period) {
-  if (period === 'all') return trades;
-  let start, end;
+  <!-- TailwindCSS via Play CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
   
-  switch(period) {
-    case 'today': start = getStartOfToday(); break;
-    case 'yesterday': start = getStartOfYesterday(); end = getEndOfYesterday(); break;
-    case 'week': start = getStartOfWeek(); break;
-    case 'lastweek': start = getStartOfLastWeek(); end = getStartOfWeek(); break;
-    case 'month': start = getStartOfMonth(); break;
-    case 'lastmonth': start = getStartOfLastMonth(); end = getEndOfLastMonth(); break;
-    case 'year': start = getStartOfYear(); break;
-    case 'lastyear': start = getStartOfLastYear(); end = getEndOfLastYear(); break;
-    case 'last7': start = new Date(Date.now() - 7 * 86400000); break;
-    case 'last30': start = new Date(Date.now() - 30 * 86400000); break;
-    case 'last365': start = new Date(Date.now() - 365 * 86400000); break;
-    default: start = getStartOfToday();
-  }
+  <!-- Alpine.js -->
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.5/dist/cdn.min.js"></script>
   
-  return trades.filter(t => {
-    const d = parseDate(t.close_time || t.open_time);
-    if (!d) return false;
-    if (end) return d >= start && d <= end;
-    return d >= start;
-  });
-}
-
-// CURRENCY
-async function fetchRates() {
-  try {
-    const res = await fetch('https://api.frankfurter.app/latest?from=USD&to=EUR');
-    const data = await res.json();
-    fxRates.EUR = data.rates.EUR;
-    fxRates.USD = 1;
-    $('fxRateBadge').textContent = `1 USD = ${fxRates.EUR.toFixed(4)} EUR`;
-    $('rateInfo').textContent = `Live: 1 USD = ${fxRates.EUR.toFixed(4)} EUR · 1 EUR = ${(1/fxRates.EUR).toFixed(4)} USD`;
-  } catch(e) {
-    $('fxRateBadge').textContent = 'FX unavailable';
-  }
-}
-
-function toDisplayAcc(val, acctCurrency) {
-  const aC = acctCurrency || 'USD';
-  if (currency === aC) return val;
-  if (currency === 'EUR' && aC === 'USD') return val * fxRates.EUR;
-  if (currency === 'USD' && aC === 'EUR') return val / fxRates.EUR;
-  return val;
-}
-
-function toOther(val, acctCurrency) {
-  const aC = acctCurrency || 'USD';
-  if (currency === 'USD') {
-    if (aC === 'EUR') return val / fxRates.EUR;
-    return val * fxRates.EUR;
-  } else {
-    if (aC === 'USD') return val;
-    return val / fxRates.EUR;
-  }
-}
-
-function sym() { return currency === 'EUR' ? '€' : '$'; }
-function otherSym() { return currency === 'EUR' ? '$' : '€'; }
-
-function fmt(val, ac) {
-  const v = toDisplayAcc(val, ac || 'USD');
-  return (v >= 0 ? '' : '- ') + sym() + Math.abs(v).toFixed(2);
-}
-
-function fmtOther(val, ac) {
-  const v = toOther(val, ac || 'USD');
-  return '≈ ' + otherSym() + Math.abs(v).toFixed(0);
-}
-
-function setCurrency(c) {
-  currency = c;
-  localStorage.setItem('ea_currency', c);
-  $('btnUSD').classList.toggle('on', c === 'USD');
-  $('btnEUR').classList.toggle('on', c === 'EUR');
-  load();
-  if (detailData) renderDetail();
-}
-
-// DATA LOAD
-async function load() {
-  try {
-    const [ar, lr, tr] = await Promise.all([
-      fetch(api('/api/accounts')).then(r => r.json()),
-      fetch(api('/api/live-trades')).then(r => r.json()),
-      fetch(api('/api/today-trades')).then(r => r.json()),
-    ]);
-    if (ar.success) { accounts = ar.accounts; renderOverview(ar.totals, lr, tr); }
-    $('btnUSD').classList.toggle('on', currency === 'USD');
-    $('btnEUR').classList.toggle('on', currency === 'EUR');
-  } catch(e) { console.error(e); }
-}
-
-function renderOverview(t, liveData, todayData) {
-  const liveCopy = accounts.filter(a => a.category !== 'demo');
-  const totalBal = liveCopy.reduce((s, a) => s + toDisplayAcc(a.current_balance||0, a.currency), 0);
-  const totalPro = liveCopy.reduce((s, a) => s + toDisplayAcc(a.total_profit||0, a.currency), 0);
-  const totalBal_other = liveCopy.reduce((s, a) => s + toOther(a.current_balance||0, a.currency), 0);
-  const totalPro_other = liveCopy.reduce((s, a) => s + toOther(a.total_profit||0, a.currency), 0);
-
-  const fmtD = v => (v>=0?'':'-') + sym() + Math.abs(v).toFixed(2);
-  $('totBal').textContent = fmtD(totalBal);
-  $('totBalSub').textContent = '≈ ' + otherSym() + Math.abs(totalBal_other).toFixed(0);
-  $('totPro').textContent = fmtD(totalPro);
-  $('totPro').className = 'big ' + gc(totalPro);
-  $('totProSub').textContent = '≈ ' + otherSym() + Math.abs(totalPro_other).toFixed(0);
-  $('totAcc').textContent = liveCopy.length;
-  $('totTrd').textContent = liveCopy.reduce((s, a) => s + (a.total_trades || 0), 0);
-
-  const live = accounts.filter(a => a.category === 'live');
-  const copy = accounts.filter(a => a.category === 'copy');
-  const demo = accounts.filter(a => a.category === 'demo');
-  $('liveAccCnt').textContent = `(${live.length})`;
-  $('copyAccCnt').textContent = `(${copy.length})`;
-  $('demoAccCnt').textContent = `(${demo.length})`;
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   
-  renderBoxes(liveData, todayData);
-  buildTable('liveTbl', live);
-  buildTable('copyTbl', copy);
-  buildTable('demoTbl', demo);
-}
-
-function sortTable(tableId, column) {
-  const state = sortState[tableId] || {};
-  if (state.column === column) {
-    state.direction = state.direction === 'asc' ? 'desc' : 'asc';
-  } else {
-    state.column = column;
-    state.direction = 'asc';
-  }
-  sortState[tableId] = state;
-  
-  const cat = tableId === 'liveTbl' ? 'live' : tableId === 'copyTbl' ? 'copy' : 'demo';
-  let accs = accounts.filter(a => a.category === cat);
-  
-  accs.sort((a, b) => {
-    let valA = a[column] || 0;
-    let valB = b[column] || 0;
-    if (column === 'name') {
-      valA = (valA || '').toLowerCase();
-      valB = (valB || '').toLowerCase();
-      return state.direction === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
-    }
-    if (column === 'monthly_gain') {
-      const daysA = a.days_running || 1;
-      const daysB = b.days_running || 1;
-      valA = daysA > 0 ? ((a.total_profit || 0) / daysA * 30) / (a.deposit || 1) * 100 : 0;
-      valB = daysB > 0 ? ((b.total_profit || 0) / daysB * 30) / (b.deposit || 1) * 100 : 0;
-    }
-    return state.direction === 'asc' ? valA - valB : valB - valA;
-  });
-  
-  buildTable(tableId, accs, state);
-}
-
-function buildTable(id, accs, sortState) {
-  const el = $(id);
-  if (!accs.length) { el.innerHTML = '<div class="empty" style="padding:28px">No accounts</div>'; return; }
-  const sD = accs.reduce((s, a) => s + toDisplayAcc(a.deposit || 0, a.currency), 0);
-  const sB = accs.reduce((s, a) => s + toDisplayAcc(a.current_balance || 0, a.currency), 0);
-  const sP = accs.reduce((s, a) => s + toDisplayAcc(a.total_profit || 0, a.currency), 0);
-  const sT = accs.reduce((s, a) => s + (a.total_trades || 0), 0);
-  const fmtTotal = v => (v >= 0 ? '' : '- ') + sym() + Math.abs(v).toFixed(2);
-  el.innerHTML = `<table>
-    <thead><tr>
-      <th>Name</th><th class="brkr">Broker</th>
-      <th>Deposits</th><th>Balance</th><th>Profit</th>
-      <th>Gain</th><th>Trades</th><th>Win%</th><th>PF</th><th>DD</th><th>Days</th>
-    </tr></thead>
-    <tbody>
-    ${accs.map(a => {
-      const ac = a.currency || 'USD';
-      const acBadge = ac !== 'USD' ? ` <span style="font-size:9px;color:var(--blue)">${ac}</span>` : '';
-      const onlineIcon = a.is_online 
-        ? '<span style="color:var(--green);margin-right:6px;font-size:8px">●</span>'
-        : '<span style="color:var(--red);margin-right:6px;font-size:8px">●</span>';
-      return `<tr>
-        <td>${onlineIcon}<span class="alink" onclick="openDetail(${a.id})">${a.name}</span>${acBadge}</td>
-        <td class="brkr m">${a.broker || '–'}</td>
-        <td>${fmt(a.deposit || 0, ac)}<span class="td-sub">${fmtOther(a.deposit||0, ac)}</span></td>
-        <td>${fmt(a.current_balance || 0, ac)}<span class="td-sub">${fmtOther(a.current_balance||0, ac)}</span></td>
-        <td class="${gc(a.total_profit)}">${fmt(a.total_profit, ac)}<span class="td-sub">${fmtOther(a.total_profit, ac)}</span></td>
-        <td class="${gc(a.gain_percent)}">${pct(a.gain_percent)}</td>
-        <td>${a.total_trades}</td>
-        <td>${a.win_rate}%</td>
-        <td>${a.profit_factor}</td>
-        <td class="r">${a.max_drawdown}%</td>
-        <td>${a.days_running}</td>
-      </tr>`;
-    }).join('')}
-    <tr class="total-row">
-      <td>TOTAL</td>
-      <td>${fmtTotal(sD)}</td><td>${fmtTotal(sB)}</td>
-      <td class="${gc(sP)}">${fmtTotal(sP)}</td>
-      <td></td><td></td><td>${sT}</td><td></td><td></td><td></td><td></td>
-    </tr>
-    </tbody></table>`;
-}
-
-function renderBoxes(liveData, todayData) {
-  const liveTrades = liveData.live_trades || [];
-  const todayTrades = todayData.today_trades || [];
-  
-  // Live accounts
-  const liveAccIds = accounts.filter(a => a.category === 'live').map(a => a.id);
-  const liveLive = liveTrades.filter(t => liveAccIds.includes(t.account_id));
-  const liveToday = todayTrades.filter(t => liveAccIds.includes(t.account_id));
-  renderBox(liveLive, 'liveCnt', 'liveContent', 'livePL', 'livePLSub');
-  renderBox(liveToday, 'todayLiveCnt', 'todayLiveContent', 'todayLivePL', 'todayLivePLSub');
-  
-  // Copy accounts
-  const copyAccIds = accounts.filter(a => a.category === 'copy').map(a => a.id);
-  const copyLive = liveTrades.filter(t => copyAccIds.includes(t.account_id));
-  const copyToday = todayTrades.filter(t => copyAccIds.includes(t.account_id));
-  renderBox(copyLive, 'copyCnt', 'copyContent', 'copyPL', 'copyPLSub');
-  renderBox(copyToday, 'todayCopyCnt', 'todayCopyContent', 'todayCopyPL', 'todayCopyPLSub');
-  
-  // Demo accounts
-  const demoAccIds = accounts.filter(a => a.category === 'demo').map(a => a.id);
-  const demoLive = liveTrades.filter(t => demoAccIds.includes(t.account_id));
-  const demoToday = todayTrades.filter(t => demoAccIds.includes(t.account_id));
-  renderBox(demoLive, 'demoCnt', 'demoContent', 'demoPL', 'demoPLSub');
-  renderBox(demoToday, 'todayDemoCnt', 'todayDemoContent', 'todayDemoPL', 'todayDemoPLSub');
-}
-
-function renderBox(trades, cntId, contentId, plId, plSubId) {
-  $(cntId).textContent = trades.length;
-  const pl = trades.reduce((s, t) => {
-    const acc = accounts.find(a => a.id === t.account_id);
-    return s + toDisplayAcc(t.profit || 0, acc?.currency || 'USD');
-  }, 0);
-  $(plId).textContent = (pl>=0?'':'-') + sym() + Math.abs(pl).toFixed(2);
-  $(plId).className = gc(pl);
-  $(plSubId).textContent = '≈ ' + otherSym() + Math.abs(toOther(pl, 'USD')).toFixed(0);
-  $(contentId).innerHTML = trades.length
-    ? trades.map(t => {
-        const acc = accounts.find(a => a.id === t.account_id);
-        const ac = acc?.currency || 'USD';
-        const lots = t.volume || t.lots || 0;
-        return `<div class="lt-row">
-          <span>${t.account_name} · <b>${t.symbol}</b> ${t.type || ''}</span>
-          <span style="color:var(--muted);font-size:10px">${lots.toFixed(2)}</span>
-          <span class="${gc(t.profit)}">${fmt(t.profit, ac)}</span>
-        </div>`;
-      }).join('')
-    : '<div class="empty">No trades</div>';
-}
-
-
-// DETAIL
-async function openDetail(id) {
-  window.scrollTo(0, 0);  // Auto-scroll to top
-  $('pgOverview').classList.remove('on');
-  $('pgDetail').classList.add('on');
-  currentPeriod = 'all';
-  tradePage = 1;
-  const res = await fetch(api(`/api/accounts/${id}`));
-  const data = await res.json();
-  detailData = { data, acc: accounts.find(a => a.id === id) };
-  renderDetail();
-}
-
-function calcDD(trades, deposit) {
-  if (!trades.length) return 0;
-  const sorted = [...trades].sort((a, b) => new Date(a.close_time) - new Date(b.close_time));
-  let bal = deposit, peak = deposit, lowest = deposit, maxDD = 0;
-  for (const t of sorted) {
-    bal = R(bal + (t.profit || 0));
-    if (bal > peak) { peak = bal; lowest = bal; }
-    if (bal < lowest) lowest = bal;
-    if (peak > 0) {
-      const dd = (peak - lowest) / peak * 100;
-      if (dd > maxDD) maxDD = dd;
-    }
-  }
-  return R(maxDD);
-}
-
-function calcAvgDuration(trades) {
-  const durs = trades.map(t => {
-    const o = parseDate(t.open_time), c = parseDate(t.close_time);
-    if (!o || !c) return null;
-    return (c - o) / 3600000;
-  }).filter(d => d !== null && d >= 0);
-  return durs.length ? R(durs.reduce((s, d) => s + d, 0) / durs.length) : 0;
-}
-
-function renderDetail() {
-  const { data, acc } = detailData;
-  const ac = acc.currency || 'USD';
-  const allTrades = data.account.trades || [];
-  const trades = filterPeriod(allTrades, currentPeriod);
-  const dep = acc.deposit || 1;
-
-  const profit = R(trades.reduce((s, t) => s + (t.profit || 0), 0));
-  const wins = trades.filter(t => t.profit > 0);
-  const losses = trades.filter(t => t.profit < 0);
-  const gP = wins.reduce((s, t) => s + t.profit, 0);
-  const gL = Math.abs(losses.reduce((s, t) => s + t.profit, 0));
-  const wr = trades.length ? R(wins.length / trades.length * 100) : 0;
-  const pf = gL > 0 ? R(gP / gL) : (gP > 0 ? '∞' : '0');
-  const gain = R(profit / dep * 100);
-  const maxDD = calcDD(trades, dep);
-  const avgDur = calcAvgDuration(trades);
-  const best = trades.length ? Math.max(...trades.map(t => t.profit || 0)) : 0;
-  const worst = trades.length ? Math.min(...trades.map(t => t.profit || 0)) : 0;
-
-  const periods = [
-    {id:'all',label:'All Time'},{id:'today',label:'Today'},{id:'yesterday',label:'Yesterday'},
-    {id:'week',label:'This Week'},{id:'lastweek',label:'Last Week'},{id:'month',label:'This Month'},{id:'lastmonth',label:'Last Month'},{id:'year',label:'This Year'},
-    {id:'lastyear',label:'Last Year'},{id:'last7',label:'Last 7 Days'},{id:'last30',label:'Last 30 Days'},
-    {id:'last365',label:'Last 365 Days'}
-  ];
-
-  $('detailBody').innerHTML = `
-    <h1 style="font-size:clamp(22px,4vw,32px);font-weight:900;margin-bottom:6px">${acc.name}
-      <span style="font-size:11px;font-family:'JetBrains Mono';background:var(--hover);border:1px solid var(--border);border-radius:20px;padding:3px 10px;margin-left:8px;vertical-align:middle;font-weight:400">${ac}</span>
-    </h1>
-    <div style="font-family:'JetBrains Mono';font-size:11px;color:var(--muted);margin-bottom:8px">${acc.broker || ''} · ${acc.platform || 'MT4'} · 1:${acc.leverage || 0}</div>
-    <div style="font-family:'JetBrains Mono';font-size:11px;margin-bottom:24px">
-      ${acc.is_online 
-        ? `<span style="color:var(--green)">● Online</span>` 
-        : `<span style="color:var(--red)">● Offline</span> <span style="color:var(--muted)">(${acc.seconds_since_webhook ? Math.floor(acc.seconds_since_webhook/60) + 'm ago' : 'no data'})</span>`
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            dark: { bg: '#0a0e27', card: '#1a1f36', border: '#2d3748', hover: '#374151' }
+          }
+        }
       }
-    </div>
-
-    <div class="ptabs">
-      ${periods.map(p => `<button class="ptab ${p.id===currentPeriod?'on':''}" onclick="setPeriod('${p.id}')">${p.label}</button>`).join('')}
-    </div>
-
-    <div class="period-box">
-      <div class="period-stat"><div class="lbl">Profit</div><div class="val ${gc(profit)}">${fmt(profit, ac)}</div><div class="sval">${fmtOther(profit, ac)}</div></div>
-      <div class="period-stat"><div class="lbl">Return</div><div class="val ${gc(gain)}">${pct(gain)}</div></div>
-      <div class="period-stat"><div class="lbl">Trades</div><div class="val">${trades.length}</div></div>
-      <div class="period-stat"><div class="lbl">Win Rate</div><div class="val">${wr}%</div></div>
-      <div class="period-stat"><div class="lbl">Profit Factor</div><div class="val">${pf}</div></div>
-      <div class="period-stat"><div class="lbl">Max Drawdown</div><div class="val r">${maxDD}%</div></div>
-    </div>
-
-    <div class="kpi-row">
-      <div class="kpi"><div class="lbl">Balance</div><div class="val">${fmt(acc.current_balance, ac)}</div><div class="sval">${fmtOther(acc.current_balance, ac)}</div></div>
-      <div class="kpi"><div class="lbl">Total Deposits</div><div class="val g">${fmt(acc.total_deposits||0, ac)}</div><div class="sval">${fmtOther(acc.total_deposits||0, ac)}</div></div>
-      <div class="kpi"><div class="lbl">Withdrawals</div><div class="val">${fmt(acc.total_withdrawals||0, ac)}</div><div class="sval">${fmtOther(acc.total_withdrawals||0, ac)}</div></div>
-      <div class="kpi"><div class="lbl">Avg Win</div><div class="val g">${fmt(wins.length ? R(gP/wins.length) : 0, ac)}</div></div>
-      <div class="kpi"><div class="lbl">Avg Loss</div><div class="val r">${fmt(losses.length ? R(gL/losses.length) : 0, ac)}</div></div>
-      <div class="kpi"><div class="lbl">Best Trade</div><div class="val g">${fmt(best, ac)}</div></div>
-      <div class="kpi"><div class="lbl">Worst Trade</div><div class="val r">${fmt(worst, ac)}</div></div>
-      <div class="kpi"><div class="lbl">Avg Duration</div><div class="val">${avgDur}h</div></div>
-    </div>
-
-    <div class="chart-row">
-      <div class="chart-box"><h4>Equity Curve</h4><canvas id="cEq"></canvas></div>
-      <div class="chart-box"><h4>Win / Loss</h4><canvas id="cWl"></canvas></div>
-    </div>
-    <div class="chart-full"><h4>Monthly Performance</h4><canvas id="cMonth"></canvas></div>
-
-    <div class="trades-box">
-      <div class="trades-head"><h4>Trade History <span class="m">(${trades.length})</span></h4></div>
-      <div class="trades-scroll">${buildTradesTable(trades, ac)}</div>
-    </div>
-  `;
-
-  setTimeout(() => {
-    destroyCharts();
-    drawEquity(allTrades, dep, currentPeriod);
-    drawWL(wins.length, losses.length);
-    drawMonthly(allTrades);
-  }, 30);
-}
-
-function setPeriod(p) { currentPeriod = p; tradePage = 1; renderDetail(); }
-
-// CHARTS
-const TICK = { color:'#8b92a0', font:{ family:'JetBrains Mono', size:10 } };
-const scaleX = { ticks:{...TICK,maxRotation:45}, grid:{display:false} };
-const scaleY = { ticks:TICK, grid:{color:'#252a35'} };
-
-function destroyCharts() { Object.values(charts).forEach(c=>{try{c.destroy()}catch(e){}}); charts={}; }
-
-function drawEquity(trades, dep, period) {
-  const src = filterPeriod([...trades].sort((a,b)=> {
-    const da = parseDate(a.close_time), db = parseDate(b.close_time);
-    return (da||0) - (db||0);
-  }), period);
-  let bal = dep;
-  const pts = [{ y: toDisplayAcc(dep, detailData.acc.currency) }];
-  src.forEach(t => { bal = R(bal+(t.profit||0)); pts.push({ x: t.close_time, y: R(toDisplayAcc(bal, detailData.acc.currency)) }); });
-  const ctx = $('cEq'); if (!ctx) return;
-  charts.eq = new Chart(ctx, {
-    type:'line', data:{
-      labels: pts.map((p,i) => {
-        if (i===0) return 'Start';
-        const d = parseDate(p.x);
-        return d ? d.toLocaleDateString('de-DE') : '?';
-      }),
-      datasets:[{data:pts.map(p=>p.y),borderColor:'#00ff87',backgroundColor:'rgba(0,255,135,.07)',fill:true,tension:0.3,pointRadius:pts.length>60?0:2}]
-    },
-    options:{responsive:true,plugins:{legend:{display:false}},scales:{y:scaleY,x:scaleX}}
-  });
-}
-
-function drawWL(wins, losses) {
-  const ctx=$('cWl'); if(!ctx) return;
-  charts.wl = new Chart(ctx, {
-    type:'doughnut',
-    data:{labels:[`Wins (${wins})`,`Losses (${losses})`],datasets:[{data:[wins,losses],backgroundColor:['rgba(0,255,135,.8)','rgba(255,51,102,.8)'],borderWidth:0}]},
-    options:{responsive:true,cutout:'68%',plugins:{legend:{position:'bottom',labels:{color:'#8b92a0',font:{family:'JetBrains Mono',size:11},padding:16,boxWidth:12}}}}
-  });
-}
-
-function drawMonthly(trades) {
-  const ctx=$('cMonth'); if(!ctx) return;
-  const map={};
-  trades.forEach(t=>{
-    const d = parseDate(t.close_time);
-    if(!d) return;
-    const k=d.toLocaleDateString('de-DE',{year:'2-digit',month:'short'});
-    map[k]=R((map[k]||0)+(t.profit||0));
-  });
-  const entries=Object.entries(map);
-  charts.month = new Chart(ctx, {
-    type:'bar',
-    data:{labels:entries.map(e=>e[0]),datasets:[{data:entries.map(e=>R(toDisplayAcc(e[1], detailData.acc.currency))),backgroundColor:entries.map(e=>e[1]>=0?'rgba(0,255,135,.75)':'rgba(255,51,102,.75)'),borderRadius:4}]},
-    options:{responsive:true,plugins:{legend:{display:false}},scales:{y:scaleY,x:scaleX}}
-  });
-}
-
-function buildTradesTable(trades, ac) {
-  ac = ac || 'USD';
-  if (!trades.length) return '<div class="empty" style="padding:28px">No trades in this period</div>';
+    }
+  </script>
   
-  const sorted = [...trades].sort((a,b) => {
-    const da = parseDate(b.close_time), db = parseDate(a.close_time);
-    return (da||0) - (db||0);
-  });
-  
-  const totalPages = Math.ceil(sorted.length / tradesPerPage);
-  if (tradePage > totalPages) tradePage = 1;
-  const start = (tradePage - 1) * tradesPerPage;
-  const end = start + tradesPerPage;
-  const page = sorted.slice(start, end);
-  
-  const table = `<table><thead><tr><th>Date</th><th>Symbol</th><th>Type</th><th>Lots</th><th>Open</th><th>Close</th><th>Profit</th></tr></thead><tbody>
-    ${page.map(t => {
-      const d = parseDate(t.close_time);
-      const dateStr = d ? d.toLocaleDateString('de-DE') : 'Invalid';
-      return `<tr>
-        <td class="m" style="font-size:10px">${dateStr}</td>
-        <td><b>${t.symbol}</b></td><td>${t.type}</td><td>${t.lots}</td>
-        <td class="m">${t.open_price}</td><td class="m">${t.close_price}</td>
-        <td class="${gc(t.profit||0)}">${fmt(t.profit||0, ac)}<span class="td-sub">${fmtOther(t.profit||0, ac)}</span></td>
-      </tr>`;
-    }).join('')}
-  </tbody></table>`;
-  
-  if (totalPages > 1) {
-    return table + `<div class="pagination">
-      <button onclick="changePage(${tradePage-1})" ${tradePage<=1?'disabled':''}>← Prev</button>
-      <span>Page ${tradePage} of ${totalPages} (${sorted.length} trades)</span>
-      <input type="number" value="${tradePage}" min="1" max="${totalPages}" onchange="changePage(parseInt(this.value)||1)">
-      <button onclick="changePage(${tradePage+1})" ${tradePage>=totalPages?'disabled':''}>Next →</button>
-    </div>`;
-  }
-  return table;
-}
+  <style>
+    [x-cloak] { display: none !important; }
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: #1a1f36; }
+    ::-webkit-scrollbar-thumb { background: #2d3748; border-radius: 4px; }
+  </style>
+</head>
 
-function changePage(p) { tradePage = p; renderDetail(); }
-function goBack() { destroyCharts(); $('pgDetail').classList.remove('on'); $('pgOverview').classList.add('on'); }
+<body class="bg-dark-bg text-gray-100" x-data="dashboard()" x-init="init()">
+  <!-- Nav -->
+  <nav class="bg-dark-card border-b border-dark-border sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+      <h1 class="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
+        📊 EA Dashboard <span class="text-xs text-gray-500">v5.0</span>
+      </h1>
+      <div class="flex items-center space-x-3">
+        <div class="text-sm text-gray-400 flex items-center space-x-2">
+          <div class="w-2 h-2 rounded-full" :class="loading ? 'bg-yellow-500 animate-pulse' : 'bg-green-500'"></div>
+          <span x-text="loading ? 'Loading...' : 'Live'"></span>
+        </div>
+        <a href="/docs" class="text-gray-400 hover:text-blue-400 text-sm">API</a>
+      </div>
+    </div>
+  </nav>
 
-// SETTINGS
-function openSettings() {
-  $('pgOverview').classList.remove('on');
-  $('pgSettings').classList.add('on');
-  $('btnUSD').classList.toggle('on', currency==='USD');
-  $('btnEUR').classList.toggle('on', currency==='EUR');
-  $('settingsTable').innerHTML = `
-    <thead>
-      <tr>
-        <th>Account</th>
-        <th>Category</th>
-        <th>Currency</th>
-        <th>Manual Deposit</th>
-        <th>Online Timeout (sec)</th>
-        <th></th>
-      </tr>
-    </thead>
-    <tbody>
-      ${accounts.map(a => `<tr>
-        <td><b>${a.name}</b><br><span style="color:var(--muted);font-size:9px">#${a.account_number}</span></td>
-        <td><span style="font-size:9px;background:var(--hover);padding:2px 8px;border-radius:12px">${a.category.toUpperCase()}</span></td>
-        <td>
-          <select id="cur_${a.id}">
-            <option value="USD" ${(a.currency||'USD')==='USD'?'selected':''}>🇺🇸 USD</option>
-            <option value="EUR" ${(a.currency||'USD')==='EUR'?'selected':''}>🇪🇺 EUR</option>
-            <option value="GBP" ${(a.currency||'USD')==='GBP'?'selected':''}>🇬🇧 GBP</option>
-          </select>
-        </td>
-        <td>
-          <input type="number" value="${a.manual_deposit||0}" id="dep_${a.id}" step="0.01">
-        </td>
-        <td>
-          <input type="number" value="${a.online_timeout||60}" id="timeout_${a.id}" min="10" max="600">
-        </td>
-        <td>
-          <button class="del-btn" onclick="delAcc(${a.id})">🗑</button>
-        </td>
-      </tr>`).join('')}
-    </tbody>
-  `;
-  window.scrollTo(0, 0);
-}
+  <main class="max-w-7xl mx-auto px-4 py-8">
+    <!-- KPIs -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div class="bg-dark-card rounded-xl p-6 border border-dark-border">
+        <div class="text-sm text-gray-400 mb-2">Balance</div>
+        <div class="text-2xl font-bold" x-text="fmt(summary.total_balance)"></div>
+      </div>
+      <div class="bg-dark-card rounded-xl p-6 border border-dark-border">
+        <div class="text-sm text-gray-400 mb-2">Profit</div>
+        <div class="text-2xl font-bold" :class="summary.total_profit >= 0 ? 'text-green-400' : 'text-red-400'" 
+             x-text="fmt(summary.total_profit)"></div>
+      </div>
+      <div class="bg-dark-card rounded-xl p-6 border border-dark-border">
+        <div class="text-sm text-gray-400 mb-2">Accounts</div>
+        <div class="text-2xl font-bold" x-text="summary.total_accounts"></div>
+      </div>
+      <div class="bg-dark-card rounded-xl p-6 border border-dark-border">
+        <div class="text-sm text-gray-400 mb-2">Trades</div>
+        <div class="text-2xl font-bold" x-text="summary.total_trades"></div>
+      </div>
+    </div>
 
-function closeSettings() {
-  $('pgSettings').classList.remove('on');
-  $('pgOverview').classList.add('on');
-  window.scrollTo(0, 0);
-}
+    <!-- Filter Tabs -->
+    <div class="flex space-x-2 mb-6 overflow-x-auto pb-2">
+      <button @click="filter = 'all'" :class="filter === 'all' ? 'bg-blue-500 text-white' : 'bg-dark-card text-gray-400'" 
+              class="px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap">Alle</button>
+      <button @click="filter = 'live'" :class="filter === 'live' ? 'bg-green-500 text-white' : 'bg-dark-card text-gray-400'" 
+              class="px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap">🟢 Live</button>
+      <button @click="filter = 'copy'" :class="filter === 'copy' ? 'bg-blue-500 text-white' : 'bg-dark-card text-gray-400'" 
+              class="px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap">🔵 Copy</button>
+      <button @click="filter = 'demo'" :class="filter === 'demo' ? 'bg-orange-500 text-white' : 'bg-dark-card text-gray-400'" 
+              class="px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap">🟠 Demo</button>
+    </div>
 
-async function saveAllSettings() {
-  for (const a of accounts) {
-    const dep = parseFloat($(`dep_${a.id}`).value) || 0;
-    const cur = $(`cur_${a.id}`).value;
-    const timeout = parseInt($(`timeout_${a.id}`).value) || 60;
-    await fetch(api(`/api/accounts/${a.id}`), {
-      method: 'PUT',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ manual_deposit: dep, currency: cur, online_timeout: timeout })
-    });
-  }
-  closeSettings();
-  load();
-}
+    <!-- Accounts Grid -->
+    <div class="grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
+      <template x-for="acc in filtered" :key="acc.id">
+        <div class="bg-dark-card rounded-xl p-6 border border-dark-border hover:border-blue-500/50 transition cursor-pointer">
+          <div class="flex justify-between items-start mb-4">
+            <div>
+              <h3 class="text-lg font-semibold" x-text="acc.name"></h3>
+              <div class="flex items-center space-x-2 mt-1">
+                <span class="text-xs text-gray-500" x-text="'#' + acc.account_number"></span>
+                <span class="text-xs px-2 py-0.5 rounded-full bg-dark-bg uppercase" 
+                      :class="{'text-green-400': acc.category === 'live', 'text-blue-400': acc.category === 'copy', 'text-orange-400': acc.category === 'demo'}"
+                      x-text="acc.category"></span>
+              </div>
+            </div>
+            <div class="flex items-center space-x-1">
+              <div class="w-2 h-2 rounded-full" :class="acc.is_online ? 'bg-green-500' : 'bg-red-500'"></div>
+              <span class="text-xs text-gray-500" x-text="acc.is_online ? 'On' : 'Off'"></span>
+            </div>
+          </div>
+          
+          <div class="grid grid-cols-2 gap-3 text-sm">
+            <div>
+              <div class="text-gray-500 text-xs">Balance</div>
+              <div class="font-semibold" x-text="fmt(acc.current_balance, acc.currency)"></div>
+            </div>
+            <div>
+              <div class="text-gray-500 text-xs">Profit</div>
+              <div class="font-semibold" :class="(acc.total_profit || 0) >= 0 ? 'text-green-400' : 'text-red-400'" 
+                   x-text="fmt(acc.total_profit, acc.currency)"></div>
+            </div>
+            <div>
+              <div class="text-gray-500 text-xs">Gain</div>
+              <div :class="(acc.gain_percent || 0) >= 0 ? 'text-green-400' : 'text-red-400'" 
+                   x-text="(acc.gain_percent || 0).toFixed(2) + '%'"></div>
+            </div>
+            <div>
+              <div class="text-gray-500 text-xs">Trades</div>
+              <div x-text="acc.total_trades || 0"></div>
+            </div>
+          </div>
+          
+          <div class="mt-4 pt-4 border-t border-dark-border text-xs text-gray-500 flex justify-between">
+            <span x-text="'Win: ' + (acc.win_rate || 0).toFixed(1) + '%'"></span>
+            <span x-text="acc.start_date ? new Date(acc.start_date).toLocaleDateString('de-DE') : (acc.days_running + 'd')"></span>
+          </div>
+        </div>
+      </template>
+    </div>
 
-async function delAcc(id) {
-  if(!confirm('Delete this account?')) return;
-  await fetch(api(`/api/accounts/${id}`),{method:'DELETE'});
-  load();
-  openSettings(); // refresh
-}
+    <!-- Empty State -->
+    <div x-show="filtered.length === 0" x-cloak class="text-center py-16 bg-dark-card rounded-xl border border-dark-border">
+      <h3 class="text-lg text-gray-400">Keine Accounts</h3>
+      <p class="text-sm text-gray-500 mt-2">Sende einen Webhook von MT4/MT5</p>
+    </div>
+  </main>
 
-// INIT
-fetchRates().catch(e => {
-  console.warn('FX rates unavailable:', e);
-  $('fxRateBadge').textContent = 'FX unavailable';
-}).finally(() => load());
-setInterval(load, 10000);
-setInterval(() => fetchRates().catch(e => console.warn('FX update failed:', e)), 3600000);
-</script>
+  <script>
+    function dashboard() {
+      return {
+        loading: false,
+        filter: 'all',
+        accounts: [],
+        summary: { total_balance: 0, total_profit: 0, total_accounts: 0, total_trades: 0 },
+        
+        get filtered() {
+          return this.filter === 'all' ? this.accounts : this.accounts.filter(a => a.category === this.filter);
+        },
+        
+        async init() {
+          await this.load();
+          setInterval(() => this.load(), 10000);
+        },
+        
+        async load() {
+          this.loading = true;
+          try {
+            const [sum, accs] = await Promise.all([
+              fetch('/api/analytics/summary').then(r => r.json()),
+              fetch('/api/accounts').then(r => r.json())
+            ]);
+            if (sum.success) this.summary = sum;
+            if (accs.success) this.accounts = accs.accounts;
+          } catch (e) {
+            console.error(e);
+          } finally {
+            this.loading = false;
+          }
+        },
+        
+        fmt(v, c = 'USD') {
+          return v == null ? '–' : new Intl.NumberFormat('de-DE', { style: 'currency', currency: c }).format(v);
+        }
+      }
+    }
+  </script>
 </body>
 </html>
